@@ -42,6 +42,13 @@ return [
         'delete_confirm_message'     => 'Da li ste sigurni da želite da obrišete ovog promoter menadžera? Sub-promoteri koje je on dodao će takođe biti obrisani.',
         'no_managers_header'         => 'Nema promoter menadžera',
         'no_managers_message'        => 'Započnite dodavanjem promoter menadžera.',
+        'record_payment_button'      => 'Evidentiraj Uplatu',
+        'record_payment_modal_title' => 'Evidentiraj Uplatu Organizatorima',
+        'record_payment_amount_label'=> 'Iznos (RSD)',
+        'record_payment_note_label'  => 'Napomena (opciono)',
+        'record_payment_submit'      => 'Evidentiraj Uplatu',
+        'record_payment_cancel'      => 'Otkaži',
+        'record_payment_helper'      => 'Evidentiranje uplate smanjuje dug menadžera prema organizatorima.',
     ],
 
     'dashboard' => [

@@ -42,6 +42,13 @@ return [
         'delete_confirm_message'     => 'Are you sure you want to delete this promoter-manager? Sub-promoters added by this manager will also be deleted.',
         'no_managers_header'         => 'No promoter-managers yet',
         'no_managers_message'        => 'Get started by adding a promoter-manager.',
+        'record_payment_button'      => 'Record Payment',
+        'record_payment_modal_title' => 'Record Payment to Organizers',
+        'record_payment_amount_label'=> 'Amount (RSD)',
+        'record_payment_note_label'  => 'Note (optional)',
+        'record_payment_submit'      => 'Record Payment',
+        'record_payment_cancel'      => 'Cancel',
+        'record_payment_helper'      => 'Recording a payment reduces the manager\'s outstanding balance to the organizers.',
     ],
 
     'dashboard' => [
