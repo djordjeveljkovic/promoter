@@ -179,52 +179,34 @@
                 </div>
             </section>
 
-            {{-- ===================== Record payment to manager ===================== --}}
+            {{-- ===================== Notice: payments are recorded by manager ===================== --}}
+            {{--
+                Per the new business rules a sub-promoter CANNOT record any
+                payment. The "how much do I owe" tile above shows the live
+                balance; the "Payment history" section below lists every
+                payment that the sub-promoter's manager has recorded on
+                their behalf. We therefore render a short informational
+                banner instead of a recording form.
+            --}}
             <section class="mb-8 sm:mb-12">
                 <div class="overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-gray-200 dark:bg-zinc-900 dark:ring-zinc-800">
                     <div class="border-b border-gray-200 px-5 py-4 dark:border-zinc-800 sm:px-6">
                         <h2 class="text-base font-semibold text-gray-900 dark:text-white">
-                            {{ __('sub_promoter_dashboard.record_payment.heading') }}
+                            {{ __('sub_promoter_dashboard.record_payment_notice.heading') }}
                         </h2>
                         <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                            {{ __('sub_promoter_dashboard.record_payment.helper_text') }}
+                            {{ __('sub_promoter_dashboard.record_payment_notice.helper_text') }}
                         </p>
                     </div>
-                    <form method="POST" action="{{ route('sub_promoter.payments.to_manager.store') }}" class="grid grid-cols-1 gap-4 p-5 sm:grid-cols-12 sm:p-6">
-                        @csrf
-                        <div class="sm:col-span-3">
-                            <label for="sub_pay_amount" class="block text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
-                                {{ __('sub_promoter_dashboard.record_payment.amount_label') }}
-                            </label>
-                            <input type="number" name="amount" id="sub_pay_amount" step="0.01" min="0.01" max="{{ max($amountOwedToManager, 0) > 0 ? $amountOwedToManager : 9999999.99 }}" required
-                                   placeholder="0.00"
-                                   class="mt-1 block w-full rounded-md border-gray-300 bg-white text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-zinc-700 dark:bg-zinc-800 dark:text-white sm:text-sm p-2.5" />
-                            @error('amount') <p class="mt-1 text-xs text-rose-500">{{ $message }}</p> @enderror
-                        </div>
-                        <div class="sm:col-span-3">
-                            <label for="sub_pay_paid_at" class="block text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
-                                {{ __('sub_promoter_dashboard.record_payment.paid_at_label') }}
-                            </label>
-                            <input type="date" name="paid_at" id="sub_pay_paid_at" value="{{ now()->toDateString() }}"
-                                   class="mt-1 block w-full rounded-md border-gray-300 bg-white text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-zinc-700 dark:bg-zinc-800 dark:text-white sm:text-sm p-2.5" />
-                            @error('paid_at') <p class="mt-1 text-xs text-rose-500">{{ $message }}</p> @enderror
-                        </div>
-                        <div class="sm:col-span-6">
-                            <label for="sub_pay_note" class="block text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
-                                {{ __('sub_promoter_dashboard.record_payment.note_label') }}
-                            </label>
-                            <input type="text" name="note" id="sub_pay_note" maxlength="500"
-                                   class="mt-1 block w-full rounded-md border-gray-300 bg-white text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-zinc-700 dark:bg-zinc-800 dark:text-white sm:text-sm p-2.5" />
-                            @error('note') <p class="mt-1 text-xs text-rose-500">{{ $message }}</p> @enderror
-                        </div>
-                        <div class="sm:col-span-12 flex items-center justify-end">
-                            <button type="submit"
-                                    class="inline-flex items-center justify-center gap-2 rounded-md bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-zinc-950">
-                                <flux:icon name="banknotes" class="size-4" />
-                                {{ __('sub_promoter_dashboard.record_payment.submit_button') }}
-                            </button>
-                        </div>
-                    </form>
+                    <div class="flex items-start gap-3 p-5 text-sm text-gray-700 dark:text-gray-200 sm:p-6">
+                        <flux:icon name="information-circle" class="mt-0.5 size-5 shrink-0 text-indigo-500" />
+                        <p>
+                            {{ __('sub_promoter_dashboard.record_payment_notice.body') }}
+                            @if($manager)
+                                <span class="font-medium text-gray-900 dark:text-white">{{ $manager->name }}</span>.
+                            @endif
+                        </p>
+                    </div>
                 </div>
             </section>
 
@@ -550,6 +532,9 @@
                                         <th class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-300 sm:px-6">
                                             {{ __('sub_promoter_dashboard.payment_history.note') }}
                                         </th>
+                                        <th class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-300 sm:px-6">
+                                            {{ __('sub_promoter_dashboard.payment_history.recorded_by') }}
+                                        </th>
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-gray-200 bg-white dark:divide-zinc-800 dark:bg-zinc-900">
@@ -579,6 +564,9 @@
                                             </td>
                                             <td class="px-5 py-3 text-sm text-gray-500 dark:text-gray-400 sm:px-6">
                                                 {{ $payment->note ?? '—' }}
+                                            </td>
+                                            <td class="whitespace-nowrap px-5 py-3 text-sm text-gray-500 dark:text-gray-400 sm:px-6">
+                                                {{ $payment->recorder?->name ?? '—' }}
                                             </td>
                                         </tr>
                                     @endforeach

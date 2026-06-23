@@ -93,21 +93,49 @@ return [
             'no_orders'         => 'Još nema završenih porudžbina',
         ],
 
-        /* ------------------ Forma "Plati organizatorima" ------------------ */
-        'pay_organizers' => [
-            'heading'           => 'Dugujem Organizatorima',
-            'sub_heading'       => 'Ovoliko dugujete organizatorima eventa: ukupna bruto prodaja tima minus kompletna provizija tima (vaša + provizije svih sub-promotera), minus sve što ste već uplatili.',
-            'amount_label'      => 'Iznos za evidentiranje (RSD)',
-            'paid_at_label'     => 'Datum uplate',
-            'note_label'        => 'Napomena (opciono)',
-            'submit_button'     => 'Evidentiraj Uplatu Organizatorima',
-            'helper_text'       => 'Koristite ovo kad god prebacite novac organizatorima eventa. Kontrolna tabla se odmah ažurira.',
+        /* ------------------ Obaveštenje "Plati organizatorima" ------------------ */
+        'pay_organizers_notice' => [
+            'heading'           => 'Evidentiranje Uplata Organizatorima',
+            'body'              => 'Ne možete sami evidentirati svoje uplate organizatorima — admin beleži svaki prenos za vas. Stanje iznad odražava ukupan iznos evidentiranih uplata, a lista „Uplate Uplaćene Organizatorima" na dnu ove stranice prikazuje svaku stavku sa adminom koji ju je uneo.',
+        ],
+
+        /* ------------------ Stranica admin izmene ------------------ */
+        'admin_edit' => [
+            'debt_summary_heading'         => 'Pregled Duga za Ovog Menadžera',
+            'team_gross_label'             => 'Bruto prodaja tima',
+            'manager_commission_label'     => 'Provizija menadžera',
+            'amount_already_paid_label'    => 'Već plaćeno organizatorima',
+            'owed_to_organizers_label'     => 'Još duguje organizatorima',
+            'record_manager_payment_heading' => 'Evidentiraj Uplatu Od Ovog Menadžera Organizatorima',
+            'record_manager_payment_help'  => 'Evidentirajte prenos koji je ovaj menadžer izvršio organizatorima eventa. Samo admin može evidentirati ovakvu uplatu — sam menadžer to ne može.',
+            'submit_manager_payment_button' => 'Evidentiraj Uplatu Menadžera',
+            'subs_debts_heading'           => 'Dugovi Sub-Promotera i Evidentiranje Uplata',
+            'subs_debts_help'              => 'Evidentirajte uplatu koju je neki sub-promoter ovog menadžera izvršio prema njemu. Svaka forma šalje podatke admin endpointu i nova stavka se odmah pojavljuje u istoriji uplata menadžera.',
+            'no_subs'                      => 'Ovaj menadžer još nema sub-promotera.',
+            'sub_gross_label'              => 'Bruto',
+            'sub_commission_label'         => 'Provizija',
+            'sub_paid_label'               => 'Plaćeno',
+            'sub_owed_label'               => 'Duguje',
+            'submit_sub_payment_button'    => 'Evidentiraj Uplatu',
+            'from_subs_heading'            => 'Uplate Primljene od Sub-Promotera',
+            'from_subs_empty'              => 'Još nema uplata od sub-promotera.',
+            'to_organizers_heading'        => 'Uplate Uplaćene Organizatorima',
+            'to_organizers_empty'          => 'Još nema evidentiranih uplata organizatorima.',
+            'amount_label'                 => 'Iznos (RSD)',
+            'paid_at_label'                => 'Datum uplate',
+            'note_label'                   => 'Napomena (opciono)',
+            'recorded_by'                  => 'Evidentirao',
+            'danger_zone_heading'          => 'Opasna Zona',
+            'danger_zone_help'             => 'Brisanje ovog menadžera takođe briše sve njegove sub-promotere i sve zapise u istoriji uplata.',
+            'delete_manager_button'        => 'Obriši ovog promoter menadžera',
         ],
 
         /* ------------------ Istorijat uplata ------------------ */
         'payment_history' => [
             'from_subs_heading'     => 'Uplate Primljene od Sub-Promotera',
+            'from_subs_subtext'     => 'Svaku stavku evidentirate vi (menadžer) ili, u izuzetnim slučajevima, admin.',
             'to_organizers_heading' => 'Uplate Uplaćene Organizatorima',
+            'to_organizers_subtext' => 'Ove stavke evidentira admin u vaše ime — vi ne možete sami dodavati u ovu listu.',
             'from_subs_empty'       => 'Još nema uplata od sub-promotera.',
             'to_organizers_empty'   => 'Još nema evidentiranih uplata organizatorima.',
             'date'                  => 'Datum',

@@ -70,8 +70,35 @@ class PromoterManagerController extends Controller
 
     public function edit($id)
     {
-        $manager = User::where('role', 'promoter_manager')->findOrFail($id);
-        return view('pages.admin.promoter_managers.edit', compact('manager'));
+        $manager = User::where('role', 'promoter_manager')
+            ->with(['subPromoters'])
+            ->findOrFail($id);
+
+        /** @var DebtService $debt */
+        $debt = app(DebtService::class);
+
+        // Manager's own debt summary (amount owed to organizers).
+        $debtSummary = $debt->promoterManagerDebt($manager);
+
+        // Per-sub-promoter debt breakdown used by the from-sub recording
+        // form on the page.
+        $subDebts = $debt->subDebtsForManager($manager);
+        $subs = $subDebts->pluck('user');
+
+        // Payment histories the admin might want to inspect on this page:
+        //   - payments the manager received from his sub-promoters
+        //   - payments the manager made to the organizers
+        $recentPaymentsFromSubs = $debt->recentPaymentsReceivedByManager($manager, 15);
+        $recentPaymentsToOrganizers = $debt->recentPaymentsToOrganizersByManager($manager, 15);
+
+        return view('pages.admin.promoter_managers.edit', compact(
+            'manager',
+            'debtSummary',
+            'subDebts',
+            'subs',
+            'recentPaymentsFromSubs',
+            'recentPaymentsToOrganizers'
+        ));
     }
 
     public function update(Request $request, $id)

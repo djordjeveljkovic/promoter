@@ -51,9 +51,12 @@ return [
     'validation_failed_check_fields' => 'Validation failed. Please check the input fields for errors.',
 
     // Debt / payment recording alerts
-    'payment_recorded_success'              => 'Payment of :amount RSD from :name recorded.',
-    'payment_to_organizers_recorded_success'=> 'Payment of :amount RSD to organizers recorded.',
-    'payment_amount_invalid'                => 'Payment amount must be greater than zero.',
+    'payment_recorded_success'                  => 'Payment of :amount RSD from :name recorded.',
+    'payment_to_organizers_recorded_success'    => 'Payment of :amount RSD to organizers recorded.',
+    'payment_amount_invalid'                    => 'Payment amount must be greater than zero.',
+    'admin_payment_from_sub_recorded_success'   => 'Recorded :amount RSD from :name (sub-promoter of :manager) to the manager.',
+    'admin_payment_from_manager_recorded_success'=> 'Recorded :amount RSD payment from :name to the organizers.',
+    'payment_recording_forbidden'               => 'You are not allowed to record this payment.',
 
     // Email template alerts
     'email_template_created'           => 'Email template ":name" created successfully.',

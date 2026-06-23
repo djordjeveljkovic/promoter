@@ -77,19 +77,15 @@ return [
         'header_status'     => 'Status',
     ],
 
-    'record_payment' => [
-        'heading'           => 'Record a Payment to My Manager',
-        'sub_heading'       => 'Use this when you have transferred money to your promoter-manager. Your manager will also keep a record on their side, so you can also ask them to log it.',
-        'amount_label'      => 'Amount (RSD)',
-        'paid_at_label'     => 'Date of payment',
-        'note_label'        => 'Note (optional)',
-        'submit_button'     => 'Record Payment',
-        'helper_text'       => 'Recording here updates the dashboard immediately and gives you a personal journal of payments made.',
+    'record_payment_notice' => [
+        'heading'           => 'Payments',
+        'helper_text'       => 'You do not record payments yourself — your promoter-manager records every transfer on your behalf.',
+        'body'              => 'The balance above reflects every payment your manager has logged for you. To make a payment, hand the cash to your manager and ask them to record it on this page. Your manager is the only person who can log a payment in the system.',
     ],
 
     'payment_history' => [
         'heading'           => 'My Payment History',
-        'sub_heading'       => 'Every payment you have sent to your promoter-manager, newest first. Your manager\'s record is the source of truth, but you can also see your own entries here.',
+        'sub_heading'       => 'Every payment your promoter-manager has recorded for you, newest first. Your manager is the only person who can add entries here, so this list is the definitive journal of what you have paid.',
         'date'              => 'Date',
         'amount'            => 'Amount',
         'direction'         => 'Direction',

@@ -248,51 +248,29 @@
                 </div>
             </section>
 
-            {{-- ===================== Pay organizers form ===================== --}}
+            {{-- ===================== Manager's own payment notice ===================== --}}
+            {{--
+                Per the new business rules a promoter-manager CANNOT record
+                their own payment to the organizers. The "I Owe to
+                Organizers" hero above shows the live balance, the
+                "Payments Made to Organizers" list at the bottom of the
+                page shows every admin-recorded payment. We therefore
+                render a short informational banner here instead of a
+                recording form.
+            --}}
             <section class="mb-8 sm:mb-12">
                 <div class="overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-gray-200 dark:bg-zinc-900 dark:ring-zinc-800">
                     <div class="border-b border-gray-200 px-5 py-4 dark:border-zinc-800 sm:px-6">
                         <h2 class="text-base font-semibold text-gray-900 dark:text-white">
-                            {{ __('promoter_managers.dashboard.pay_organizers.heading') }}
+                            {{ __('promoter_managers.dashboard.pay_organizers_notice.heading') }}
                         </h2>
-                        <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                            {{ __('promoter_managers.dashboard.pay_organizers.helper_text') }}
+                    </div>
+                    <div class="flex items-start gap-3 p-5 text-sm text-gray-700 dark:text-gray-200 sm:p-6">
+                        <flux:icon name="information-circle" class="mt-0.5 size-5 shrink-0 text-indigo-500" />
+                        <p>
+                            {{ __('promoter_managers.dashboard.pay_organizers_notice.body') }}
                         </p>
                     </div>
-                    <form method="POST" action="{{ route('promoter_manager.payments.to_organizers.store') }}" class="grid grid-cols-1 gap-4 p-5 sm:grid-cols-12 sm:p-6">
-                        @csrf
-                        <div class="sm:col-span-3">
-                            <label for="pay_org_amount" class="block text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
-                                {{ __('promoter_managers.dashboard.pay_organizers.amount_label') }}
-                            </label>
-                            <input type="number" name="amount" id="pay_org_amount" step="0.01" min="0.01" required
-                                   class="mt-1 block w-full rounded-md border-gray-300 bg-white text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-zinc-700 dark:bg-zinc-800 dark:text-white sm:text-sm p-2.5" />
-                            @error('amount') <p class="mt-1 text-xs text-rose-500">{{ $message }}</p> @enderror
-                        </div>
-                        <div class="sm:col-span-3">
-                            <label for="pay_org_paid_at" class="block text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
-                                {{ __('promoter_managers.dashboard.pay_organizers.paid_at_label') }}
-                            </label>
-                            <input type="date" name="paid_at" id="pay_org_paid_at" value="{{ now()->toDateString() }}"
-                                   class="mt-1 block w-full rounded-md border-gray-300 bg-white text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-zinc-700 dark:bg-zinc-800 dark:text-white sm:text-sm p-2.5" />
-                            @error('paid_at') <p class="mt-1 text-xs text-rose-500">{{ $message }}</p> @enderror
-                        </div>
-                        <div class="sm:col-span-6">
-                            <label for="pay_org_note" class="block text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
-                                {{ __('promoter_managers.dashboard.pay_organizers.note_label') }}
-                            </label>
-                            <input type="text" name="note" id="pay_org_note" maxlength="500"
-                                   class="mt-1 block w-full rounded-md border-gray-300 bg-white text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-zinc-700 dark:bg-zinc-800 dark:text-white sm:text-sm p-2.5" />
-                            @error('note') <p class="mt-1 text-xs text-rose-500">{{ $message }}</p> @enderror
-                        </div>
-                        <div class="sm:col-span-12 flex items-center justify-end">
-                            <button type="submit"
-                                    class="inline-flex items-center justify-center gap-2 rounded-md bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-zinc-950">
-                                <flux:icon name="banknotes" class="size-4" />
-                                {{ __('promoter_managers.dashboard.pay_organizers.submit_button') }}
-                            </button>
-                        </div>
-                    </form>
                 </div>
             </section>
 
@@ -496,6 +474,9 @@
                         <h2 class="text-base font-semibold text-gray-900 dark:text-white">
                             {{ __('promoter_managers.dashboard.payment_history.from_subs_heading') }}
                         </h2>
+                        <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                            {{ __('promoter_managers.dashboard.payment_history.from_subs_subtext') }}
+                        </p>
                     </div>
                     @if($recentPaymentsFromSubs->isEmpty())
                         <div class="px-6 py-10 text-center text-sm text-gray-500 dark:text-gray-400">
@@ -515,6 +496,9 @@
                                                 @if($payment->note)
                                                     · {{ $payment->note }}
                                                 @endif
+                                                @if($payment->recorder && $payment->recorder->id !== $manager->id)
+                                                    · {{ __('promoter_managers.dashboard.payment_history.recorded_by') }}: {{ $payment->recorder->name }}
+                                                @endif
                                             </p>
                                         </div>
                                         <span class="shrink-0 text-sm font-semibold text-emerald-600 dark:text-emerald-400">
@@ -527,12 +511,15 @@
                     @endif
                 </div>
 
-                {{-- To organizers --}}
+                {{-- To organizers (recorded by admin) --}}
                 <div class="overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-gray-200 dark:bg-zinc-900 dark:ring-zinc-800">
                     <div class="border-b border-gray-200 px-5 py-4 dark:border-zinc-800 sm:px-6">
                         <h2 class="text-base font-semibold text-gray-900 dark:text-white">
                             {{ __('promoter_managers.dashboard.payment_history.to_organizers_heading') }}
                         </h2>
+                        <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                            {{ __('promoter_managers.dashboard.payment_history.to_organizers_subtext') }}
+                        </p>
                     </div>
                     @if($recentPaymentsToOrganizers->isEmpty())
                         <div class="px-6 py-10 text-center text-sm text-gray-500 dark:text-gray-400">
@@ -547,9 +534,12 @@
                                             <p class="truncate text-sm font-medium text-gray-900 dark:text-white">
                                                 {{ $payment->paid_at->format('d M Y') }}
                                             </p>
-                                            @if($payment->note)
-                                                <p class="truncate text-xs text-gray-500 dark:text-gray-400">{{ $payment->note }}</p>
-                                            @endif
+                                            <p class="text-xs text-gray-500 dark:text-gray-400">
+                                                {{ __('promoter_managers.dashboard.payment_history.recorded_by') }}: {{ $payment->recorder?->name ?? '—' }}
+                                                @if($payment->note)
+                                                    · {{ $payment->note }}
+                                                @endif
+                                            </p>
                                         </div>
                                         <span class="shrink-0 text-sm font-semibold text-indigo-600 dark:text-indigo-400">
                                             − {{ number_format((float) $payment->amount, 2) }} RSD

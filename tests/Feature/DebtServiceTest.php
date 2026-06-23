@@ -181,17 +181,46 @@ class DebtServiceTest extends TestCase
         // gross=1000, manager_commission=100, sub_commission=0
         // debt = 1000 - 100 - 0 = 900
 
+        // Per the new business rules only an admin can record the
+        // manager-to-organizers payment.
+        $admin = User::create([
+            'name'     => 'Admin One',
+            'email'    => 'admin-debt@example.com',
+            'password' => Hash::make('secret123'),
+            'role'     => 'admin',
+        ]);
+
         $debt->recordPayment(
             SubPromoterPayment::TYPE_MANAGER_TO_ORGANIZERS,
             payer: $manager,
             receiver: $manager,
             amount: 200.0,
-            recorder: $manager,
+            recorder: $admin,
         );
 
         $summary = $debt->promoterManagerDebt($manager);
         $this->assertSame(200.0, $summary['amount_already_paid_to_organizers']);
         $this->assertSame(700.0, $summary['amount_owed_to_organizers']);
+    }
+
+    public function test_manager_cannot_self_record_organizer_payment(): void
+    {
+        // Business rule: a promoter-manager is NOT allowed to record
+        // his own payment to the organizers. The DebtService must
+        // reject the recorder.
+        ['manager' => $manager] = $this->setupTeam();
+
+        /** @var DebtService $debt */
+        $debt = app(DebtService::class);
+
+        $this->expectException(\Symfony\Component\HttpKernel\Exception\HttpException::class);
+        $debt->recordPayment(
+            SubPromoterPayment::TYPE_MANAGER_TO_ORGANIZERS,
+            payer: $manager,
+            receiver: $manager,
+            amount: 200.0,
+            recorder: $manager, // NOT allowed under the new rules
+        );
     }
 
     public function test_sub_promoter_payments_endpoint_records_payment(): void
@@ -217,16 +246,88 @@ class DebtServiceTest extends TestCase
         ]);
     }
 
-    public function test_sub_promoter_self_log_endpoint_works(): void
+    public function test_sub_promoter_self_log_endpoint_is_unavailable(): void
     {
+        // Per the new business rules a sub-promoter CANNOT record
+        // any payment. The route must not be registered, so POSTing
+        // to it must 404.
+        ['sub' => $sub, 'type' => $type] = $this->setupTeam();
+
+        $subOrder = $this->completedOrder($sub, $type, 1, 1);
+        $this->runJob($subOrder);
+
+        // Use the literal URL because the named route was removed
+        // from the route table and calling route() would throw
+        // RouteNotFoundException before we can even check the
+        // response status.
+        $response = $this->actingAs($sub)->post(
+            '/sub-promoter/payments/to-manager',
+            ['amount' => '250.00', 'note' => 'Bank transfer'],
+        );
+
+        $response->assertStatus(404);
+        $this->assertDatabaseMissing('sub_promoter_payments', [
+            'payer_id' => $sub->id,
+            'recorded_by' => $sub->id,
+        ]);
+    }
+
+    public function test_admin_can_record_manager_payment_via_endpoint(): void
+    {
+        // New flow: an admin (or superadmin) records the manager's
+        // payment to the organizers through the admin endpoint.
         ['manager' => $manager, 'sub' => $sub, 'type' => $type] = $this->setupTeam();
 
         $subOrder = $this->completedOrder($sub, $type, 1, 1);
         $this->runJob($subOrder);
 
-        $response = $this->actingAs($sub)->post(
-            route('sub_promoter.payments.to_manager.store'),
-            ['amount' => '250.00', 'note' => 'Bank transfer'],
+        $admin = User::create([
+            'name'     => 'Admin One',
+            'email'    => 'admin-from-sub@example.com',
+            'password' => Hash::make('secret123'),
+            'role'     => 'admin',
+        ]);
+
+        $response = $this->actingAs($admin)->post(
+            route('admin.payments.from_manager.store', $manager->id),
+            ['amount' => '500.00', 'note' => 'Wire transfer to organizers'],
+        );
+
+        $response->assertRedirect();
+        $this->assertDatabaseHas('sub_promoter_payments', [
+            'payment_type' => SubPromoterPayment::TYPE_MANAGER_TO_ORGANIZERS,
+            'payer_id'     => $manager->id,
+            'receiver_id'  => $manager->id,
+            'amount'       => '500.00',
+            'recorded_by'  => $admin->id,
+            'note'         => 'Wire transfer to organizers',
+        ]);
+
+        // The admin endpoint also bumps users.paid so the cached
+        // total used by the supreme-admin overview stays in sync.
+        $manager->refresh();
+        $this->assertEquals(500.0, (float) $manager->paid);
+    }
+
+    public function test_admin_can_record_sub_payment_via_endpoint(): void
+    {
+        // New flow: an admin can record a sub-to-manager payment on
+        // behalf of the manager (useful for bank reconciliations).
+        ['manager' => $manager, 'sub' => $sub, 'type' => $type] = $this->setupTeam();
+
+        $subOrder = $this->completedOrder($sub, $type, 1, 1);
+        $this->runJob($subOrder);
+
+        $admin = User::create([
+            'name'     => 'Admin One',
+            'email'    => 'admin-from-sub@example.com',
+            'password' => Hash::make('secret123'),
+            'role'     => 'admin',
+        ]);
+
+        $response = $this->actingAs($admin)->post(
+            route('admin.payments.from_sub.store', ['manager' => $manager->id, 'sub' => $sub->id]),
+            ['amount' => '320.00', 'note' => 'Admin reconciliation'],
         );
 
         $response->assertRedirect();
@@ -234,8 +335,24 @@ class DebtServiceTest extends TestCase
             'payment_type' => SubPromoterPayment::TYPE_SUB_TO_MANAGER,
             'payer_id'     => $sub->id,
             'receiver_id'  => $manager->id,
-            'amount'       => '250.00',
-            'recorded_by'  => $sub->id, // sub records his own payment
+            'amount'       => '320.00',
+            'recorded_by'  => $admin->id,
+            'note'         => 'Admin reconciliation',
         ]);
+    }
+
+    public function test_non_admin_cannot_use_admin_payment_endpoint(): void
+    {
+        // Defense in depth: even if a promoter-manager somehow POSTs
+        // to the admin endpoint the controller must reject them.
+        ['manager' => $manager, 'sub' => $sub] = $this->setupTeam();
+
+        $response = $this->actingAs($manager)->post(
+            route('admin.payments.from_manager.store', $manager->id),
+            ['amount' => '500.00'],
+        );
+
+        $response->assertStatus(403);
+        $this->assertDatabaseCount('sub_promoter_payments', 0);
     }
 }

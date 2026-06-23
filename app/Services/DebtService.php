@@ -171,6 +171,15 @@ class DebtService
     /**
      * Record a single payment. Wrapped in a transaction so the dashboard
      * totals and the new history row are always in sync.
+     *
+     * Authorization on the recorder:
+     *
+     *   - 'sub_to_manager'        → recorder can be the sub's promoter-manager
+     *                               OR an admin/superadmin/supreme.
+     *   - 'manager_to_organizers' → recorder MUST be an
+     *                               admin/superadmin/supreme. The manager
+     *                               himself is NOT allowed to record his
+     *                               own payment to the organizers.
      */
     public function recordPayment(
         string $type,
@@ -181,7 +190,7 @@ class DebtService
         ?string $note = null,
         ?\DateTimeInterface $paidAt = null,
     ): SubPromoterPayment {
-        $this->validatePaymentType($type, $payer, $receiver);
+        $this->validatePaymentType($type, $payer, $receiver, $recorder);
 
         return DB::transaction(function () use ($type, $payer, $receiver, $amount, $recorder, $note, $paidAt) {
             return SubPromoterPayment::create([
@@ -231,6 +240,11 @@ class DebtService
 
     /**
      * Last $limit payments the manager made to organizers.
+     *
+     * Per the new business rules the manager does NOT self-record these
+     * rows — they are recorded by an admin. This helper therefore looks
+     * up the same rows by payer_id (the manager is still the economic
+     * payer) regardless of who recorded them.
      */
     public function recentPaymentsToOrganizersByManager(User $manager, int $limit = 10): Collection
     {
@@ -239,6 +253,26 @@ class DebtService
         return SubPromoterPayment::with(['payer', 'receiver', 'recorder'])
             ->where('payment_type', SubPromoterPayment::TYPE_MANAGER_TO_ORGANIZERS)
             ->where('payer_id', $manager->id)
+            ->orderByDesc('paid_at')
+            ->orderByDesc('id')
+            ->limit($limit)
+            ->get();
+    }
+
+    /**
+     * Last $limit payments involving the given user as payer OR receiver,
+     * filtered to a specific payment type. Used by views that need to
+     * show only one direction (e.g. only payments FROM a manager to the
+     * organizers) without scanning both columns of unrelated rows.
+     */
+    public function recentPaymentsForUserOfType(User $user, string $type, int $limit = 10): Collection
+    {
+        return SubPromoterPayment::with(['payer', 'receiver', 'recorder'])
+            ->where('payment_type', $type)
+            ->where(function ($q) use ($user) {
+                $q->where('payer_id', $user->id)
+                  ->orWhere('receiver_id', $user->id);
+            })
             ->orderByDesc('paid_at')
             ->orderByDesc('id')
             ->limit($limit)
@@ -259,7 +293,12 @@ class DebtService
         return $manager;
     }
 
-    private function validatePaymentType(string $type, User $payer, User $receiver): void
+    /**
+     * Validate the payment type AND the recorder authorization.
+     *
+     * @throws \Symfony\Component\HttpKernel\Exception\HttpException
+     */
+    private function validatePaymentType(string $type, User $payer, User $receiver, User $recorder): void
     {
         if (!in_array($type, [
             SubPromoterPayment::TYPE_SUB_TO_MANAGER,
@@ -276,15 +315,37 @@ class DebtService
                 422,
                 'The receiver is not the payer\'s promoter-manager.'
             );
+
+            // Recorder: must be the sub's manager OR an admin-tier user.
+            $isAuthorizedRecorder = $recorder->isAdmin()
+                || ($recorder->isPromoterManager()
+                    && $recorder->id === $receiver->id);
+            abort_unless(
+                $isAuthorizedRecorder,
+                403,
+                'A sub-to-manager payment can only be recorded by the sub\'s promoter-manager or by an admin.'
+            );
         }
 
         if ($type === SubPromoterPayment::TYPE_MANAGER_TO_ORGANIZERS) {
             abort_unless($payer->isPromoterManager(), 422, 'Payer must be a promoter-manager.');
-            // Receiver is the "organizer" — in this app we keep the
-            // organizer role implicit (no dedicated user row) and just
-            // require it to be a different user. The manager himself
-            // can stand in as a placeholder; this row is informational
-            // and represents the manager acknowledging the transfer.
+            abort_unless($payer->id === $receiver->id, 422, 'Receiver must be the same promoter-manager (organizer is implicit).');
+
+            // Recorder: only admin-tier users. The manager himself is
+            // NOT allowed to record his own payment.
+            abort_unless(
+                $recorder->isAdmin(),
+                403,
+                'A manager-to-organizers payment can only be recorded by an admin.'
+            );
+
+            // Defense-in-depth: the manager himself can never be the
+            // recorder even if his role was extended in the future.
+            abort_unless(
+                $recorder->id !== $payer->id,
+                403,
+                'A promoter-manager cannot record their own payment to the organizers.'
+            );
         }
     }
 }

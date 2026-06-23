@@ -77,19 +77,15 @@ return [
         'header_status'     => 'Status',
     ],
 
-    'record_payment' => [
-        'heading'           => 'Evidentiraj Uplatu Mom Menadžeru',
-        'sub_heading'       => 'Koristite ovo kad ste prebacili novac promoter menadžeru. Vaš menadžer takođe vodi evidenciju, pa ga možete pitati i da on evidentira.',
-        'amount_label'      => 'Iznos (RSD)',
-        'paid_at_label'     => 'Datum uplate',
-        'note_label'        => 'Napomena (opciono)',
-        'submit_button'     => 'Evidentiraj Uplatu',
-        'helper_text'       => 'Beleženje ovde odmah ažurira kontrolnu tablu i daje vam lični dnevnik izvršenih uplata.',
+    'record_payment_notice' => [
+        'heading'           => 'Uplate',
+        'helper_text'       => 'Vi ne evidentirate uplate sami — vaš promoter menadžer beleži svaki prenos za vas.',
+        'body'              => 'Stanje iznad odražava sve uplate koje je vaš menadžer evidentirao za vas. Da biste izvršili uplatu, predajte keš svom menadžeru i zamolite ga da to evidentira. Vaš menadžer je jedina osoba koja može uneti uplatu u sistem.',
     ],
 
     'payment_history' => [
         'heading'           => 'Istorija Mojih Uplata',
-        'sub_heading'       => 'Svaka uplata koju ste poslali svom promoter menadžeru, od najnovije ka starijoj. Menadžerov zapis je glavni izvor istine, ali i vi ovde vidite sopstvene unose.',
+        'sub_heading'       => 'Svaka uplata koju je vaš promoter menadžer evidentirao za vas, od najnovije ka starijoj. Vaš menadžer je jedina osoba koja može dodati unose ovde, tako da je ova lista definitivni dnevnik onoga što ste platili.',
         'date'              => 'Datum',
         'amount'            => 'Iznos',
         'direction'         => 'Smer',

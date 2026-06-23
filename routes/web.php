@@ -32,8 +32,14 @@ Route::middleware('auth')->group(function () {
 
     /**
      * Admin Routes
+     *
+     * 'supreme' is included alongside 'admin' and 'superadmin' so that the
+     * supreme role (which the business rules say must "see everything and
+     * record for anyone") can use the admin payment-recording endpoints.
+     * Non-payment admin endpoints continue to be available to admin and
+     * superadmin in the same way as before.
      */
-    Route::middleware('role:admin|superadmin')->prefix('admin')->group(function () {
+    Route::middleware('role:admin|superadmin|supreme')->prefix('admin')->group(function () {
         Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('dashboard');
 
         Route::get('/promoters', [AdminController::class, 'promoters'])->name('admin.promoters.index');
@@ -75,6 +81,28 @@ Route::middleware('auth')->group(function () {
         Route::put('/ticket-types/{id}/qr', [TicketController::class, 'setQrCoordinates']);
         Route::put('/ticket-types/{id}/price', [TicketController::class, 'setPrice']);
         Route::put('/commissions', [AdminController::class, 'setCommission']);
+
+        // -------- Admin payment recording --------
+        //
+        // Permission matrix (matches the new business rules):
+        //   • sub_promoter  → can ONLY view payments; cannot record anything
+        //   • promoter_mgr  → can record payments only from their own sub-promoters
+        //   • admin         → records the manager's own payment (manager → organizers)
+        //   • superadmin    → can record for anyone
+        //
+        // Admin records a payment from a sub-promoter to his manager (acts on
+        // behalf of the manager). Receiver = manager, payer = sub.
+        Route::post('/promoter-manager/{manager}/sub-promoter/{sub}/payments/from-sub',
+            [PaymentController::class, 'adminRecordFromSub']
+        )->name('admin.payments.from_sub.store');
+
+        // Admin records a payment from a promoter-manager to the organizers.
+        // Payer = manager, receiver = manager (informational self-loop, same
+        // as the previous manager-self endpoint so the SubPromoterPayment
+        // rows stay compatible with the existing DebtService math).
+        Route::post('/promoter-manager/{manager}/payments/from-manager',
+            [PaymentController::class, 'adminRecordFromManager']
+        )->name('admin.payments.from_manager.store');
 
         // Email settings (admin only): see current config + manage email templates.
         Route::get('/email-settings', [EmailSettingsController::class, 'index'])
@@ -141,10 +169,13 @@ Route::middleware('auth')->group(function () {
         Route::delete('/sub-promoter/{id}', [PromoterManagerController::class, 'subPromoterDestroy'])->name('promoter_manager.sub_promoters.destroy');
 
         // Payment recording.
+        //
+        // The promoter-manager records payments received from one of his
+        // own sub-promoters. Recording the manager's OWN payment to the
+        // organizers is no longer allowed here — that action lives on
+        // the admin side (admin.payments.from_manager.store).
         Route::post('/sub-promoter/{sub}/payments/from-sub', [PaymentController::class, 'recordFromSub'])
             ->name('promoter_manager.payments.from_sub.store');
-        Route::post('/payments/to-organizers', [PaymentController::class, 'recordToOrganizers'])
-            ->name('promoter_manager.payments.to_organizers.store');
     });
 
     /**
@@ -156,9 +187,13 @@ Route::middleware('auth')->group(function () {
         Route::get('/order/create', [SubPromoterController::class, 'create'])->name('sub_promoter.orders.create');
         Route::post('/orders', [SubPromoterController::class, 'placeOrder'])->name('sub_promoter.orders.store');
 
-        // Payment recording (self-logged).
-        Route::post('/payments/to-manager', [PaymentController::class, 'recordSubToManager'])
-            ->name('sub_promoter.payments.to_manager.store');
+        // Sub-promoter payment recording.
+        //
+        // Per the new business rules a sub-promoter CANNOT record any
+        // payment. They can only view the payments their manager recorded
+        // for them. The route is intentionally not registered; any POST
+        // attempt to it will 404. The view (subpromoters/dashboard.blade.php)
+        // also no longer renders a record-payment form.
     });
 });
 Route::middleware(['auth'])->group(function () {

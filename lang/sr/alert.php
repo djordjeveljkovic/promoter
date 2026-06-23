@@ -52,9 +52,12 @@ return [
     'validation_failed_check_fields' => 'Validacija nije uspela. Molimo proverite polja za unos radi grešaka.',
 
     // Poruke za evidentiranje uplata
-    'payment_recorded_success'              => 'Uplata od :amount RSD od :name je evidentirana.',
-    'payment_to_organizers_recorded_success'=> 'Uplata od :amount RSD organizatorima je evidentirana.',
-    'payment_amount_invalid'                => 'Iznos uplate mora biti veći od nule.',
+    'payment_recorded_success'                   => 'Uplata od :amount RSD od :name je evidentirana.',
+    'payment_to_organizers_recorded_success'     => 'Uplata od :amount RSD organizatorima je evidentirana.',
+    'payment_amount_invalid'                     => 'Iznos uplate mora biti veći od nule.',
+    'admin_payment_from_sub_recorded_success'    => 'Evidentirana uplata od :amount RSD od :name (sub-promoter kod :manager) ka menadžeru.',
+    'admin_payment_from_manager_recorded_success'=> 'Evidentirana uplata od :amount RSD od :name ka organizatorima.',
+    'payment_recording_forbidden'                => 'Nemate dozvolu da evidentirate ovu uplatu.',
 
     // Poruke za email šablone
     'email_template_created'           => 'Email šablon „:name" je uspešno kreiran.',

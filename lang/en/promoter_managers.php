@@ -93,21 +93,49 @@ return [
             'no_orders'         => 'No completed orders yet',
         ],
 
-        /* ------------------ "Pay to organizers" form ------------------ */
-        'pay_organizers' => [
-            'heading'           => 'I Owe to Organizers',
-            'sub_heading'       => 'You owe this much to the event organizers: the team\'s total gross sales minus the full commission pool (yours + every sub-promoter\'s), minus what you have already paid.',
-            'amount_label'      => 'Amount to record as paid (RSD)',
-            'paid_at_label'     => 'Date of payment',
-            'note_label'        => 'Note (optional)',
-            'submit_button'     => 'Record Payment to Organizers',
-            'helper_text'       => 'Use this whenever you transfer money to the event organizers. The dashboard updates immediately.',
+        /* ------------------ "Pay to organizers" notice ------------------ */
+        'pay_organizers_notice' => [
+            'heading'           => 'Recording Your Payments to Organizers',
+            'body'              => 'You cannot record your own payments to the organizers — an admin logs every transfer on your behalf. The balance above reflects the live total of admin-recorded payments, and the "Payments Made to Organizers" list at the bottom of this page shows each entry with the admin who logged it.',
+        ],
+
+        /* ------------------ Admin edit page ------------------ */
+        'admin_edit' => [
+            'debt_summary_heading'         => 'Debt Snapshot for This Manager',
+            'team_gross_label'             => 'Team gross sales',
+            'manager_commission_label'     => 'Manager commission',
+            'amount_already_paid_label'    => 'Already paid to organizers',
+            'owed_to_organizers_label'     => 'Still owes organizers',
+            'record_manager_payment_heading' => 'Record a Payment from This Manager to the Organizers',
+            'record_manager_payment_help'  => 'Log a transfer the manager made to the event organizers. Only admins can record this kind of payment — the manager themselves cannot.',
+            'submit_manager_payment_button' => 'Record Manager Payment',
+            'subs_debts_heading'           => 'Sub-Promoter Debts & Payment Recording',
+            'subs_debts_help'              => 'Record a payment one of the manager\'s sub-promoters made to him. Each form posts to the admin endpoint and the new row appears immediately in the manager\'s payment history.',
+            'no_subs'                      => 'This manager has no sub-promoters yet.',
+            'sub_gross_label'              => 'Gross',
+            'sub_commission_label'         => 'Commission',
+            'sub_paid_label'               => 'Paid',
+            'sub_owed_label'               => 'Owed',
+            'submit_sub_payment_button'    => 'Record Payment',
+            'from_subs_heading'            => 'Payments Received from Sub-Promoters',
+            'from_subs_empty'              => 'No payments received from sub-promoters yet.',
+            'to_organizers_heading'        => 'Payments Made to Organizers',
+            'to_organizers_empty'          => 'No payments recorded to organizers yet.',
+            'amount_label'                 => 'Amount (RSD)',
+            'paid_at_label'                => 'Date of payment',
+            'note_label'                   => 'Note (optional)',
+            'recorded_by'                  => 'Recorded by',
+            'danger_zone_heading'          => 'Danger Zone',
+            'danger_zone_help'             => 'Deleting this manager also deletes every sub-promoter they created and cancels every payment history row.',
+            'delete_manager_button'        => 'Delete this promoter-manager',
         ],
 
         /* ------------------ Payment history ------------------ */
         'payment_history' => [
             'from_subs_heading'     => 'Payments Received from Sub-Promoters',
+            'from_subs_subtext'     => 'Each row is recorded by you (the manager) or, in exceptional cases, by an admin.',
             'to_organizers_heading' => 'Payments Made to Organizers',
+            'to_organizers_subtext' => 'These rows are recorded by an admin on your behalf — you cannot add to this list yourself.',
             'from_subs_empty'       => 'No payments received from sub-promoters yet.',
             'to_organizers_empty'   => 'No payments recorded to organizers yet.',
             'date'                  => 'Date',
