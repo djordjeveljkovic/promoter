@@ -296,9 +296,16 @@ class PromoterManagerController extends Controller
             'name'     => 'required|string|max:255',
             'email'    => ['required', 'string', 'email', 'max:255', Rule::unique('users', 'email')->ignore($sub->id)],
             'password' => 'nullable|string|min:8',
-            'overrides'                          => 'array',
-            'overrides.*.ticket_type_id'         => 'required|integer|exists:ticket_types,id',
-            'overrides.*.commission_percentage'  => 'required|numeric|min:0|max:100',
+            'overrides'                              => 'array',
+            'overrides.*.ticket_type_id'             => 'required|integer|exists:ticket_types,id',
+            'overrides.*.commission_type'            => 'required|in:percentage,fixed',
+            'overrides.*.commission_percentage'      => 'nullable|numeric|min:0|max:100',
+            'overrides.*.fixed_commission_amount'    => 'nullable|numeric|min:0',
+        ], [
+            'overrides.*.commission_type.in'         => 'Commission type must be either "percentage" or "fixed".',
+            'overrides.*.commission_percentage.min'  => 'Percentage cannot be negative.',
+            'overrides.*.commission_percentage.max'  => 'Percentage cannot exceed 100.',
+            'overrides.*.fixed_commission_amount.min'=> 'Fixed commission amount cannot be negative.',
         ]);
 
         DB::transaction(function () use ($manager, $sub, $validated) {
@@ -319,15 +326,32 @@ class PromoterManagerController extends Controller
                 $byType = [];
                 foreach ($validated['overrides'] as $row) {
                     if (!isset($row['ticket_type_id'])) continue;
-                    $byType[(int) $row['ticket_type_id']] = (float) $row['commission_percentage'];
+                    $byType[(int) $row['ticket_type_id']] = $row;
                 }
-                foreach ($byType as $ticketTypeId => $pct) {
-                    PromoterCommissionOverride::create([
+                foreach ($byType as $ticketTypeId => $row) {
+                    $type = $row['commission_type'] ?? PromoterCommissionOverride::TYPE_PERCENTAGE;
+                    $payload = [
                         'promoter_manager_id'    => $manager->id,
                         'sub_promoter_id'        => $sub->id,
                         'ticket_type_id'         => $ticketTypeId,
-                        'commission_percentage'  => $pct,
-                    ]);
+                        'commission_type'        => $type,
+                        'commission_percentage'  => null,
+                        'fixed_commission_amount'=> null,
+                    ];
+
+                    if ($type === PromoterCommissionOverride::TYPE_FIXED) {
+                        $payload['fixed_commission_amount'] = isset($row['fixed_commission_amount'])
+                            ? (float) $row['fixed_commission_amount']
+                            : 0.0;
+                        $payload['commission_percentage']   = 0.0;
+                    } else {
+                        $payload['commission_percentage']   = isset($row['commission_percentage'])
+                            ? (float) $row['commission_percentage']
+                            : 100.0;
+                        $payload['fixed_commission_amount'] = null;
+                    }
+
+                    PromoterCommissionOverride::create($payload);
                 }
             }
         });

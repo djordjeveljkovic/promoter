@@ -44,14 +44,22 @@ class SubPromoterController extends Controller
 
         $manager = $sub->promoterManager();
 
-        // Resolve the override percentages the manager has set, per ticket type.
+        // Resolve the override rows the manager has set, per ticket type.
+        // Shape: ticket_type_id => ['type' => 'percentage'|'fixed',
+        //                           'percentage' => float|null,
+        //                           'fixed_amount' => float|null]
         $overrides = [];
         if ($manager) {
-            $overrides = PromoterCommissionOverride::where('promoter_manager_id', $manager->id)
+            $rows = PromoterCommissionOverride::where('promoter_manager_id', $manager->id)
                 ->where('sub_promoter_id', $sub->id)
-                ->pluck('commission_percentage', 'ticket_type_id')
-                ->map(fn ($v) => (float) $v)
-                ->all();
+                ->get();
+            foreach ($rows as $ov) {
+                $overrides[$ov->ticket_type_id] = [
+                    'type'         => $ov->commission_type ?: PromoterCommissionOverride::TYPE_PERCENTAGE,
+                    'percentage'   => $ov->commission_percentage !== null ? (float) $ov->commission_percentage : null,
+                    'fixed_amount' => $ov->fixed_commission_amount !== null ? (float) $ov->fixed_commission_amount : null,
+                ];
+            }
         }
 
         $jobStatusColors = [
@@ -87,13 +95,19 @@ class SubPromoterController extends Controller
         $ticketTypes = TicketType::orderBy('name')->get();
 
         $manager = $sub->promoterManager();
+        // ticket_type_id => ['type', 'percentage', 'fixed_amount']
         $overrides = [];
         if ($manager) {
-            $overrides = PromoterCommissionOverride::where('promoter_manager_id', $manager->id)
+            $rows = PromoterCommissionOverride::where('promoter_manager_id', $manager->id)
                 ->where('sub_promoter_id', $sub->id)
-                ->pluck('commission_percentage', 'ticket_type_id')
-                ->map(fn ($v) => (float) $v)
-                ->all();
+                ->get();
+            foreach ($rows as $ov) {
+                $overrides[$ov->ticket_type_id] = [
+                    'type'         => $ov->commission_type ?: PromoterCommissionOverride::TYPE_PERCENTAGE,
+                    'percentage'   => $ov->commission_percentage !== null ? (float) $ov->commission_percentage : null,
+                    'fixed_amount' => $ov->fixed_commission_amount !== null ? (float) $ov->fixed_commission_amount : null,
+                ];
+            }
         }
 
         return view('pages.promoters.orders.create', compact('ticketTypes', 'overrides', 'manager'));
