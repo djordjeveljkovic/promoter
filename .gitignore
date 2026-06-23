@@ -26,6 +26,7 @@ composer.phar
 /yarn.lock
 /npm-debug.log
 /yarn-error.log
+/bun.lock
 
 ##############################################################################
 # Laravel storage — runtime, caches, logs, user uploads
