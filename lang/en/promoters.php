@@ -33,6 +33,7 @@ return [
         'paid_placeholder'          => 'Enter amount paid',
         'cancel_button'             => 'Cancel',
         'update_button'             => 'Update Promoter',
+        'errors_title'              => 'Please fix the following errors',
     ],
     // New keys for Create Promoter page
     'create_form' => [
@@ -52,5 +53,6 @@ return [
 
         'cancel_button'             => 'Cancel',    // Common key, can be reused
         'create_button'             => 'Create Promoter',
+        'errors_title'              => 'Please fix the following errors',
     ],
 ];

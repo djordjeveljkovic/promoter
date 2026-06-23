@@ -38,6 +38,7 @@ return [
         'paid_placeholder'          => 'Unesite plaćeni iznos', // Original was "Platio"
         'cancel_button'             => 'Otkaži',
         'update_button'             => 'Ažuriraj Promotera',
+        'errors_title'              => 'Molimo ispravite sledeće greške',
     ],
 
     'create_form' => [
@@ -51,5 +52,6 @@ return [
         'password_help_text_create' => 'Lozinka treba da bude jaka i bezbedna.',
         'cancel_button'             => 'Otkaži',
         'create_button'             => 'Kreiraj Promotera',
+        'errors_title'              => 'Molimo ispravite sledeće greške',
     ],
 ];
