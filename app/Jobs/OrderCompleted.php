@@ -125,28 +125,35 @@ class OrderCompleted implements ShouldQueue
         $newRows = [];
         $newTotal = 0.0;
 
-        // If the seller is a sub-promoter that reports to a promoter-manager,
-        // we compute the gross commission using the MANAGER's team tier
-        // (manager + sub-promoters' combined sales volume). This way the
-        // promoter-manager's commission rises with team sales volume, while
-        // the sub-promoter keeps the flat rate their manager set.
-        $manager = ($seller->role === 'sub_promoter')
-            ? $seller->promoterManager()
-            : null;
+        // Resolve the team-tier scope that should be used for the gross
+        // commission on every item in this order. The promoter-manager's
+        // commission is meant to rise with team sales volume, so any order
+        // placed by a user attached to a manager (the manager himself OR
+        // any of his sub-promoters) is tier-priced using the team's
+        // combined sales.
+        $teamTierManager = null;
+        if ($seller->role === 'sub_promoter') {
+            $teamTierManager = $seller->promoterManager();
+        } elseif ($seller->role === 'promoter_manager') {
+            // The manager is his own team anchor - we pass him so the tier
+            // computation sees his + every sub-promoter's prior volume.
+            $teamTierManager = $seller;
+        }
 
         foreach ($order->items as $item) {
             // 1. Tier-based gross commission for this item.
-            //    - For sub-promoter sellers with a manager: use the
-            //      manager's team tier so the manager's per-ticket share
-            //      tracks team sales volume.
-            //    - For everyone else (promoter, promoter_manager,
-            //      orphan sub_promoter): use the seller's own tier.
-            if ($manager) {
+            //    - For any seller with an attached manager (promoter_manager
+            //      or sub_promoter-of-a-manager): use the manager's team
+            //      tier so the manager's per-ticket share tracks team sales
+            //      volume.
+            //    - For everyone else (regular promoter, orphan sub_promoter):
+            //      use the seller's own tier.
+            if ($teamTierManager) {
                 $itemCommission = (float) User::calculateTierCommissionForTeam(
                     $item->ticket_type_id,
                     $order->id,
                     $item->quantity,
-                    $manager,
+                    $teamTierManager,
                     $order->created_at
                 );
             } else {
@@ -168,7 +175,7 @@ class OrderCompleted implements ShouldQueue
                 $item->ticket_type_id,
                 $itemCommission,
                 $item->quantity,
-                $manager
+                $teamTierManager
             );
 
             foreach ($splits as $split) {

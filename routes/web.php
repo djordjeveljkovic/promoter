@@ -102,13 +102,16 @@ Route::middleware('auth')->group(function () {
     });
 
     /**
-     * Promoter Routes (regular promoter + promoter-manager + superadmin share these)
+     * Promoter Routes (regular promoter + promoter-manager + sub-promoter +
+     * superadmin share these). The OrderController scopes every query to the
+     * currently authenticated user, so a sub-promoter on this endpoint only
+     * ever sees orders they placed themselves.
      *
      * A promoter-manager has the same commission logic as a promoter, but
      * additionally manages his own sub-promoters via the /promoter-manager
-     * routes below. The shared order endpoints accept any seller role.
+     * routes below.
      */
-    Route::middleware('role:promoter|promoter_manager|superadmin')->prefix('promoter')->group(function () {
+    Route::middleware('role:promoter|promoter_manager|sub_promoter|superadmin')->prefix('promoter')->group(function () {
         Route::get('/dashboard', [PromoterController::class, 'dashboard'])->name('promoter.dashboard');
         Route::get('/help', [PromoterController::class, 'help'])->name('promoter.help');
         Route::get('/orders', [OrderController::class, 'index'])->name('promoter.orders.index');

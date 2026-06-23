@@ -52,13 +52,13 @@ return [
         'new_order_button' => 'Nova porudžbina',
         'my_financials' => [
             'heading'                    => 'Moje Finansije',
-            'commission_earned'          => 'Ostvarena provizija (po nivoima)',
+            'commission_earned'          => 'Moja provizija (po nivoima)',
             'all_time_label'             => 'Sve vreme',
-            'gross_sales'                => 'Bruto Prodaja',
+            'gross_sales'                => 'Bruto Prodaja Tima',
             'gross_sales_subtext'        => 'Od vaših porudžbina + od vaših sub-promotera',
             'amount_owed'                => 'Iznos koji dugujete organizatorima',
-            'amount_owed_subtext'        => 'Bruto prodaja - plaćeno - provizija',
-            'commission_last_30'         => 'Provizija (Poslednjih 30 dana)',
+            'amount_owed_subtext'        => 'Bruto prodaja tima - plaćeno - ukupna provizija tima (vaša + sub-ova)',
+            'commission_last_30'         => 'Moja provizija (Poslednjih 30 dana)',
             'commission_last_30_subtext' => 'Poslednjih 30 dana',
         ],
         'team_overview' => [

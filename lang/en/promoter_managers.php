@@ -52,13 +52,13 @@ return [
         'new_order_button' => 'New Order',
         'my_financials' => [
             'heading'                    => 'My Financials',
-            'commission_earned'          => 'Commission Earned (tier rules)',
+            'commission_earned'          => 'My Commission (tier rules)',
             'all_time_label'             => 'All time',
-            'gross_sales'                => 'Gross Sales',
+            'gross_sales'                => 'Team Gross Sales',
             'gross_sales_subtext'        => 'From your own orders + your sub-promoters',
             'amount_owed'                => 'Amount Owed to Organizers',
-            'amount_owed_subtext'        => 'Gross sales - paid - commission',
-            'commission_last_30'         => 'Commission (Last 30 Days)',
+            'amount_owed_subtext'        => 'Team gross sales - paid - team commission pool (yours + subs)',
+            'commission_last_30'         => 'My Commission (Last 30 Days)',
             'commission_last_30_subtext' => 'Last 30 days',
         ],
         'team_overview' => [

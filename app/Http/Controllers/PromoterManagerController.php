@@ -392,27 +392,57 @@ class PromoterManagerController extends Controller
         $endDate = now();
         $startDate30Days = now()->subDays(30);
 
-        // Direct sales by the manager.
+        // IDs of every user that belongs to the manager's team (the
+        // manager himself + all of his sub-promoters). Used to compute the
+        // team-wide gross sales figure that the dashboard promises to show.
+        $teamUserIds = collect([$manager->id])
+            ->merge($manager->subPromoters()->pluck('id'))
+            ->unique()
+            ->values();
+
+        // Direct sales by the manager (his own orders only).
         $directOrders = TicketOrder::where('requested_by', $manager->id)
             ->whereIn('job_status', $successfulSaleStatuses);
 
-        $managerGrossSalesAllTime = (clone $directOrders)->sum('total');
+        $managerGrossSalesAllTime = (float) TicketOrder::whereIn('requested_by', $teamUserIds)
+            ->whereIn('job_status', $successfulSaleStatuses)
+            ->sum('total');
+        $managerDirectSalesAllTime = (float) (clone $directOrders)->sum('total');
         $managerOrdersAllTime = (clone $directOrders)->count();
 
+        // Commission rows where this user is the beneficiary.
         $managerCommissionAllTime = (float) TicketOrderCommission::where('beneficiary_user_id', $manager->id)
             ->sum('commission_amount');
 
+        // Total commission pool for the team (manager share + every
+        // sub-promoter share). Sub-promoter commission is subtracted from
+        // the amount the manager owes to the organizers because it has
+        // already been "kept" by the team and is no longer part of the
+        // gross amount the organizers need to collect.
+        $subIds = $manager->subPromoters()->pluck('id');
+        $subCommissionsAllTime = $subIds->isEmpty()
+            ? 0.0
+            : (float) TicketOrderCommission::whereIn('beneficiary_user_id', $subIds)
+                ->sum('commission_amount');
+
         $amountPaidByManager = (float) ($manager->paid ?? 0);
 
-        $amountOwed = $managerGrossSalesAllTime - $amountPaidByManager - $managerCommissionAllTime;
+        // Gross sales for the WHOLE TEAM minus what was paid to organisers
+        // minus the FULL commission pool (manager share + every sub share).
+        // Previously this formula only used the manager's direct sales and
+        // forgot to subtract sub-promoter commissions, so the displayed
+        // amount owed to organisers was inflated by the sub share.
+        $amountOwed = $managerGrossSalesAllTime
+            - $amountPaidByManager
+            - $managerCommissionAllTime
+            - $subCommissionsAllTime;
 
         // Sales made by the manager's sub-promoters (informational).
-        $subIds = $manager->subPromoters()->pluck('id');
-        $subSalesAllTime = $subIds->isEmpty() ? 0.0 : (float) TicketOrder::whereIn('requested_by', $subIds)
-            ->whereIn('job_status', $successfulSaleStatuses)
-            ->sum('total');
-        $subCommissionsAllTime = $subIds->isEmpty() ? 0.0 : (float) TicketOrderCommission::whereIn('beneficiary_user_id', $subIds)
-            ->sum('commission_amount');
+        $subSalesAllTime = $subIds->isEmpty()
+            ? 0.0
+            : (float) TicketOrder::whereIn('requested_by', $subIds)
+                ->whereIn('job_status', $successfulSaleStatuses)
+                ->sum('total');
 
         $managerCommissionLast30Days = (float) TicketOrderCommission::where('beneficiary_user_id', $manager->id)
             ->whereBetween('created_at', [$startDate30Days, $endDate])
@@ -444,6 +474,7 @@ class PromoterManagerController extends Controller
 
         return view('pages.promoter_managers.dashboard', compact(
             'managerGrossSalesAllTime',
+            'managerDirectSalesAllTime',
             'managerOrdersAllTime',
             'managerCommissionAllTime',
             'managerCommissionLast30Days',
