@@ -10,9 +10,10 @@
             @php
                 $user = Auth::user();
                 $homeRoute = match (true) {
-                    $user?->isAdmin()       => 'dashboard',
+                    $user?->isAdmin()          => 'dashboard',
                     $user?->isPromoterManager() => 'promoter_manager.dashboard',
-                    default                 => 'promoter.dashboard',
+                    $user?->isSubPromoter()    => 'sub_promoter.dashboard',
+                    default                    => 'promoter.dashboard',
                 };
             @endphp
 
@@ -37,6 +38,11 @@
                         <flux:navlist.item icon="users" :href="route('promoter_manager.sub_promoters.index')" :current="request()->routeIs('promoter_manager.sub_promoters.*')" wire:navigate>{{ __('navigation.sidebar.sub_promoters') }}</flux:navlist.item>
                         <flux:navlist.item icon="ticket" :href="route('promoter.orders.create')" :current="request()->routeIs('promoter.orders.create')" wire:navigate>{{ __('navigation.sidebar.sales') }}</flux:navlist.item>
                         <flux:navlist.item icon="ticket" :href="route('promoter.orders.index')" :current="request()->routeIs('promoter.orders.index')" wire:navigate>{{ __('navigation.sidebar.promoter_sold_tickets') }}</flux:navlist.item>
+                        <flux:navlist.item icon="user" :href="route('promoter.help')" :current="request()->routeIs('promoter.help')" wire:navigate>{{ __('navigation.sidebar.support') }}</flux:navlist.item>
+                    @elseif($user?->isSubPromoter())
+                        <flux:navlist.item icon="home" :href="route('sub_promoter.dashboard')" :current="request()->routeIs('sub_promoter.dashboard')" wire:navigate>{{ __('navigation.sidebar.sub_promoter_dashboard') }}</flux:navlist.item>
+                        <flux:navlist.item icon="ticket" :href="route('sub_promoter.orders.create')" :current="request()->routeIs('sub_promoter.orders.create')" wire:navigate>{{ __('navigation.sidebar.sales') }}</flux:navlist.item>
+                        <flux:navlist.item icon="ticket" :href="route('sub_promoter.orders.index')" :current="request()->routeIs('sub_promoter.orders.index')" wire:navigate>{{ __('navigation.sidebar.sub_promoter_sold_tickets') }}</flux:navlist.item>
                         <flux:navlist.item icon="user" :href="route('promoter.help')" :current="request()->routeIs('promoter.help')" wire:navigate>{{ __('navigation.sidebar.support') }}</flux:navlist.item>
                     @else
                         <flux:navlist.item icon="home" :href="route('promoter.dashboard')" :current="request()->routeIs('promoter.dashboard')" wire:navigate>{{ __('navigation.sidebar.promoter_dashboard') }}</flux:navlist.item>

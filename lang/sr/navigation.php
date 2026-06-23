@@ -11,9 +11,11 @@ return [
         'email_settings' => 'Podešavanja emaila',
         'promoter_dashboard' => 'Kontrolna tabla',
         'promoter_manager_dashboard' => 'Kontrolna tabla',
+        'sub_promoter_dashboard' => 'Kontrolna tabla',
         'sub_promoters' => 'Sub-Promoteri',
         'sales' => 'Prodaja',
         'promoter_sold_tickets' => 'Prodate ulaznice',
+        'sub_promoter_sold_tickets' => 'Prodate ulaznice',
         'support' => 'Podrška',
     ],
     'usermenu' => [

@@ -50,6 +50,11 @@ return [
     'password_update_failed' => 'Failed to update password. Please try again.',
     'validation_failed_check_fields' => 'Validation failed. Please check the input fields for errors.',
 
+    // Debt / payment recording alerts
+    'payment_recorded_success'              => 'Payment of :amount RSD from :name recorded.',
+    'payment_to_organizers_recorded_success'=> 'Payment of :amount RSD to organizers recorded.',
+    'payment_amount_invalid'                => 'Payment amount must be greater than zero.',
+
     // Email template alerts
     'email_template_created'           => 'Email template ":name" created successfully.',
     'email_template_updated'           => 'Email template ":name" updated successfully.',

@@ -15,12 +15,16 @@ use Tests\TestCase;
 
 /**
  * Verifies that the promoter-manager dashboard's KPIs correctly account
- * for sub-promoter sales and commissions:
- *   - Gross sales include orders placed by the manager AND his sub-promoters.
- *   - "My Commission" KPI sums ONLY commission rows where the manager is
- *     the beneficiary (i.e. his personal share, not the team's total).
- *   - "Amount Owed to Organizers" subtracts BOTH the manager's commission
- *     and every sub-promoter's commission from team gross sales.
+ * for sub-promoter sales and commissions. The dashboard now exposes a
+ * single `debtSummary` array (built by DebtService) which holds:
+ *   - gross_sales                  : team gross
+ *   - manager_commission           : manager's own share only
+ *   - sub_commissions              : total of every sub's commission
+ *   - amount_already_paid_to_organizers : what the manager forwarded so far
+ *   - amount_owed_to_organizers    : gross - commission pool - paid
+ *
+ * These tests use those keys directly so the dashboard contract is
+ * verified end-to-end.
  */
 class PromoterManagerDashboardTest extends TestCase
 {
@@ -103,8 +107,7 @@ class PromoterManagerDashboardTest extends TestCase
         $response->assertOk();
 
         // Team gross sales should include both: 3000 + 2000 = 5000 RSD.
-        $response->assertViewHas('managerGrossSalesAllTime', 5000.0);
-        $response->assertViewHas('managerDirectSalesAllTime', 3000.0);
+        $response->assertViewHas('debtSummary.gross_sales', 5000.0);
     }
 
     public function test_amount_owed_subtracts_manager_and_sub_commission(): void
@@ -125,21 +128,21 @@ class PromoterManagerDashboardTest extends TestCase
         $mgrOrder = $this->completedOrder($manager, $type, 2, 1);
         $this->runJob($mgrOrder);
 
-        // Sub places 3 tickets: gross 3000, sub gets 90 (30*3), manager gets 210 (210)
+        // Sub places 3 tickets: gross 3000, sub gets 90 (30*3), manager gets 210
         $subOrder = $this->completedOrder($sub, $type, 3, 2);
         $this->runJob($subOrder);
 
         // Team gross sales = 5000
         // Manager commission = 200 (own) + 210 (from sub) = 410
         // Sub commission = 90
-        // Amount owed = 5000 - 0 (paid) - 410 - 90 = 4500
+        // Amount owed to organizers = 5000 - 0 (paid) - 410 - 90 = 4500
 
         $response = $this->actingAs($manager)->get(route('promoter_manager.dashboard'));
         $response->assertOk();
 
-        $response->assertViewHas('managerCommissionAllTime', 410.0);
-        $response->assertViewHas('subCommissionsAllTime', 90.0);
-        $response->assertViewHas('amountOwed', 4500.0);
+        $response->assertViewHas('debtSummary.manager_commission', 410.0);
+        $response->assertViewHas('debtSummary.sub_commissions', 90.0);
+        $response->assertViewHas('debtSummary.amount_owed_to_organizers', 4500.0);
     }
 
     public function test_managers_personal_commission_excludes_sub_commission(): void
@@ -163,6 +166,6 @@ class PromoterManagerDashboardTest extends TestCase
 
         // "My Commission" KPI should show ONLY the manager's share (70),
         // not the combined manager + sub total (100).
-        $response->assertViewHas('managerCommissionAllTime', 70.0);
+        $response->assertViewHas('debtSummary.manager_commission', 70.0);
     }
 }

@@ -51,6 +51,11 @@ return [
     'password_update_failed' => 'Ažuriranje lozinke nije uspelo. Molimo pokušajte ponovo.',
     'validation_failed_check_fields' => 'Validacija nije uspela. Molimo proverite polja za unos radi grešaka.',
 
+    // Poruke za evidentiranje uplata
+    'payment_recorded_success'              => 'Uplata od :amount RSD od :name je evidentirana.',
+    'payment_to_organizers_recorded_success'=> 'Uplata od :amount RSD organizatorima je evidentirana.',
+    'payment_amount_invalid'                => 'Iznos uplate mora biti veći od nule.',
+
     // Poruke za email šablone
     'email_template_created'           => 'Email šablon „:name" je uspešno kreiran.',
     'email_template_updated'           => 'Email šablon „:name" je uspešno ažuriran.',

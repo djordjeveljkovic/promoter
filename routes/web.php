@@ -8,6 +8,7 @@ use App\Http\Controllers\PromoterManagerController;
 use App\Http\Controllers\SupremeAdminController;
 use App\Http\Controllers\TicketController;
 use App\Http\Controllers\OrderController;
+use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\SubPromoterController;
 use App\Livewire\Admin\OrderDetails;
 use App\Livewire\Settings\Password;
@@ -121,6 +122,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/help', [PromoterController::class, 'help'])->name('promoter.help');
         Route::get('/orders', [OrderController::class, 'index'])->name('promoter.orders.index');
         Route::get('/orders/{order}', [OrderController::class, 'show'])->name('promoter.orders.show');
+        Route::post('/orders/{order}/download-qrcodes', [OrderController::class, 'downloadQRCodes'])->name('promoter.orders.downloadQRCodes');
     });
 
     /**
@@ -135,6 +137,12 @@ Route::middleware('auth')->group(function () {
         Route::get('/sub-promoter/edit/{id}', [PromoterManagerController::class, 'subPromoterEdit'])->name('promoter_manager.sub_promoters.edit');
         Route::put('/sub-promoter/edit/{id}', [PromoterManagerController::class, 'subPromoterUpdate'])->name('promoter_manager.sub_promoters.update');
         Route::delete('/sub-promoter/{id}', [PromoterManagerController::class, 'subPromoterDestroy'])->name('promoter_manager.sub_promoters.destroy');
+
+        // Payment recording.
+        Route::post('/sub-promoter/{sub}/payments/from-sub', [PaymentController::class, 'recordFromSub'])
+            ->name('promoter_manager.payments.from_sub.store');
+        Route::post('/payments/to-organizers', [PaymentController::class, 'recordToOrganizers'])
+            ->name('promoter_manager.payments.to_organizers.store');
     });
 
     /**
@@ -145,6 +153,10 @@ Route::middleware('auth')->group(function () {
         Route::get('/orders', [SubPromoterController::class, 'ordersIndex'])->name('sub_promoter.orders.index');
         Route::get('/order/create', [SubPromoterController::class, 'create'])->name('sub_promoter.orders.create');
         Route::post('/orders', [SubPromoterController::class, 'placeOrder'])->name('sub_promoter.orders.store');
+
+        // Payment recording (self-logged).
+        Route::post('/payments/to-manager', [PaymentController::class, 'recordSubToManager'])
+            ->name('sub_promoter.payments.to_manager.store');
     });
 });
 Route::middleware(['auth'])->group(function () {

@@ -12,9 +12,11 @@ return [
         'email_settings' => 'Email Settings',
         'promoter_dashboard' => 'Dashboard',
         'promoter_manager_dashboard' => 'Dashboard',
+        'sub_promoter_dashboard' => 'Dashboard',
         'sub_promoters' => 'Sub-Promoters',
         'sales' => 'Sales',
         'promoter_sold_tickets' => 'Sold Tickets',
+        'sub_promoter_sold_tickets' => 'Sold Tickets',
         'support' => 'Support',
     ],
     'usermenu' => [

@@ -65,6 +65,9 @@
                                 <th class="px-6 py-3 text-center text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300">
                                     {{ __('sub_promoter_dashboard.orders.table.header_status') }}
                                 </th>
+                                <th class="px-6 py-3 text-center text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300">
+                                    {{ __('sub_promoter_dashboard.orders.table.header_actions') }}
+                                </th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-200 bg-white dark:divide-zinc-800 dark:bg-zinc-900">
@@ -98,10 +101,16 @@
                                             {{ $statusText }}
                                         </span>
                                     </td>
+                                    <td class="whitespace-nowrap px-6 py-4 text-center">
+                                        <a href="{{ route('promoter.orders.show', $order->id) }}"
+                                           class="inline-flex items-center justify-center px-2 py-1 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-400 rounded-md transition-colors">
+                                            {{ __('sub_promoter_dashboard.orders.table.actions_view_button') }}
+                                        </a>
+                                    </td>
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="7" class="px-6 py-12 text-center text-sm text-gray-500 dark:text-gray-400">
+                                    <td colspan="8" class="px-6 py-12 text-center text-sm text-gray-500 dark:text-gray-400">
                                         {{ __('sub_promoter_dashboard.orders.table.empty') }}
                                     </td>
                                 </tr>

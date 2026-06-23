@@ -18,7 +18,9 @@ use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use ZipArchive;
 
 class OrderController extends Controller
 {
@@ -385,6 +387,91 @@ class OrderController extends Controller
             'orderId' => $order->id,
             'status' => $order->job_status
         ]));
+    }
+
+    /**
+     * Download all QR codes attached to an order as a single .zip archive.
+     *
+     * Authorization mirrors show():
+     *   - the seller (requested_by == auth()->id()) can always download;
+     *   - a promoter-manager can additionally download for orders placed
+     *     by one of his sub-promoters;
+     *   - private (supreme-admin) sales are visible ONLY to the seller.
+     *
+     * If the request includes a `selected_codes` array we filter the
+     * archive to just those ticket codes (used when the user wants a
+     * subset, e.g. a re-print for a single attendee).
+     */
+    public function downloadQRCodes(Request $request, TicketOrder $order)
+    {
+        $user = Auth::user();
+        if (!$user) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $isSeller = (int) $order->requested_by === (int) $user->id;
+        $isManagerOfSeller = $user->isPromoterManager()
+            && $user->subPromoters()->where('id', $order->requested_by)->exists();
+
+        if (!$isSeller && !$isManagerOfSeller) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        // Private (supreme-admin) sales can only be downloaded by the
+        // seller themselves.
+        if ($order->is_private && !$isSeller) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $zip = new ZipArchive();
+        $fileName = 'qrcodes_order_' . $order->id . '.zip';
+
+        $zipDirectory = storage_path('app/temp_zips');
+        if (!file_exists($zipDirectory)) {
+            mkdir($zipDirectory, 0775, true);
+        }
+        $zipPath = $zipDirectory . DIRECTORY_SEPARATOR . $fileName;
+
+        $selectedCodes = $request->input('selected_codes');
+        $ticketsToProcess = collect();
+
+        if (is_array($selectedCodes) && !empty($selectedCodes)) {
+            $ticketsToProcess = $order->tickets()->whereIn('code', $selectedCodes)->get();
+            if ($ticketsToProcess->isEmpty()) {
+                return back()->with('error', __('alert.ticket_codes_not_found'));
+            }
+        } else {
+            $ticketsToProcess = $order->tickets;
+        }
+
+        if ($ticketsToProcess->isEmpty()) {
+            return back()->with('error', __('alert.no_tickets_to_process'));
+        }
+
+        if ($zip->open($zipPath, ZipArchive::CREATE | ZipArchive::OVERWRITE) === true) {
+            $filesAdded = 0;
+
+            foreach ($ticketsToProcess as $ticket) {
+                $individualQrPath = storage_path('app/public/' . $ticket->qr_code_path);
+                if (!empty($ticket->qr_code_path) && file_exists($individualQrPath)) {
+                    $zip->addFile($individualQrPath, basename($individualQrPath));
+                    $filesAdded++;
+                }
+            }
+
+            $zip->close();
+
+            if ($filesAdded > 0 && file_exists($zipPath)) {
+                return response()->download($zipPath, $fileName)->deleteFileAfterSend(true);
+            }
+
+            if (file_exists($zipPath)) {
+                @unlink($zipPath);
+            }
+            return back()->with('error', __('alert.no_qr_codes_found'));
+        }
+
+        return back()->with('error', __('alert.zip_creation_failed'));
     }
 
     /**

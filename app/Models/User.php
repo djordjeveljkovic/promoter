@@ -291,6 +291,11 @@ class User extends Authenticatable
 	    return $this->role === 'promoter_manager';
 	}
 
+	public function isSubPromoter(): bool
+	{
+	    return $this->role === 'sub_promoter';
+	}
+
 	public function isPromoterLike(): bool
 	{
 	    // Promoter, promoter_manager and admin can all earn commission via the

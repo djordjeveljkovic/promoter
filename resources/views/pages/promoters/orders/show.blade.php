@@ -176,10 +176,13 @@
                         </p>
                     </div>
                     @if($order->tickets->isNotEmpty())
-                        <a href="{{ route('admin.orders.downloadQRCodes', ['order' => $order->id]) }}"
-                           class="inline-flex items-center justify-center gap-2 rounded-lg bg-slate-700 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-600 dark:bg-slate-600 dark:hover:bg-slate-500">
-                            {{ __('orders.show.tickets.download_all_button') }}
-                        </a>
+                        <form method="POST" action="{{ route('promoter.orders.downloadQRCodes', ['order' => $order->id]) }}" class="inline">
+                            @csrf
+                            <button type="submit"
+                                    class="inline-flex items-center justify-center gap-2 rounded-lg bg-slate-700 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-600 dark:bg-slate-600 dark:hover:bg-slate-500">
+                                {{ __('orders.show.tickets.download_all_button') }}
+                            </button>
+                        </form>
                     @endif
                 </div>
 
