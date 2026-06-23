@@ -89,6 +89,104 @@ return [
             'body'              => 'Ne možete sami evidentirati svoje uplate organizatorima — admin beleži svaki prenos za vas. Stanje iznad odražava ukupan iznos evidentiranih uplata, a lista „Uplate Uplaćene Organizatorima" na dnu ove stranice prikazuje svaku stavku sa adminom koji ju je uneo.',
         ],
 
+        /* ------------------ 4 KPI kartice na vrhu ------------------ */
+        'kpi' => [
+            'my_earnings' => [
+                'label'        => 'Moja zarada',
+                'help'         => 'Ukupna provizija koju sam zaradio (lična prodaja + udeo od tima).',
+                'scroll_hint'  => 'Kliknite za detaljnu analizu',
+            ],
+            'cash_in_hand' => [
+                'label'        => 'Novac kod mene',
+                'help'         => 'Prikupljeno od sub-promotera, a još uvek nije prosleđeno organizatorima.',
+                'overpaid'     => 'Isplatili ste više nego što ste prikupili — dug vam je iz vašeg džepa.',
+            ],
+            'money_with_promoters' => [
+                'label'        => 'Novac kod promotera',
+                'help'         => 'Ukupan iznos koji mi sub-promoteri trenutno duguju.',
+                'open_link'    => 'Otvori stranicu promotera',
+            ],
+            'debt_to_organizers' => [
+                'label'        => 'Dug organizatorima',
+                'help'         => 'Neto iznos koji još dugujem organizatorima nakon svih provizija u timu.',
+                'scroll_hint'  => 'Kliknite za pregled dugovanja',
+                'zero_label'   => 'Sve izmireno',
+            ],
+        ],
+
+        /* ------------------ "Moja zarada" detaljna analiza ------------------ */
+        'earnings_section' => [
+            'heading'              => 'Moja zarada',
+            'sub_heading'          => 'Odakle potiče svaki din moje provizije.',
+            'my_commission'        => 'Moja provizija (lična prodaja)',
+            'sub_commission_share' => 'Moj udeo provizije od sub-promotera',
+            'total_earned'         => 'Ukupno zarađeno',
+            'personal_gross'       => 'Moja lična prodaja',
+            'subs_gross'           => 'Prodaja sub-promotera',
+            'gross_help'           => 'Bruto prihod ove kolone. Moja provizija se računa na osnovu ovoga.',
+            'recent_label'         => 'Poslednjih 30 dana',
+            'recent_commission'    => 'Provizija u poslednjih 30 dana',
+        ],
+
+        /* ------------------ "Top promoteri" rang lista ------------------ */
+        'leaderboard' => [
+            'heading'                  => 'Top sub-promoteri',
+            'sub_heading'              => 'Rangirani po bruto prihodu. Kliknite red da otvorite detalje sub-promotera.',
+            'header_rank'              => '#',
+            'header_name'              => 'Sub-promoter',
+            'header_orders'            => 'Porudžbine',
+            'header_tickets'           => 'Ulaznice',
+            'header_gross'             => 'Bruto prihod',
+            'header_sub_commission'    => 'Njihova provizija',
+            'header_manager_commission'=> 'Moja provizija od njih',
+            'header_paid'              => 'Uplaćeno meni',
+            'header_owed'              => 'Duguje mi',
+            'empty'                    => 'Još nema aktivnosti sub-promotera.',
+            'open_detail'              => 'Otvori detalje',
+        ],
+
+        /* ------------------ "Dugovanja i pregled" sekcija ------------------ */
+        'debts_section' => [
+            'heading'                  => 'Dugovanja i uplate',
+            'sub_heading'              => 'Pregled iz ptičje perspektive onoga što tim duguje vama i onoga što vi dugujete organizatorima, a ispod toga živa lista po sub-promoteru.',
+            'overview_heading'         => 'Pregled',
+            'overview_subs_owe'        => 'Ukupno sub-promoteri duguju meni',
+            'overview_subs_paid'       => 'Ukupno primljeno od sub-promotera',
+            'overview_orgs_owe'        => 'Ukupno dugujem organizatorima',
+            'overview_orgs_paid'       => 'Ukupno plaćeno organizatorima',
+            'list_heading'             => 'Stanja po sub-promoteru',
+            'list_sub_heading'         => 'Najveća dugovanja prvo. Kliknite red da otvorite sub-promotera i evidentirate uplatu.',
+            'header_sub'               => 'Sub-promoter',
+            'header_gross'             => 'Bruto prodaja',
+            'header_sub_commission'    => 'Njihova provizija',
+            'header_paid'              => 'Uplaćeno meni',
+            'header_owed'              => 'Duguje mi',
+            'empty'                    => 'Još nemate sub-promotera — dodajte jednog na stranici sub-promotera da biste počeli sa praćenjem stanja.',
+            'open_sub_promoters'       => 'Otvori stranicu promotera',
+            'owe_zero'                 => 'Sve izmireno',
+            'owe_negative'             => 'Preplatio za',
+            'record_payment'           => 'Evidentiraj uplatu',
+            'amount_placeholder'       => 'Iznos',
+        ],
+
+        /* ------------------ Evidencija uplata ------------------ */
+        'evidence' => [
+            'heading'                       => 'Evidencija uplata',
+            'sub_heading'                   => 'Cela istorija novca koji je prošao kroz ovu kontrolnu tablu.',
+            'from_subs_heading'             => 'Novac primljen od sub-promotera',
+            'from_subs_subtext'             => 'Svaku stavku evidentirate vi (menadžer) ili, u izuzetnim slučajevima, admin.',
+            'from_subs_empty'               => 'Još nema uplata od sub-promotera.',
+            'to_orgs_heading'               => 'Novac prosleđen organizatorima',
+            'to_orgs_subtext'               => 'Ove stavke evidentira admin u vaše ime — vi ne možete sami dodavati u ovu listu.',
+            'to_orgs_empty'                 => 'Još nema evidentiranih uplata organizatorima.',
+            'date'                          => 'Datum',
+            'sub'                           => 'Sub-promoter',
+            'amount'                        => 'Iznos',
+            'recorded_by'                   => 'Evidentirao',
+            'note'                          => 'Napomena',
+            'view_full_sub_promoters'       => 'Otvori stranicu promotera',
+        ],
+
         /* ------------------ "Šta dugujem" heroj ------------------ */
         'owe_hero' => [
             'eyebrow'              => 'Šta dugujem organizatorima',

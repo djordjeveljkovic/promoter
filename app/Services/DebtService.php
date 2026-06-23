@@ -283,6 +283,187 @@ class DebtService
     }
 
     /**
+     * Live cash the manager currently holds in hand: every RSD collected
+     * from sub-promoters minus every RSD forwarded to the organizers.
+     *
+     * Mathematically this is the running balance between the two ledger
+     * flows that flow through the manager:
+     *
+     *   + money received from sub-promoters (sub_to_manager)
+     *   - money forwarded to organizers    (manager_to_organizers)
+     *
+     * Positive  → the manager currently has cash to forward.
+     * Zero      → every RSD received has already been forwarded.
+     * Negative  → the manager has paid more than he has collected
+     *              (e.g. because his own commission was netted against
+     *              the forwarded amount). Magnitude is what he still
+     *              needs to cover from his own pocket.
+     */
+    public function cashInHandByManager(User $manager): float
+    {
+        $manager = $this->resolveManager($manager);
+
+        $receivedFromSubs = (float) SubPromoterPayment::where('payment_type', SubPromoterPayment::TYPE_SUB_TO_MANAGER)
+            ->where('receiver_id', $manager->id)
+            ->sum('amount');
+
+        $paidToOrganizers = (float) SubPromoterPayment::where('payment_type', SubPromoterPayment::TYPE_MANAGER_TO_ORGANIZERS)
+            ->where('payer_id', $manager->id)
+            ->sum('amount');
+
+        return round($receivedFromSubs - $paidToOrganizers, 2);
+    }
+
+    /**
+     * Per-sub-promoter leaderboard rows: gross sales, sub's commission,
+     * manager's commission earned from this sub's sales, amount paid,
+     * amount still owed. Sorted by gross revenue DESC.
+     *
+     * @return Collection<int, array{
+     *     user: User,
+     *     gross_sales: float,
+     *     sub_commission: float,
+     *     manager_commission: float,
+     *     amount_owed_to_manager: float,
+     *     amount_already_paid: float,
+     *     orders_count: int,
+     *     tickets_sold: int,
+     * }>
+     */
+    public function topSubPromotersBySales(User $manager, int $limit = 10): Collection
+    {
+        $manager = $this->resolveManager($manager);
+
+        $subIds = $manager->subPromoters()->pluck('id');
+        if ($subIds->isEmpty()) {
+            return collect();
+        }
+
+        // Per-sub gross + order + ticket counts in a single pass so the
+        // leaderboard renders in O(1) queries.
+        $grossBySub = TicketOrder::whereIn('requested_by', $subIds)
+            ->whereIn('job_status', self::SUCCESS_STATUSES)
+            ->where('is_private', false)
+            ->selectRaw('requested_by, COALESCE(SUM(total), 0) AS gross, COUNT(*) AS orders_count')
+            ->groupBy('requested_by')
+            ->pluck('gross', 'requested_by');
+        $ordersBySub = TicketOrder::whereIn('requested_by', $subIds)
+            ->whereIn('job_status', self::SUCCESS_STATUSES)
+            ->where('is_private', false)
+            ->selectRaw('requested_by, COUNT(*) AS orders_count')
+            ->groupBy('requested_by')
+            ->pluck('orders_count', 'requested_by');
+        $ticketsBySub = TicketOrderItem::whereHas('ticketOrder', function ($q) use ($subIds) {
+                $q->whereIn('requested_by', $subIds)
+                    ->whereIn('job_status', self::SUCCESS_STATUSES);
+            })
+            ->selectRaw('ticket_orders.requested_by AS sub_id, COALESCE(SUM(ticket_order_items.quantity), 0) AS tickets')
+            ->join('ticket_orders', 'ticket_orders.id', '=', 'ticket_order_items.ticket_order_id')
+            ->groupBy('ticket_orders.requested_by')
+            ->pluck('tickets', 'sub_id');
+
+        // Sub's own commission (their share on their orders).
+        $subCommissionsBySub = TicketOrderCommission::whereIn('beneficiary_user_id', $subIds)
+            ->where('beneficiary_role', 'sub_promoter')
+            ->selectRaw('beneficiary_user_id, COALESCE(SUM(commission_amount), 0) AS amount')
+            ->groupBy('beneficiary_user_id')
+            ->pluck('amount', 'beneficiary_user_id');
+
+        // Manager's commission attributable to each sub's orders.
+        // (Manager's commission rows on orders the sub placed.)
+        $managerCommissionBySub = TicketOrderCommission::where('beneficiary_user_id', $manager->id)
+            ->where('beneficiary_role', 'promoter_manager')
+            ->whereHas('ticketOrder', function ($q) use ($subIds) {
+                $q->whereIn('requested_by', $subIds);
+            })
+            ->selectRaw('ticket_orders.requested_by AS sub_id, COALESCE(SUM(ticket_order_commissions.commission_amount), 0) AS amount')
+            ->join('ticket_orders', 'ticket_orders.id', '=', 'ticket_order_commissions.ticket_order_id')
+            ->groupBy('ticket_orders.requested_by')
+            ->pluck('amount', 'sub_id');
+
+        // Existing debt rows keep the canonical "paid / owed" pair so the
+        // leaderboard agrees with the per-sub cards.
+        $debtsBySub = $this->subDebtsForManager($manager)->keyBy('user.id');
+
+        $rows = $manager->subPromoters()->orderBy('name')->get()->map(function (User $sub) use (
+            $grossBySub, $ordersBySub, $ticketsBySub, $subCommissionsBySub, $managerCommissionBySub, $debtsBySub
+        ) {
+            $debt = $debtsBySub[$sub->id] ?? null;
+            return [
+                'user'                    => $sub,
+                'gross_sales'             => round((float) ($grossBySub[$sub->id] ?? 0), 2),
+                'sub_commission'          => round((float) ($subCommissionsBySub[$sub->id] ?? 0), 2),
+                'manager_commission'      => round((float) ($managerCommissionBySub[$sub->id] ?? 0), 2),
+                'amount_owed_to_manager'  => round((float) ($debt['amount_owed_to_manager'] ?? 0), 2),
+                'amount_already_paid'     => round((float) ($debt['amount_already_paid'] ?? 0), 2),
+                'orders_count'            => (int) ($ordersBySub[$sub->id] ?? 0),
+                'tickets_sold'            => (int) ($ticketsBySub[$sub->id] ?? 0),
+            ];
+        });
+
+        return $rows
+            ->sortByDesc('gross_sales')
+            ->take($limit)
+            ->values();
+    }
+
+    /**
+     * Per-promoter-manager commission split for the dashboard "My earnings"
+     * breakdown: the portion of the manager's commission earned from his
+     * own personal sales versus the portion earned on sub-promoter sales.
+     *
+     * @return array{
+     *     personal_commission: float,
+     *     sub_commission: float,
+     *     total_commission: float,
+     *     personal_gross: float,
+     *     subs_gross: float,
+     * }
+     */
+    public function managerEarningsBreakdown(User $manager): array
+    {
+        $manager = $this->resolveManager($manager);
+
+        $subIds = $manager->subPromoters()->pluck('id');
+
+        $personalCommission = (float) TicketOrderCommission::where('beneficiary_user_id', $manager->id)
+            ->where('beneficiary_role', 'promoter_manager')
+            ->whereHas('ticketOrder', function ($q) use ($manager) {
+                $q->where('requested_by', $manager->id);
+            })
+            ->sum('commission_amount');
+
+        $subCommission = $subIds->isEmpty()
+            ? 0.0
+            : (float) TicketOrderCommission::where('beneficiary_user_id', $manager->id)
+                ->where('beneficiary_role', 'promoter_manager')
+                ->whereHas('ticketOrder', function ($q) use ($subIds) {
+                    $q->whereIn('requested_by', $subIds);
+                })
+                ->sum('commission_amount');
+
+        $personalGross = (float) TicketOrder::where('requested_by', $manager->id)
+            ->whereIn('job_status', self::SUCCESS_STATUSES)
+            ->where('is_private', false)
+            ->sum('total');
+
+        $subsGross = $subIds->isEmpty()
+            ? 0.0
+            : (float) TicketOrder::whereIn('requested_by', $subIds)
+                ->whereIn('job_status', self::SUCCESS_STATUSES)
+                ->where('is_private', false)
+                ->sum('total');
+
+        return [
+            'personal_commission' => round($personalCommission, 2),
+            'sub_commission'      => round($subCommission, 2),
+            'total_commission'    => round($personalCommission + $subCommission, 2),
+            'personal_gross'      => round($personalGross, 2),
+            'subs_gross'          => round($subsGross, 2),
+        ];
+    }
+
+    /**
      * Last $limit payments involving the given user in either role
      * (payer or receiver). Most recent first.
      */

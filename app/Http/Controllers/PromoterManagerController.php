@@ -483,6 +483,18 @@ class PromoterManagerController extends Controller
         $recentPaymentsFromSubs      = $debt->recentPaymentsReceivedByManager($manager, 8);
         $recentPaymentsToOrganizers  = $debt->recentPaymentsToOrganizersByManager($manager, 8);
 
+        // Cash currently in the manager's hand (collected from subs but
+        // not yet forwarded to organizers). Drives the second KPI card.
+        $cashInHand = $debt->cashInHandByManager($manager);
+
+        // Top sub-promoter leaderboard, ranked by gross revenue.
+        $topSubs = $debt->topSubPromotersBySales($manager, 10);
+
+        // Earnings breakdown: personal vs. share from sub sales. Drives
+        // the "My earnings" detail section that the first KPI card
+        // scrolls down to.
+        $earningsBreakdown = $debt->managerEarningsBreakdown($manager);
+
         return view('pages.promoter_managers.dashboard', compact(
             'manager',
             'debtSummary',
@@ -493,7 +505,10 @@ class PromoterManagerController extends Controller
             'teamAlreadyPaidToManager',
             'teamCommissionTotal',
             'recentPaymentsFromSubs',
-            'recentPaymentsToOrganizers'
+            'recentPaymentsToOrganizers',
+            'cashInHand',
+            'topSubs',
+            'earningsBreakdown'
         ));
     }
 }
