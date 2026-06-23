@@ -108,7 +108,8 @@ return [
         'source_type_view'  => 'Blade view (recommended — supports @if, @foreach, {{ $order->email }} etc.)',
         'source_type_html'  => 'Inline HTML (simple — supports {{ $orderNumber }} placeholder)',
         'view_name_label'   => 'Blade view path',
-        'view_name_placeholder' => 'emails.customer.tickets',
+        'view_name_placeholder' => 'Leave empty to auto-create',
+        'view_name_help'    => 'Pick one of the existing views (e.g. <code class="font-mono">:default</code>) to link an existing file as a template, or leave the field empty and the system will automatically create a new Blade file based on the default template. No need to create files by hand.',
         'html_content_label'=> 'HTML body',
         'html_content_placeholder' => '<h1>Hello!</h1><p>Your order {{ $orderNumber }} …</p>',
 

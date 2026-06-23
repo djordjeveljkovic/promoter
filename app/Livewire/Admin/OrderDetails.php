@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Admin;
 
+use App\Jobs\GenerateTicketImagesJob;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 use App\Models\TicketOrder;
@@ -116,5 +117,39 @@ class OrderDetails extends Component
     public function render()
     {
         return view('livewire.admin.order-details');
+    }
+
+    /**
+     * Re-queue the ticket-image generation job for any ticket of this
+     * order that is still missing both `image_path` and `qr_code_path`.
+     *
+     * Used as a manual recovery button on the order details page when the
+     * original job failed midway (which leaves some tickets with paths and
+     * others without). We only re-process tickets that need it so we don't
+     * waste worker time on tickets that already have images.
+     */
+    public function regenerateMissingImages(): void
+    {
+        $missing = $this->order->tickets()
+            ->where(function ($q) {
+                $q->whereNull('image_path')
+                  ->orWhere('image_path', '');
+            })
+            ->where(function ($q) {
+                $q->whereNull('qr_code_path')
+                  ->orWhere('qr_code_path', '');
+            })
+            ->pluck('id');
+
+        if ($missing->isEmpty()) {
+            session()->flash('info', __('order_details.actions.regenerate_no_missing'));
+            return;
+        }
+
+        GenerateTicketImagesJob::dispatch($this->order->id);
+
+        session()->flash('success', __('order_details.actions.regenerate_queued', [
+            'count' => $missing->count(),
+        ]));
     }
 }

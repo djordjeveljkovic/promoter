@@ -91,11 +91,22 @@
                     {{ __('email_settings.create.view_name_label') }}
                 </label>
                 <input type="text" name="view_name" id="view_name" maxlength="255"
-                       value="{{ old('view_name', $defaultView) }}"
+                       list="available-views"
+                       value="{{ old('view_name') }}"
                        placeholder="{{ __('email_settings.create.view_name_placeholder') }}"
+                       autocomplete="off"
                        class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-900 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 font-mono text-sm">
+                {{-- Datalist of all Blade views that already exist under
+                     resources/views/emails/. Picking one "links" the file
+                     as-is (no copy). Leave empty to auto-create a new file
+                     from the default template. --}}
+                <datalist id="available-views">
+                    @foreach (($availableViews ?? []) as $existingView)
+                        <option value="{{ $existingView }}"></option>
+                    @endforeach
+                </datalist>
                 <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                    {!! __('email_settings.edit.editor_blade_variables') !!}
+                    {!! __('email_settings.create.view_name_help', ['default' => $defaultView]) !!}
                 </p>
             </div>
 

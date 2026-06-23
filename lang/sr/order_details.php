@@ -3,8 +3,21 @@
 return [
     // Header Section
     'header' => [
-        'order_prefix' => 'Porudžbina #',
-        'total_label'  => 'Ukupno:',
+        'order_prefix'    => 'Porudžbina #',
+        'total_label'     => 'Ukupno:',
+        'eyebrow'         => 'Detalji porudžbine',
+        'main_heading'    => 'Porudžbina #:id',
+        'sub_heading'     => 'Potpuni detalji porudžbine, informacije o plaćanju i QR kodovi za svaku prodate ulaznicu.',
+        'back_to_orders'  => '← Nazad na porudžbine',
+    ],
+
+    // Summary KPI strip
+    'summary' => [
+        'customer_label'  => 'Kupac',
+        'placed_on_label' => 'Datum',
+        'total_label'     => 'Ukupno',
+        'paid_label'      => 'Uplaćeno',
+        'status_label'    => 'Status',
     ],
 
     // Payment Section
@@ -50,5 +63,8 @@ return [
         'download_all_button'       => 'Preuzmi sve',
         'activate_selected_button'  => 'Aktiviraj selektovane',
         'deactivate_selected_button'=> 'Deaktiviraj selektovane',
+        'regenerate_button'         => 'Regeneriši slike koje nedostaju (:count)',
+        'regenerate_queued'         => 'Regeneracija slika stavljena u red za :count ulaznicu/a. Osvežite za koji trenutak.',
+        'regenerate_no_missing'     => 'Nijedna ulaznica nema nedostajuću sliku — nema šta da se regeneriše.',
     ],
 ];

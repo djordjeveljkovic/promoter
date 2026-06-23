@@ -189,16 +189,28 @@ class EmailSettingsController extends Controller
      * "Add new template" page — a simple form with name / subject /
      * description / source (view_name OR inline HTML) and a "make default"
      * checkbox.
+     *
+     * Passes a list of every Blade view that currently lives under
+     * `resources/views/emails/customer/` so the admin can pick an existing
+     * file (link) instead of typing its path by hand.
      */
     public function createTemplate(): ViewResponse
     {
         return view('pages.admin.email_settings.create', [
-            'defaultView' => self::DEFAULT_VIEW,
+            'defaultView'    => self::DEFAULT_VIEW,
+            'availableViews' => $this->listAvailableEmailViews(),
         ]);
     }
 
     /**
      * Persist a brand-new template.
+     *
+     * Behaviour for the `view_name` field (when source_type=view):
+     *   - Empty         → auto-generate a Blade file based on the default
+     *                     template (`emails.customer.tickets`). The admin
+     *                     doesn't have to create the file by hand.
+     *   - Existing view → link it as-is (no copy, no file write).
+     *   - Non-existent  → validation error.
      */
     public function storeTemplate(Request $request): RedirectResponse
     {
@@ -207,16 +219,9 @@ class EmailSettingsController extends Controller
             'subject'      => 'required|string|max:255',
             'description'  => 'nullable|string|max:500',
             'source_type'  => ['required', Rule::in(['view', 'html'])],
-            'view_name'    => [
-                'nullable',
-                'string',
-                'max:255',
-                function (string $attribute, mixed $value, \Closure $fail) {
-                    if ($value !== null && $value !== '' && !View::exists($value)) {
-                        $fail(__('alert.email_template_view_not_found', ['view' => $value]));
-                    }
-                },
-            ],
+            // view_name is now truly optional — leaving it empty triggers
+            // auto-generation of a Blade file below.
+            'view_name'    => ['nullable', 'string', 'max:255'],
             'html_content' => 'nullable|string',
             'is_active'    => 'sometimes|boolean',
         ], [
@@ -229,12 +234,23 @@ class EmailSettingsController extends Controller
         ]);
 
         if ($data['source_type'] === 'view') {
-            if (empty($data['view_name'])) {
-                return back()->withInput()->withErrors([
-                    'view_name' => __('alert.email_template_view_required'),
-                ]);
+            $viewNameInput = trim((string) ($data['view_name'] ?? ''));
+
+            if ($viewNameInput !== '') {
+                // User explicitly chose a view — it must exist on disk.
+                if (!View::exists($viewNameInput)) {
+                    return back()->withInput()->withErrors([
+                        'view_name' => __('alert.email_template_view_not_found', [
+                            'view' => $viewNameInput,
+                        ]),
+                    ]);
+                }
+                $viewName = $viewNameInput;
+            } else {
+                // Empty → the file will be auto-generated from the default
+                // template after the record is saved (we need the id first).
+                $viewName = null;
             }
-            $viewName    = $data['view_name'];
             $htmlContent = null;
         } else {
             if (empty($data['html_content'])) {
@@ -260,6 +276,16 @@ class EmailSettingsController extends Controller
             'html_content' => $htmlContent,
             'is_active'    => false,
         ]);
+
+        // Auto-create the Blade file when the admin didn't pick an existing
+        // view. The file is generated from the default template
+        // (emails.customer.tickets) so the new template is immediately
+        // editable in the split-view editor.
+        if ($data['source_type'] === 'view' && empty($viewName)) {
+            $generatedView = $this->generateViewNameFor($template);
+            $this->materializeViewFile($generatedView, self::DEFAULT_VIEW);
+            $template->update(['view_name' => $generatedView]);
+        }
 
         if ($shouldActivate) {
             $template->activate();
@@ -602,6 +628,95 @@ class EmailSettingsController extends Controller
         ];
 
         return strtr($html, $replacements);
+    }
+
+    /**
+     * Materialize a Blade view file under the `generated/` directory,
+     * seeding it with the contents of a source view (defaults to the
+     * default email template).
+     *
+     * The generated file is independent from the source — editing it does
+     * not touch the default template, and the default template is never
+     * overwritten.
+     *
+     * @param  string  $viewName    Target view name, e.g. "emails.customer.generated.ulaznice_v2_5".
+     * @param  string  $sourceView  Source view name to copy from. Defaults to
+     *                              `self::DEFAULT_VIEW` (emails.customer.tickets).
+     * @return bool                 True on success, false if the file could not be written.
+     */
+    protected function materializeViewFile(string $viewName, string $sourceView = self::DEFAULT_VIEW): bool
+    {
+        $sourceAbsolute = resource_path('views/' . str_replace('.', '/', $sourceView) . '.blade.php');
+        $targetAbsolute = resource_path('views/' . str_replace('.', '/', $viewName) . '.blade.php');
+        $targetDir      = dirname($targetAbsolute);
+
+        if (!File::isDirectory($targetDir)) {
+            File::makeDirectory($targetDir, 0775, true, true);
+        }
+
+        // Don't clobber an existing file — `generateViewNameFor` is supposed
+        // to produce a unique name, but defensive is better than destructive.
+        if (File::exists($targetAbsolute)) {
+            return true;
+        }
+
+        $seed = File::exists($sourceAbsolute)
+            ? File::get($sourceAbsolute)
+            : <<<'BLADE'
+                {{-- Auto-created empty template. --}}
+                <!DOCTYPE html>
+                <html>
+                <head><meta charset="utf-8"><title>Email</title></head>
+                <body>
+                    <p>Hej{{ $order->customer_name ? ' ' . $order->customer_name : '' }}!</p>
+                </body>
+                </html>
+                BLADE;
+
+        return File::put($targetAbsolute, $seed) !== false;
+    }
+
+    /**
+     * Enumerate every Blade view that lives under `resources/views/emails/`
+     * (recursively) and return them as `dot.path` strings — the same format
+     * Blade/Laravel uses for `view()` calls.
+     *
+     * Used by the "create template" form so the admin can pick from a
+     * list of existing files (link) instead of typing the path by hand.
+     *
+     * The default view is always included at the top of the list.
+     *
+     * @return array<int, string>
+     */
+    protected function listAvailableEmailViews(): array
+    {
+        $baseDir = resource_path('views/emails');
+
+        if (!File::isDirectory($baseDir)) {
+            return [self::DEFAULT_VIEW];
+        }
+
+        $views = [self::DEFAULT_VIEW];
+
+        foreach (File::allFiles($baseDir) as $file) {
+            $relative = $file->getRelativePath() === ''
+                ? $file->getFilename()
+                : $file->getRelativePath() . DIRECTORY_SEPARATOR . $file->getFilename();
+
+            // Only *.blade.php files, expressed as dot-notation paths.
+            if (!str_ends_with($relative, '.blade.php')) {
+                continue;
+            }
+
+            $dotPath = str_replace([DIRECTORY_SEPARATOR, '.blade.php'], ['.', ''], $relative);
+            $dotPath = 'emails.' . ltrim($dotPath, '.');
+
+            if ($dotPath !== self::DEFAULT_VIEW && !in_array($dotPath, $views, true)) {
+                $views[] = $dotPath;
+            }
+        }
+
+        return $views;
     }
 
     /**

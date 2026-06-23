@@ -3,8 +3,21 @@
 return [
     // Header Section
     'header' => [
-        'order_prefix' => 'Order #',
-        'total_label'  => 'Total:',
+        'order_prefix'    => 'Order #',
+        'total_label'     => 'Total:',
+        'eyebrow'         => 'Order details',
+        'main_heading'    => 'Order #:id',
+        'sub_heading'     => 'Full order details, payment info and the QR codes for every ticket sold.',
+        'back_to_orders'  => '← Back to orders',
+    ],
+
+    // Summary KPI strip
+    'summary' => [
+        'customer_label'  => 'Customer',
+        'placed_on_label' => 'Placed on',
+        'total_label'     => 'Total',
+        'paid_label'      => 'Paid',
+        'status_label'    => 'Status',
     ],
 
     // Payment Section
@@ -50,5 +63,8 @@ return [
         'download_all_button'       => 'Download All',
         'activate_selected_button'  => 'Activate Selected',
         'deactivate_selected_button'=> 'Deactivate Selected',
+        'regenerate_button'         => 'Regenerate Missing Images (:count)',
+        'regenerate_queued'         => 'Image regeneration queued for :count ticket(s). Refresh in a moment.',
+        'regenerate_no_missing'     => 'No tickets are missing images — nothing to regenerate.',
     ],
 ];

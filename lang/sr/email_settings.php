@@ -108,7 +108,8 @@ return [
         'source_type_view'  => 'Blade prikaz (preporučeno — podržava @if, @foreach, {{ $order->email }} itd.)',
         'source_type_html'  => 'Inline HTML (jednostavno — podržava {{ $orderNumber }} placeholder)',
         'view_name_label'   => 'Putanja Blade prikaza',
-        'view_name_placeholder' => 'emails.customer.tickets',
+        'view_name_placeholder' => 'Ostavite prazno za automatsko kreiranje',
+        'view_name_help'    => 'Izaberite jedan od postojećih prikaza (npr. <code class="font-mono">:default</code>) da povežete postojeći fajl kao šablon, ili ostavite polje prazno pa će sistem automatski napraviti novi Blade fajl po ugledu na podrazumevani šablon. Ručno kreiranje fajlova nije potrebno.',
         'html_content_label'=> 'HTML telo',
         'html_content_placeholder' => '<h1>Zdravo!</h1><p>Vaša narudžbina {{ $orderNumber }} …</p>',
 
