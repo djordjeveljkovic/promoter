@@ -6,7 +6,7 @@ return [
 
     'current_config' => [
         'heading'        => 'Trenutna konfiguracija emaila',
-        'help_text'      => 'Ove vrednosti se čitaju iz konfiguracije okruženja (.env) i ne mogu se menjati odavde. Izmenite ih na serveru i osvežite stranicu da biste videli promene.',
+        'help_text'      => 'Ovo su vrednosti koje framework trenutno koristi. Možete ih promeniti iz forme ispod bez diranja .env fajla — nove vrednosti se čuvaju u bazi i odmah primenjuju na runtime konfiguraciju.',
         'from_address_label' => 'Adresa pošiljaoca (From)',
         'from_name_label'    => 'Ime pošiljaoca (From Name)',
         'mailer_label'       => 'Mailer',
@@ -19,6 +19,52 @@ return [
         'scheme_label'       => 'Šifrovanje',
         'env_label'          => 'Okruženje',
         'edit_in_env'        => 'Ove vrednosti izmenite u :path fajlu na serveru.',
+        'runtime_label'      => 'Efektivno (baza pregazi .env)',
+    ],
+
+    // Editable mail config form
+    'edit_config' => [
+        'heading'              => 'Izmena konfiguracije emaila',
+        'help_text'            => 'Izmene se čuvaju u `mail_settings` tabeli i odmah primenjuju na runtime konfiguraciju. Ostavite polje prazno da vrednost ostane iz .env fajla.',
+        'mailer_label'         => 'Mailer driver',
+        'mailer_help'          => 'Koji transport koristiti: smtp za pravi email, log za upis u laravel.log, array za testove.',
+        'host_label'           => 'SMTP Host',
+        'port_label'           => 'SMTP Port',
+        'username_label'       => 'SMTP korisničko ime',
+        'password_label'       => 'SMTP lozinka (ostavite prazno da zadržite trenutnu)',
+        'password_placeholder' => '•••••••• (nepromenjeno)',
+        'clear_password_label' => 'Obriši sačuvanu lozinku (vrati na .env)',
+        'encryption_label'     => 'Šifrovanje (tls / ssl / bez)',
+        'encryption_none'      => 'Bez',
+        'timeout_label'        => 'SMTP Timeout (sekunde)',
+        'from_address_label'   => 'From adresa',
+        'from_name_label'      => 'From ime',
+        'test_recipient_label' => 'Podrazumevani test primalac',
+        'test_recipient_help'  => 'Gde dugme „Pošalji test email" šalje kada se ne prosledi druga adresa.',
+        'submit_button'        => 'Sačuvaj konfiguraciju emaila',
+    ],
+
+    // "Send test email" form
+    'test_email' => [
+        'heading'           => 'Pošalji test email',
+        'help_text'         => 'Šalje običnu tekstualnu poruku koristeći trenutno aktivnu konfiguraciju emaila, kako biste proverili da li su kredencijali ispravni.',
+        'to_label'          => 'Primalac (preglasava podrazumevanog)',
+        'subject_label'     => 'Naslov',
+        'message_label'     => 'Telo poruke',
+        'submit_button'     => 'Pošalji test email',
+        'default_subject'   => 'Test email sa :app_name',
+        'default_body'      => "Zdravo!\n\nOvo je test email poslat sa :app_name da bi se proverila konfiguracija emaila.\n\nMailer: :mailer\nHost: :host\nPort: :port\n\nAko ste dobili ovaj email, konfiguracija radi.",
+    ],
+
+    // Inline preview of the currently active template
+    'active_source' => [
+        'heading'           => 'Trenutno aktivni šablon (koristi se za slanje)',
+        'help_text'         => 'Ovo je Blade / HTML kod koji sistem trenutno šalje kada se pokrene email job za narudžbinu. Možete ga menjati preko dugmadi ispod.',
+        'no_active'         => 'Nijedan šablon trenutno nije aktivan. Sistem se vraća na podrazumevani prikaz.',
+        'fallback_view'     => 'Podrazumevani prikaz',
+        'inline_html_kind'  => 'Inline HTML',
+        'blade_view_kind'   => 'Blade prikaz',
+        'view_source_button'=> 'Izmeni kod',
     ],
 
     'add_template' => [

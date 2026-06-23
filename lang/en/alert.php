@@ -64,4 +64,15 @@ return [
     'email_template_source_saved'      => 'Source code for template ":name" saved.',
     'email_template_duplicated'        => 'Template ":name" created as a copy. You can now edit it independently.',
     'email_template_imported'          => 'Default email imported as template ":name". You can now edit it.',
+
+    // Mail config (admin → /admin/email-settings)
+    'email_settings_saved'                  => 'Email configuration saved. New values are now active.',
+    'email_settings_mailer_invalid'         => 'Mailer must be one of: smtp, sendmail, log, array, failover, roundrobin.',
+    'email_settings_port_invalid'           => 'Port must be a number between 1 and 65535.',
+    'email_settings_encryption_invalid'     => 'Encryption must be "tls", "ssl", or left blank.',
+    'email_settings_from_address_invalid'   => 'From address must be a valid email.',
+    'email_settings_test_recipient_invalid' => 'Recipient must be a valid email address.',
+    'email_settings_test_recipient_required'=> 'No recipient configured. Set a "Test Recipient" under mail settings or pass a "to" address.',
+    'email_settings_test_sent'              => 'Test email sent to :to.',
+    'email_settings_test_failed'            => 'Test email failed: :error',
 ];

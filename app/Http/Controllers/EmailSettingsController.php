@@ -3,12 +3,17 @@
 namespace App\Http\Controllers;
 
 use App\Models\EmailTemplate;
+use App\Models\MailSetting;
 use Illuminate\Contracts\View\View as ViewContract;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Mail\Message;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\View;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View as ViewResponse;
 
 class EmailSettingsController extends Controller
@@ -26,7 +31,8 @@ class EmailSettingsController extends Controller
 
     /**
      * Show the current email configuration and list of available templates,
-     * along with the form to add a new template.
+     * along with the form to add a new template and the source code of the
+     * currently active template.
      */
     public function index(): ViewResponse
     {
@@ -55,13 +61,148 @@ class EmailSettingsController extends Controller
         // open the dedicated viewer when needed.
         $defaultViewSize = $defaultViewExists ? File::size($defaultViewPath) : 0;
 
+        // Snapshot of the active template source. We resolve it here so the
+        // view can render a "what's currently being sent" panel without
+        // having to round-trip to /default-source.
+        $activeSource = $active ? $this->resolveTemplateSource($active) : null;
+
+        // DB-overridable mail settings (form on the page edits these).
+        $mailSettings = MailSetting::current();
+
         return view('pages.admin.email_settings.index', compact(
             'config',
             'templates',
             'active',
             'defaultViewExists',
             'defaultViewSize',
+            'activeSource',
+            'mailSettings',
         ))->with('defaultView', self::DEFAULT_VIEW);
+    }
+
+    /**
+     * Update the persisted mail configuration (host, port, credentials,
+     * from-envelope, mailer). Saves to the `mail_settings` singleton
+     * table and applies the values to the runtime config so subsequent
+     * `Mail::send()` calls in this same request already see them.
+     */
+    public function updateMailConfig(Request $request): RedirectResponse
+    {
+        $data = $request->validate([
+            'mailer'        => ['nullable', 'string', Rule::in([
+                'smtp', 'sendmail', 'log', 'array', 'failover', 'roundrobin',
+            ])],
+            'host'          => 'nullable|string|max:255',
+            'port'          => 'nullable|integer|min:1|max:65535',
+            'username'      => 'nullable|string|max:255',
+            // Allow blank = "do not change" semantics only on update via a
+            // separate checkbox, so we always re-store what the user typed.
+            'password'      => 'nullable|string|max:1024',
+            'clear_password'=> 'sometimes|boolean',
+            'encryption'    => 'nullable|string|in:tls,ssl,null,',
+            'timeout'       => 'nullable|integer|min:1|max:600',
+            'from_address'  => 'nullable|email|max:255',
+            'from_name'     => 'nullable|string|max:255',
+            'test_recipient'=> 'nullable|email|max:255',
+        ], [
+            'mailer.in'           => __('alert.email_settings_mailer_invalid'),
+            'port.integer'        => __('alert.email_settings_port_invalid'),
+            'encryption.in'       => __('alert.email_settings_encryption_invalid'),
+            'from_address.email'  => __('alert.email_settings_from_address_invalid'),
+            'test_recipient.email'=> __('alert.email_settings_test_recipient_invalid'),
+        ]);
+
+        $row = MailSetting::current();
+
+        // Map encryption "null"/"" to null in the DB.
+        $encryption = $data['encryption'] ?? null;
+        if ($encryption === '' || $encryption === 'null') {
+            $encryption = null;
+        }
+
+        $row->mailer        = $data['mailer'] ?? null;
+        $row->host          = $data['host'] ?? null;
+        $row->port          = $data['port'] ?? null;
+        $row->username      = $data['username'] ?? null;
+        $row->encryption    = $encryption;
+        $row->timeout       = $data['timeout'] ?? null;
+        $row->from_address  = $data['from_address'] ?? null;
+        $row->from_name     = $data['from_name'] ?? null;
+        $row->test_recipient = $data['test_recipient'] ?? null;
+
+        // Password is a "leave alone" field by default — typing a new
+        // value overwrites, leaving it blank keeps whatever was stored.
+        // The "clear password" checkbox wipes it.
+        if ($request->boolean('clear_password')) {
+            $row->password_encrypted = null;
+        } elseif (!empty($data['password'])) {
+            $row->password = $data['password'];
+        }
+
+        $row->save();
+
+        // Make sure the new config is active for the rest of this request
+        // (e.g. for the "send test" follow-up).
+        $row->applyToConfig();
+
+        return redirect()
+            ->route('admin.email-settings.index')
+            ->with('success', __('alert.email_settings_saved'));
+    }
+
+    /**
+     * Send a one-off test email using the currently persisted mail
+     * configuration. Recipient defaults to the configured test_recipient
+     * or the From address; admin can override per-send.
+     */
+    public function sendTestEmail(Request $request): RedirectResponse
+    {
+        $data = $request->validate([
+            'to'      => 'nullable|email|max:255',
+            'subject' => 'nullable|string|max:255',
+            'message' => 'nullable|string|max:5000',
+        ], [
+            'to.email'      => __('alert.email_settings_test_recipient_invalid'),
+        ]);
+
+        $settings = MailSetting::current();
+
+        $to = $data['to']
+            ?? $settings->test_recipient
+            ?? $settings->from_address
+            ?? config('mail.from.address');
+
+        if (empty($to)) {
+            throw ValidationException::withMessages([
+                'to' => __('alert.email_settings_test_recipient_required'),
+            ]);
+        }
+
+        $subject = $data['subject'] ?? __('email_settings.test_email.default_subject');
+        $body    = $data['message'] ?? __('email_settings.test_email.default_body', [
+            'app_name' => config('app.name'),
+            'host'     => config('mail.mailers.smtp.host') ?: '—',
+            'port'     => config('mail.mailers.smtp.port') ?: '—',
+            'mailer'   => config('mail.default'),
+        ]);
+
+        try {
+            Mail::raw($body, function (Message $msg) use ($to, $subject) {
+                $msg->to($to)->subject($subject);
+            });
+
+            return redirect()
+                ->route('admin.email-settings.index')
+                ->with('success', __('alert.email_settings_test_sent', ['to' => $to]));
+        } catch (\Throwable $e) {
+            Log::error('[EmailSettings] Test email failed: ' . $e->getMessage());
+            return redirect()
+                ->route('admin.email-settings.index')
+                ->withInput()
+                ->withErrors(['test_email' => __('alert.email_settings_test_failed', [
+                    'error' => $e->getMessage(),
+                ])]);
+        }
     }
 
     /**

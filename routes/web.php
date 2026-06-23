@@ -75,6 +75,10 @@ Route::middleware('auth')->group(function () {
         // Email settings (admin only): see current config + manage email templates.
         Route::get('/email-settings', [EmailSettingsController::class, 'index'])
             ->name('admin.email-settings.index');
+        Route::put('/email-settings/mail-config', [EmailSettingsController::class, 'updateMailConfig'])
+            ->name('admin.email-settings.mail-config.update');
+        Route::post('/email-settings/test-email', [EmailSettingsController::class, 'sendTestEmail'])
+            ->name('admin.email-settings.test-email');
         Route::get('/email-settings/default-source', [EmailSettingsController::class, 'viewDefaultSource'])
             ->name('admin.email-settings.default-source');
         Route::post('/email-settings/import-default', [EmailSettingsController::class, 'seedFromDefault'])

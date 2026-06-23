@@ -17,7 +17,8 @@ return new class extends Migration
      *   "CHECK constraint failed: role"
      *
      * The migration is a no-op on MySQL and pgsql, where the role was
-     * already extended by the original migration.
+     * already extended by the original migration. Production MySQL
+     * databases are unaffected.
      */
     public function up(): void
     {
@@ -27,8 +28,7 @@ return new class extends Migration
         }
 
         // Rebuild the users table with the extended role set so the CHECK
-        // constraint includes 'promoter_manager'. We avoid dropping the
-        // table by recreating it inside a transaction and copying data.
+        // constraint includes 'promoter_manager'.
         DB::beginTransaction();
         try {
             DB::statement('PRAGMA foreign_keys = OFF');
@@ -68,10 +68,6 @@ return new class extends Migration
             return;
         }
 
-        // Reverse is intentionally simple - we drop the role back to the
-        // pre-extension list, which would only succeed if no rows use
-        // 'promoter_manager'. Tests usually run with a fresh DB so this is
-        // acceptable.
         DB::beginTransaction();
         try {
             DB::statement('PRAGMA foreign_keys = OFF');

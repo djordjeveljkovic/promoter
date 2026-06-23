@@ -142,18 +142,25 @@ class PromoterManagerController extends Controller
             })->sum('quantity');
             $sub->totalCommissionEarned = (float) TicketOrderCommission::where('beneficiary_user_id', $subId)
                 ->sum('commission_amount');
+
             // Per-ticket-type override summaries for quick lookup in the view.
             // overridesByType: ticket_type_id => ['type' => 'percentage'|'fixed',
             //                                  'percentage' => float|null,
             //                                  'fixed_amount' => float|null]
-            $sub->overridesByType = [];
+            //
+            // Build the array in a local variable and assign it once at the
+            // end. Doing `$sub->overridesByType[$key] = ...` indirectly would
+            // hit Eloquent's magic property accessor and PHP would throw
+            // "Indirect modification of overloaded property has no effect".
+            $overridesByType = [];
             foreach ($sub->commissionOverridesReceived as $ov) {
-                $sub->overridesByType[$ov->ticket_type_id] = [
-                    'type'          => $ov->commission_type ?: PromoterCommissionOverride::TYPE_PERCENTAGE,
-                    'percentage'    => $ov->commission_percentage !== null ? (float) $ov->commission_percentage : null,
-                    'fixed_amount'  => $ov->fixed_commission_amount !== null ? (float) $ov->fixed_commission_amount : null,
+                $overridesByType[$ov->ticket_type_id] = [
+                    'type'         => $ov->commission_type ?: PromoterCommissionOverride::TYPE_PERCENTAGE,
+                    'percentage'   => $ov->commission_percentage !== null ? (float) $ov->commission_percentage : null,
+                    'fixed_amount' => $ov->fixed_commission_amount !== null ? (float) $ov->fixed_commission_amount : null,
                 ];
             }
+            $sub->overridesByType = $overridesByType;
         }
 
         return view('pages.promoter_managers.sub_promoters.index', compact('subs', 'ticketTypes'));

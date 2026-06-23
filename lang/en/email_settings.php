@@ -6,7 +6,7 @@ return [
 
     'current_config' => [
         'heading'        => 'Current Email Configuration',
-        'help_text'      => 'These values come from your environment configuration (.env) and cannot be edited from here. Edit them on the server and reload the page to see changes.',
+        'help_text'      => 'These values are what the framework is using right now. You can change them from the form below without editing .env — the new values are saved in the database and applied to the runtime config immediately.',
         'from_address_label' => 'From Address',
         'from_name_label'    => 'From Name',
         'mailer_label'       => 'Mailer',
@@ -19,6 +19,52 @@ return [
         'scheme_label'       => 'Encryption',
         'env_label'          => 'Environment',
         'edit_in_env'        => 'Edit these values in the :path file on the server.',
+        'runtime_label'      => 'Effective (DB overrides .env)',
+    ],
+
+    // Editable mail config form
+    'edit_config' => [
+        'heading'              => 'Edit Email Configuration',
+        'help_text'            => 'Changes are saved in the `mail_settings` table and applied to the runtime config immediately. Leave a field blank to fall back to the value from .env.',
+        'mailer_label'         => 'Mailer driver',
+        'mailer_help'          => 'Which transport to use: smtp for real email, log to write to laravel.log, array for tests.',
+        'host_label'           => 'SMTP Host',
+        'port_label'           => 'SMTP Port',
+        'username_label'       => 'SMTP Username',
+        'password_label'       => 'SMTP Password (leave blank to keep current)',
+        'password_placeholder' => '•••••••• (unchanged)',
+        'clear_password_label' => 'Clear stored password (fall back to .env)',
+        'encryption_label'     => 'Encryption (tls / ssl / none)',
+        'encryption_none'      => 'None',
+        'timeout_label'        => 'SMTP Timeout (seconds)',
+        'from_address_label'   => 'From Address',
+        'from_name_label'      => 'From Name',
+        'test_recipient_label' => 'Default Test Recipient',
+        'test_recipient_help'  => 'Where the "Send Test Email" button sends to when no override is given.',
+        'submit_button'        => 'Save Email Configuration',
+    ],
+
+    // "Send test email" form
+    'test_email' => [
+        'heading'           => 'Send Test Email',
+        'help_text'         => 'Sends a plain-text test message using the currently effective mail configuration so you can verify credentials are correct.',
+        'to_label'          => 'Recipient (overrides default)',
+        'subject_label'     => 'Subject',
+        'message_label'     => 'Message body',
+        'submit_button'     => 'Send Test Email',
+        'default_subject'   => 'Test email from :app_name',
+        'default_body'      => "Hello!\n\nThis is a test email sent from :app_name to verify the mail configuration.\n\nMailer: :mailer\nHost: :host\nPort: :port\n\nIf you received this, the configuration is working.",
+    ],
+
+    // Inline preview of the currently active template
+    'active_source' => [
+        'heading'           => 'Currently Active Template (used for sending)',
+        'help_text'         => 'This is the Blade / HTML code that the system is sending right now when an order\'s email job runs. Edit it through the action buttons below.',
+        'no_active'         => 'No template is currently active. The system is falling back to the default view.',
+        'fallback_view'     => 'Default view',
+        'inline_html_kind'  => 'Inline HTML',
+        'blade_view_kind'   => 'Blade view',
+        'view_source_button'=> 'Edit source',
     ],
 
     'add_template' => [

@@ -37,4 +37,12 @@ return Application::configure(basePath: dirname(__DIR__))
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //
-    })->create();
+    })
+    // Apply DB-persisted mail overrides at boot so the admin UI can
+    // change SMTP credentials without touching .env. Safe to register
+    // before the migration exists; the provider no-ops until the
+    // `mail_settings` table has been created.
+    ->withProviders([
+        App\Providers\MailConfigServiceProvider::class,
+    ])
+    ->create();

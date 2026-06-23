@@ -65,4 +65,15 @@ return [
     'email_template_source_saved'      => 'Izvorni kod šablona „:name" je sačuvan.',
     'email_template_duplicated'        => 'Šablon „:name" je kreiran kao kopija. Možete ga sada nezavisno menjati.',
     'email_template_imported'          => 'Podrazumevani email je uvezen kao šablon „:name". Možete ga sada menjati.',
+
+    // Podešavanja emaila (admin → /admin/email-settings)
+    'email_settings_saved'                  => 'Konfiguracija emaila je sačuvana. Nove vrednosti su sada aktivne.',
+    'email_settings_mailer_invalid'         => 'Mailer mora biti jedan od: smtp, sendmail, log, array, failover, roundrobin.',
+    'email_settings_port_invalid'           => 'Port mora biti broj između 1 i 65535.',
+    'email_settings_encryption_invalid'     => 'Šifrovanje mora biti „tls", „ssl" ili ostaviti prazno.',
+    'email_settings_from_address_invalid'   => 'From adresa mora biti validna email adresa.',
+    'email_settings_test_recipient_invalid' => 'Primalac mora biti validna email adresa.',
+    'email_settings_test_recipient_required'=> 'Nema podešenog primaoca. Podesite „Test primaoca" u podešavanjima emaila ili prosledite „to" adresu.',
+    'email_settings_test_sent'              => 'Test email je poslat na :to.',
+    'email_settings_test_failed'            => 'Test email nije uspeo: :error',
 ];
