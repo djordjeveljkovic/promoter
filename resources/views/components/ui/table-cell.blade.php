@@ -9,8 +9,8 @@
 
 @php
     $base = $header
-        ? 'px-5 py-3 text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400'
-        : 'px-5 py-3.5 text-sm text-zinc-700 dark:text-zinc-300';
+        ? 'px-5 py-3 text-xs font-bold uppercase tracking-wider text-zinc-700 dark:text-zinc-200'
+        : 'px-5 py-4 text-sm font-medium text-zinc-800 dark:text-zinc-100';
 
     $alignClass = match($align) {
         'right'  => 'text-right',

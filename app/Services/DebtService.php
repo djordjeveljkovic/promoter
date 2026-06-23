@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\SubPromoterPayment;
 use App\Models\TicketOrder;
 use App\Models\TicketOrderCommission;
+use App\Models\TicketOrderItem;
 use App\Models\User;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -75,6 +76,12 @@ class DebtService
     /**
      * Amount the given promoter-manager currently owes to the organizers.
      *
+     * The math always treats the manager's own sales and his sub-promoters'
+     * sales as separate buckets, so callers can render an analytics view
+     * that doesn't conflate "what I personally sold" with "what my team
+     * sold". The legacy `gross_sales` field is kept (= manager + subs) for
+     * backward compatibility with existing callers.
+     *
      * Calculation per manager:
      *   gross (sum of every successful order the manager OR any of his
      *          sub-promoters placed) — i.e. the team's gross revenue
@@ -84,6 +91,8 @@ class DebtService
      *
      * @return array{
      *     gross_sales: float,
+     *     manager_gross_sales: float,
+     *     subs_gross_sales: float,
      *     manager_commission: float,
      *     sub_commissions: float,
      *     amount_already_paid_to_organizers: float,
@@ -95,22 +104,33 @@ class DebtService
     {
         $manager = $this->resolveManager($manager);
 
+        $subIds = $manager->subPromoters()->pluck('id');
+
         $teamUserIds = collect([$manager->id])
-            ->merge($manager->subPromoters()->pluck('id'))
+            ->merge($subIds)
             ->unique()
             ->values()
             ->all();
 
+        // Combined (manager + subs) gross — kept for backward compat.
         $grossSales = (float) TicketOrder::whereIn('requested_by', $teamUserIds)
             ->whereIn('job_status', self::SUCCESS_STATUSES)
             ->where('is_private', false)
             ->sum('total');
 
+        // Manager's PERSONAL gross sales (orders he placed himself).
+        $managerGrossSales = (float) TicketOrder::where('requested_by', $manager->id)
+            ->whereIn('job_status', self::SUCCESS_STATUSES)
+            ->where('is_private', false)
+            ->sum('total');
+
+        // Subs-only gross (what the team contributed).
+        $subsGrossSales = round($grossSales - $managerGrossSales, 2);
+
         $managerCommission = (float) TicketOrderCommission::where('beneficiary_user_id', $manager->id)
             ->where('beneficiary_role', 'promoter_manager')
             ->sum('commission_amount');
 
-        $subIds = $manager->subPromoters()->pluck('id');
         $subCommissions = $subIds->isEmpty()
             ? 0.0
             : (float) TicketOrderCommission::whereIn('beneficiary_user_id', $subIds)
@@ -128,11 +148,68 @@ class DebtService
 
         return [
             'gross_sales'                    => round($grossSales, 2),
+            'manager_gross_sales'            => round($managerGrossSales, 2),
+            'subs_gross_sales'               => $subsGrossSales,
             'manager_commission'             => round($managerCommission, 2),
             'sub_commissions'                => round($subCommissions, 2),
             'amount_already_paid_to_organizers' => round($amountAlreadyPaidToOrganizers, 2),
             'amount_owed_to_organizers'      => round($amountOwedToOrganizers, 2),
             'team_user_ids'                  => $teamUserIds,
+        ];
+    }
+
+    /**
+     * Personal activity stats for the manager: orders he placed himself,
+     * tickets he personally sold, and his last-30-days commission.
+     *
+     * Kept separate from promoterManagerDebt() so the dashboard can render
+     * "My numbers" without dragging in team-wide numbers, and so the team
+     * cards never accidentally fold the manager back into the team.
+     *
+     * @return array{
+     *     gross_sales: float,
+     *     commission: float,
+     *     orders_count: int,
+     *     tickets_sold: int,
+     *     commission_last_30_days: float,
+     * }
+     */
+    public function personalManagerActivity(User $manager, ?\DateTimeInterface $since = null): array
+    {
+        $manager = $this->resolveManager($manager);
+
+        $ordersQuery = TicketOrder::where('requested_by', $manager->id)
+            ->whereIn('job_status', self::SUCCESS_STATUSES)
+            ->where('is_private', false);
+
+        $grossSales = (float) (clone $ordersQuery)->sum('total');
+        $ordersCount = (int) (clone $ordersQuery)->count();
+
+        $ticketsSold = (int) TicketOrderItem::whereHas('ticketOrder', function ($q) use ($manager) {
+            $q->where('requested_by', $manager->id)
+              ->whereIn('job_status', self::SUCCESS_STATUSES);
+        })->sum('quantity');
+
+        $commission = (float) TicketOrderCommission::where('beneficiary_user_id', $manager->id)
+            ->where('beneficiary_role', 'promoter_manager')
+            ->sum('commission_amount');
+
+        $endDate = $since ?? now();
+        $startDate30Days = (clone $endDate)->modify('-30 days');
+
+        $commissionLast30Days = (float) TicketOrderCommission::where('beneficiary_user_id', $manager->id)
+            ->whereHas('ticketOrder', function ($q) use ($manager, $startDate30Days, $endDate) {
+                $q->where('requested_by', $manager->id)
+                    ->whereBetween('created_at', [$startDate30Days, $endDate]);
+            })
+            ->sum('commission_amount');
+
+        return [
+            'gross_sales'             => round($grossSales, 2),
+            'commission'              => round($commission, 2),
+            'orders_count'            => $ordersCount,
+            'tickets_sold'            => $ticketsSold,
+            'commission_last_30_days' => round($commissionLast30Days, 2),
         ];
     }
 

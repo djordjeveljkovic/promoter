@@ -425,85 +425,50 @@ class PromoterManagerController extends Controller
         $manager = Auth::user();
         abort_unless($manager && $manager->isPromoterManager(), 403);
 
-        $successfulSaleStatuses = ['completed', 'sent'];
-        $endDate = now();
-        $startDate30Days = now()->subDays(30);
-
         /** @var DebtService $debt */
         $debt = app(DebtService::class);
 
-        // The hierarchy debt summary is the single source of truth for
-        // "what does my team owe" and "what have I already collected".
+        // Hierarchy debt summary: the single source of truth for "what
+        // does my team owe me" and "what have I already forwarded to
+        // organizers". Returns the manager's PERSONAL gross and the
+        // subs' gross separately so the UI never has to conflate them.
         $debtSummary = $debt->promoterManagerDebt($manager);
-        $teamUserIds = $debtSummary['team_user_ids'];
 
-        // Per-sub-promoter debt summary used by the "team debts" cards on
-        // the dashboard.
-        $subDebts = $debt->subDebtsForManager($manager);
+        // The manager's own personal activity (sales, commission, order
+        // and ticket counts he generated himself, NOT counting subs).
+        $personal = $debt->personalManagerActivity($manager);
+
+        // Per-sub-promoter debt summary used by the "my sub-promoters"
+        // cards on the dashboard. Sorted by amount owed DESC so the
+        // biggest debtors surface first.
+        $subDebts = $debt->subDebtsForManager($manager)
+            ->sortBy([
+                ['amount_owed_to_manager', 'desc'],
+                ['user.name', 'asc'],
+            ])
+            ->values();
         $subPromoters = $subDebts->pluck('user');
 
-        // Attach the count of completed/sent orders placed by each sub
-        // promoter for the order-count column + the leaderboard.
-        $orderCountsByUser = [];
-        if ($subPromoters->isNotEmpty()) {
-            $orderCountsByUser = TicketOrder::whereIn('requested_by', $subPromoters->pluck('id'))
-                ->publicOnly()
-                ->whereIn('job_status', $successfulSaleStatuses)
-                ->select('requested_by', DB::raw('COUNT(*) as cnt'))
-                ->groupBy('requested_by')
-                ->pluck('cnt', 'requested_by');
-            foreach ($subPromoters as $sp) {
-                $sp->sub_orders_count = (int) ($orderCountsByUser[$sp->id] ?? 0);
-            }
-        }
-
-        // Top sub-promoters leaderboard: rank subs by gross revenue, then
-        // by orders, then alphabetically. The view consumes the same
-        // per-sub fields we already populated above.
-        $topSubs = $subDebts->sortBy([
-            ['gross_sales', 'desc'],
-            ['user.name', 'asc'],
-        ])->values();
-
-        // Aggregated "what the team owes me" — sum of every sub's debt.
-        $teamOwedToManager = (float) $subDebts->sum('amount_owed_to_manager');
+        // Aggregated team numbers for the "my team" glance card.
+        $teamOwedToManager        = (float) $subDebts->sum('amount_owed_to_manager');
         $teamAlreadyPaidToManager = (float) $subDebts->sum('amount_already_paid');
-
-        // Last 30 days commission (manager's share) — uses the
-        // per-beneficiary rows joined to their parent order's created_at.
-        $managerCommissionLast30Days = (float) TicketOrderCommission::where('beneficiary_user_id', $manager->id)
-            ->whereHas('ticketOrder', function ($q) use ($manager, $startDate30Days, $endDate) {
-                $q->where('requested_by', $manager->id)
-                    ->whereBetween('created_at', [$startDate30Days, $endDate]);
-            })
-            ->sum('commission_amount');
+        $teamCommissionTotal      = (float) $subDebts->sum('sub_commission');
 
         // Recent payment history shown at the bottom of the dashboard.
-        $recentPaymentsFromSubs = $debt->recentPaymentsReceivedByManager($manager, 8);
-        $recentPaymentsToOrganizers = $debt->recentPaymentsToOrganizersByManager($manager, 8);
-
-        $jobStatusColors = [
-            'pending'    => 'bg-yellow-100 text-yellow-800 dark:bg-yellow-600 dark:text-yellow-100',
-            'processing' => 'bg-blue-100 text-blue-800 dark:bg-blue-600 dark:text-blue-100',
-            'failed'     => 'bg-red-100 text-red-800 dark:bg-red-600 dark:text-red-100',
-            'blocked'    => 'bg-gray-200 text-gray-700 dark:bg-gray-500 dark:text-gray-200',
-            'completed'  => 'bg-green-100 text-green-800 dark:bg-green-600 dark:text-green-100',
-            'sent'       => 'bg-teal-100 text-teal-800 dark:bg-teal-600 dark:text-teal-100',
-        ];
+        $recentPaymentsFromSubs      = $debt->recentPaymentsReceivedByManager($manager, 8);
+        $recentPaymentsToOrganizers  = $debt->recentPaymentsToOrganizersByManager($manager, 8);
 
         return view('pages.promoter_managers.dashboard', compact(
             'manager',
             'debtSummary',
-            'teamUserIds',
+            'personal',
             'subDebts',
             'subPromoters',
-            'topSubs',
             'teamOwedToManager',
             'teamAlreadyPaidToManager',
-            'managerCommissionLast30Days',
+            'teamCommissionTotal',
             'recentPaymentsFromSubs',
-            'recentPaymentsToOrganizers',
-            'jobStatusColors'
+            'recentPaymentsToOrganizers'
         ));
     }
 }

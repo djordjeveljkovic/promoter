@@ -46,57 +46,82 @@ return [
 
     'dashboard' => [
         'page_title'   => 'Manager Dashboard',
-        'main_heading' => 'My Manager Dashboard',
+        'main_heading' => 'My Dashboard',
         'eyebrow'      => 'Promoter Manager',
-        'sub_heading'  => 'Overview of your commission and the team of sub-promoters you manage.',
+        'sub_heading'  => 'Your earnings, what you owe, and what your team owes you — at a glance.',
         'new_order_button' => 'New Order',
-
-        /* ------------------ KPI cards ------------------ */
-        'my_financials' => [
-            'heading'                    => 'My Financials',
-            'commission_earned'          => 'My Commission (tier rules)',
-            'all_time_label'             => 'All time',
-            'gross_sales'                => 'Team Gross Sales',
-            'gross_sales_subtext'        => 'From your own orders + your sub-promoters',
-            'amount_owed'                => 'Amount Owed to Organizers',
-            'amount_owed_subtext'        => 'Team gross - already paid to organizers - full commission pool',
-            'commission_last_30'         => 'My Commission (Last 30 Days)',
-            'commission_last_30_subtext' => 'Last 30 days',
-            'amount_already_paid'        => 'Already Paid to Organizers',
-            'sub_commission_total'       => 'Sub-Promoter Commissions',
-            'sub_commission_total_subtext' => 'What your sub-promoters have earned',
-        ],
-
-        /* ------------------ Quick stats strip ------------------ */
-        'quick_stats' => [
-            'heading'           => 'Quick Team Snapshot',
-            'subs_count'        => 'Sub-Promoters',
-            'team_gross'        => 'Team Gross',
-            'team_commission'   => 'Total Team Commission',
-            'team_owed_to_me'   => 'Subs Owe Me',
-            'team_paid_to_me'   => 'Already Received from Subs',
-        ],
-
-        /* ------------------ "What the team owes me" section ------------------ */
-        'team_debts' => [
-            'heading'           => 'What My Sub-Promoters Owe Me',
-            'sub_heading'       => 'Each card shows the running balance: gross ticket sales from this sub\'s orders, minus their commission (which they keep), minus any payments they have already transferred.',
-            'empty'             => 'You have no sub-promoters yet.',
-            'card_gross'        => 'Gross Sales',
-            'card_sub_commission' => 'Sub Commission',
-            'card_paid'         => 'Already Paid',
-            'card_owed'         => 'Still Owed',
-            'record_payment_button' => 'Record Payment',
-            'view_edit_button'  => 'Edit / View',
-            'owe_zero'          => 'Up to date',
-            'owe_negative'      => 'Overpaid by',
-            'no_orders'         => 'No completed orders yet',
-        ],
 
         /* ------------------ "Pay to organizers" notice ------------------ */
         'pay_organizers_notice' => [
             'heading'           => 'Recording Your Payments to Organizers',
             'body'              => 'You cannot record your own payments to the organizers — an admin logs every transfer on your behalf. The balance above reflects the live total of admin-recorded payments, and the "Payments Made to Organizers" list at the bottom of this page shows each entry with the admin who logged it.',
+        ],
+
+        /* ------------------ "What I owe" hero ------------------ */
+        'owe_hero' => [
+            'eyebrow'              => 'What I owe organizers',
+            'headline_positive'    => 'Up to date',
+            'headline_negative'    => 'Outstanding balance',
+            'overpaid_label'       => 'Overpaid by',
+            'breakdown_eyebrow'    => 'How this is calculated',
+            'breakdown_my_gross'   => 'My sales',
+            'breakdown_my_commission'    => 'My commission',
+            'breakdown_subs_gross' => 'Sub-promoter sales',
+            'breakdown_subs_commission'  => 'Sub-promoter commission',
+            'breakdown_paid'       => 'Already paid',
+            'breakdown_formula'    => 'My sales + Sub sales − My commission − Sub commission − Already paid',
+        ],
+
+        /* ------------------ "At a glance" two-column section ------------------ */
+        'at_a_glance' => [
+            'heading'         => 'At a glance',
+            'my_numbers'      => 'My numbers',
+            'my_team'         => 'My team',
+            'my_numbers_help' => 'What you personally sold and earned.',
+            'my_team_help'    => 'What your sub-promoters sold and what they owe you.',
+            'my_gross'        => 'Personal sales',
+            'my_commission'   => 'My commission',
+            'my_orders'       => 'My orders',
+            'my_tickets'      => 'Tickets I sold',
+            'my_commission_30d' => 'My commission, last 30 days',
+            'subs_gross'      => 'Sub sales',
+            'subs_commission' => 'Sub commission',
+            'subs_count'      => 'Active sub-promoters',
+            'subs_owe_me'     => 'Subs owe me',
+            'subs_paid'       => 'Already received from subs',
+        ],
+
+        /* ------------------ Sub-promoter cards section ------------------ */
+        'subs_section' => [
+            'heading'           => 'My sub-promoters',
+            'sub_heading'       => 'Largest balances first. Record a payment the moment a sub-promoter hands over cash.',
+            'empty'             => 'You have no sub-promoters yet.',
+            'empty_cta'         => 'Add Sub-Promoter',
+            'card_gross'        => 'Sales',
+            'card_sub_commission' => 'Their commission',
+            'card_paid'         => 'Paid to me',
+            'card_owed'         => 'Owes me',
+            'record_payment_button' => 'Record',
+            'edit_button'       => 'Edit',
+            'owe_zero'          => 'Up to date',
+            'owe_negative'      => 'Overpaid by',
+            'amount_placeholder' => 'Amount',
+            'note_placeholder'  => 'Note (optional)',
+        ],
+
+        /* ------------------ Recent payments section ------------------ */
+        'recent_payments' => [
+            'heading'                 => 'Recent payments',
+            'from_subs'               => 'Received from sub-promoters',
+            'to_organizers'           => 'Sent to organizers',
+            'from_subs_empty'         => 'No payments received from sub-promoters yet.',
+            'to_organizers_empty'     => 'No payments recorded to organizers yet.',
+            'view_all'                => 'View full history',
+            'date'                    => 'Date',
+            'amount'                  => 'Amount',
+            'from'                    => 'From',
+            'recorded_by'             => 'By',
+            'note'                    => 'Note',
         ],
 
         /* ------------------ Admin edit page ------------------ */
