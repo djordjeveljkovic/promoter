@@ -15,6 +15,13 @@ return [
         'action_edit'           => 'Izmeni',
         'action_delete'         => 'Obriši',
         'delete_confirm_message' => 'Da li ste sigurni da želite da obrišete ovaj tip ulaznice? Ova akcija se ne može opozvati.',
+        'header_status'         => 'Status',
+        'status_active'         => 'Aktivan',
+        'status_inactive'       => 'Neaktivan',
+        'action_deactivate'     => 'Deaktiviraj',
+        'action_activate'       => 'Aktiviraj',
+        'deactivate_confirm_message' => 'Da li ste sigurni da želite da deaktivirate ovaj tip ulaznice? Postojeće ulaznice i narudžbine ostaju, ali promoteri ga više neće videti u formi za kreiranje narudžbine.',
+        'activate_confirm_message'   => 'Da li ste sigurni da želite ponovo da aktivirate ovaj tip ulaznice?',
 
         'no_data_message'       => 'Nema pronađenih tipova ulaznica.',
     ],

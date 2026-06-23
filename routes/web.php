@@ -66,7 +66,9 @@ Route::middleware('auth')->group(function () {
         Route::get('/tickets', [TicketController::class, 'index'])->name('ticket_type.index');
         Route::get('/ticket/create', [TicketController::class, 'create'])->name('ticket_type.create');
         Route::get('/ticket/edit/{id}', [TicketController::class, 'edit'])->name('ticket_type.edit');
-        Route::delete('/ticket/{id}/destroy', [TicketController::class, 'destroy'])->name('ticket_type.destroy');
+        // Replaces the old hard-delete route. We PATCH because flipping
+        // `is_active` is a partial update of an existing row, not a removal.
+        Route::patch('/ticket/{id}/toggle-active', [TicketController::class, 'toggleActive'])->name('ticket_type.toggle_active');
         Route::post('/ticket/store', [TicketController::class, 'store'])->name('ticket_type.store');
         Route::put('/ticket/update/{id}', [TicketController::class, 'update'])->name('ticket_type.update');
         Route::put('/ticket-types/{id}/photo', [TicketController::class, 'uploadPhoto']);

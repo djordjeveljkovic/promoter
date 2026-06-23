@@ -15,6 +15,13 @@ return [
         'action_edit'           => 'Edit',
         'action_delete'         => 'Delete',
         'delete_confirm_message'=> 'Are you sure you want to delete this ticket type? This action cannot be undone.',
+        'header_status'         => 'Status',
+        'status_active'         => 'Active',
+        'status_inactive'       => 'Inactive',
+        'action_deactivate'     => 'Deactivate',
+        'action_activate'       => 'Activate',
+        'deactivate_confirm_message' => 'Are you sure you want to deactivate this ticket type? Existing tickets and orders will be preserved, but promoters will no longer see it in the order form.',
+        'activate_confirm_message'   => 'Are you sure you want to reactivate this ticket type?',
 
         'no_data_message'       => 'No ticket types found.',
     ],

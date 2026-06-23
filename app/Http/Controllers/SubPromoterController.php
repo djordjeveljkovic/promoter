@@ -171,7 +171,8 @@ class SubPromoterController extends Controller
         $sub = Auth::user();
         abort_unless($sub && $sub->role === 'sub_promoter', 403);
 
-        $ticketTypes = TicketType::orderBy('name')->get();
+        // Deactivated types must not be offered to sub-promoters either.
+        $ticketTypes = TicketType::active()->orderBy('name')->get();
 
         $manager = $sub->promoterManager();
         // ticket_type_id => ['type', 'percentage', 'fixed_amount']

@@ -85,4 +85,9 @@ return [
     'email_settings_test_recipient_required'=> 'Nema podešenog primaoca. Podesite „Test primaoca" u podešavanjima emaila ili prosledite „to" adresu.',
     'email_settings_test_sent'              => 'Test email je poslat na :to.',
     'email_settings_test_failed'            => 'Test email nije uspeo: :error',
+
+    // Poruke za aktivaciju / deaktivaciju tipova ulaznica (zamenjuje brisanje).
+    'ticket_type_deactivated_success'       => 'Tip ulaznice „:name" je deaktiviran. Postojeće ulaznice i narudžbine su zadržane.',
+    'ticket_type_activated_success'         => 'Tip ulaznice „:name" je ponovo aktivan.',
+    'ticket_type_toggle_failed'             => 'Promena statusa tipa ulaznice nije uspela. Greška: :message',
 ];

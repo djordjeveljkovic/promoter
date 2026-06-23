@@ -154,7 +154,10 @@ class OrderController extends Controller
      */
     public function create()
     {
-        $ticketTypes = TicketType::orderBy('name')->get();
+        // Only show ticket types that are currently sellable.
+        // Deactivated types stay in the DB for historical reporting / FK
+        // integrity, but they must not appear in new-order dropdowns.
+        $ticketTypes = TicketType::active()->orderBy('name')->get();
         return view('pages.promoters.orders.create', compact('ticketTypes'));
     }
 

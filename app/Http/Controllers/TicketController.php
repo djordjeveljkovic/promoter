@@ -237,31 +237,38 @@ class TicketController extends Controller // Assuming this is the class name
         }
     }
     /**
-     * Remove the specified resource from storage.
-     * We use Route Model Binding here (TicketType $ticketType)
+     * Toggle the active/inactive state of a ticket type.
+     *
+     * Hard-deleting a ticket type is not possible once any tickets have been
+     * sold against it — `tickets.ticket_type_id` is a RESTRICT FK so MySQL
+     * raises "Cannot delete or update a parent row". Instead we flip
+     * `is_active`, which:
+     *   - hides the type from the promoter order form (so no new orders
+     *     can use it), while
+     *   - preserving every existing `tickets` / `ticket_order_items` row
+     *     and every historical commission, so dashboards stay accurate
+     *     and we never orphan foreign keys.
      */
-    public function destroy($id) // Assumes Route Model Binding
+    public function toggleActive(Request $request, $id)
     {
         $ticketType = TicketType::findOrFail($id);
-        DB::beginTransaction();
+
+        // No transaction needed — this is a single UPDATE on a single row,
+        // and we don't want to roll back if it's already in a valid state.
         try {
-            // Delete associated photo if it exists
-            if ($ticketType->photo_path && Storage::disk('public')->exists($ticketType->photo_path)) {
-                Storage::disk('public')->delete($ticketType->photo_path);
-            }
+            $ticketType->is_active = ! $ticketType->is_active;
+            $ticketType->save();
 
-            // Delete the ticket type. Associated commissions will be deleted automatically
-            // due to the 'onDelete('cascade')' constraint defined in the migration.
-            $ticketType->delete();
+            $messageKey = $ticketType->is_active
+                ? 'alert.ticket_type_activated_success'
+                : 'alert.ticket_type_deactivated_success';
 
-            DB::commit();
-
-            return redirect()->route('ticket_type.index') // Adjust route name if needed
-                ->with('success', __('alert.ticket_type_deleted_success'));
+            return redirect()->route('ticket_type.index')
+                ->with('success', __($messageKey, ['name' => $ticketType->name]));
         } catch (\Exception $e) {
-            DB::rollBack();
-            Log::error("Error deleting ticket type ID {$ticketType->id}: " . $e->getMessage());
-            return redirect()->back()->with('error', __('alert.ticket_type_delete_failed', ['message' => $e->getMessage()]));
+            Log::error("Error toggling ticket type ID {$ticketType->id}: " . $e->getMessage());
+            return redirect()->back()
+                ->with('error', __('alert.ticket_type_toggle_failed', ['message' => $e->getMessage()]));
         }
     }
 }

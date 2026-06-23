@@ -84,4 +84,9 @@ return [
     'email_settings_test_recipient_required'=> 'No recipient configured. Set a "Test Recipient" under mail settings or pass a "to" address.',
     'email_settings_test_sent'              => 'Test email sent to :to.',
     'email_settings_test_failed'            => 'Test email failed: :error',
+
+    // Activate / deactivate ticket type messages (replaces hard delete).
+    'ticket_type_deactivated_success'       => 'Ticket type ":name" has been deactivated. Existing tickets and orders have been preserved.',
+    'ticket_type_activated_success'         => 'Ticket type ":name" has been reactivated.',
+    'ticket_type_toggle_failed'             => 'Failed to change ticket type status. Error: :message',
 ];

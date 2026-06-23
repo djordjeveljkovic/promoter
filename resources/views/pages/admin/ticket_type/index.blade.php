@@ -19,12 +19,14 @@
                             <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300">{{ __('ticket_types.table.header_name') }}</th>
                             <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300">{{ __('ticket_types.table.header_price') }}</th>
                             <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300">{{ __('ticket_types.table.header_photo') }}</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300">{{ __('ticket_types.table.header_status') }}</th>
                             <th scope="col" class="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300">{{ __('ticket_types.table.header_actions') }}</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-800">
                         @forelse ($ticketTypes as $ticketType)
-                            <tr>
+                            {{-- Dim the row when deactivated so it's obvious at a glance. --}}
+                            <tr class="{{ $ticketType->is_active ? '' : 'opacity-50' }}">
                                 <td class="whitespace-nowrap px-6 py-4 text-sm font-medium text-gray-900 dark:text-white">{{ $ticketType->name }}</td>
                                 <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-500 dark:text-gray-300">{{ number_format($ticketType->price, 2) }} {{ __('ticket_types.currency_symbol') }}</td>
                                 <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-500 dark:text-gray-300">
@@ -36,18 +38,37 @@
                                         <span class="text-xs italic">{{ __('ticket_types.table.no_photo') }}</span>
                                     @endif
                                 </td>
+                                <td class="whitespace-nowrap px-6 py-4 text-sm">
+                                    @if ($ticketType->is_active)
+                                        <span class="inline-flex items-center rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800 dark:bg-green-900 dark:text-green-200">
+                                            {{ __('ticket_types.table.status_active') }}
+                                        </span>
+                                    @else
+                                        <span class="inline-flex items-center rounded-full bg-gray-200 px-2 py-0.5 text-xs font-medium text-gray-700 dark:bg-gray-600 dark:text-gray-200">
+                                            {{ __('ticket_types.table.status_inactive') }}
+                                        </span>
+                                    @endif
+                                </td>
                                 <td class="whitespace-nowrap px-6 py-4 text-right text-sm font-medium space-x-2">
                                     <a href="{{ route('ticket_type.edit', $ticketType) }}" class="text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300">{{ __('ticket_types.table.action_edit') }}</a>
-                                    <form action="{{ route('ticket_type.destroy', $ticketType) }}" method="POST" class="inline-block" onsubmit="return confirm('{{ __('ticket_types.table.delete_confirm_message') }}');">
+                                    {{-- Single toggle form. Button label flips based on current state,
+                                         and the confirm message is also picked from the lang file
+                                         so it matches the action. --}}
+                                    <form action="{{ route('ticket_type.toggle_active', $ticketType) }}" method="POST" class="inline-block"
+                                          onsubmit="return confirm('{{ $ticketType->is_active ? __('ticket_types.table.deactivate_confirm_message') : __('ticket_types.table.activate_confirm_message') }}');">
                                         @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300">{{ __('ticket_types.table.action_delete') }}</button>
+                                        @method('PATCH')
+                                        @if ($ticketType->is_active)
+                                            <button type="submit" class="text-amber-600 hover:text-amber-900 dark:text-amber-400 dark:hover:text-amber-300">{{ __('ticket_types.table.action_deactivate') }}</button>
+                                        @else
+                                            <button type="submit" class="text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300">{{ __('ticket_types.table.action_activate') }}</button>
+                                        @endif
                                     </form>
                                 </td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="4" class="px-6 py-4 whitespace-nowrap text-sm text-center text-gray-500 dark:text-gray-400">
+                                <td colspan="5" class="px-6 py-4 whitespace-nowrap text-sm text-center text-gray-500 dark:text-gray-400">
                                     {{ __('ticket_types.table.no_data_message') }}
                                 </td>
                             </tr>
