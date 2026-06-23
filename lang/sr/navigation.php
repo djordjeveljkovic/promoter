@@ -5,6 +5,7 @@ return [
         'admin_dashboard' => 'Kontrolna tabla',
         'promoters' => 'Promoteri',
         'promoter_managers' => 'Promoter Menadžeri',
+        'supremeadmin_overview' => 'Supreme Pregled',
         'ticket_types' => 'Karte', // Or 'Tipovi Karata'
         'admin_sold_tickets' => 'Prodate ulaznice',
         'email_settings' => 'Podešavanja emaila',

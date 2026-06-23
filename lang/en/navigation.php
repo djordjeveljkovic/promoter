@@ -6,6 +6,7 @@ return [
         'admin_dashboard' => 'Dashboard',
         'promoters' => 'Promoters',
         'promoter_managers' => 'Promoter Managers',
+        'supremeadmin_overview' => 'Supreme Overview',
         'ticket_types' => 'Ticket Types',
         'admin_sold_tickets' => 'Sold Tickets',
         'email_settings' => 'Email Settings',

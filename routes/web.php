@@ -5,6 +5,7 @@ use App\Http\Controllers\AdminOrderController;
 use App\Http\Controllers\EmailSettingsController;
 use App\Http\Controllers\PromoterController;
 use App\Http\Controllers\PromoterManagerController;
+use App\Http\Controllers\SupremeAdminController;
 use App\Http\Controllers\TicketController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\SubPromoterController;
@@ -98,7 +99,11 @@ Route::middleware('auth')->group(function () {
         Route::delete('/email-settings/templates/{emailTemplate}', [EmailSettingsController::class, 'destroyTemplate'])
             ->name('admin.email-settings.templates.destroy');
     });
-    Route::middleware('role:superadmin')->prefix('superadmin')->group(function () {
+    Route::middleware('role:supreme|superadmin')->prefix('superadmin')->group(function () {
+        // Bird's-eye overview of every promoter-manager and the sub-promoters
+        // they created, with filters for commission earned, paid and owed.
+        Route::get('/overview', [SupremeAdminController::class, 'overview'])
+            ->name('supremeadmin.overview');
     });
 
     /**

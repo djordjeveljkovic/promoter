@@ -26,6 +26,9 @@
                         <flux:navlist.item icon="home" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>{{ __('navigation.sidebar.admin_dashboard') }}</flux:navlist.item>
                         <flux:navlist.item icon="user" :href="route('admin.promoters.index')" :current="request()->routeIs('admin.promoters.*')" wire:navigate>{{ __('navigation.sidebar.promoters') }}</flux:navlist.item>
                         <flux:navlist.item icon="users" :href="route('admin.promoter_managers.index')" :current="request()->routeIs('admin.promoter_managers.*')" wire:navigate>{{ __('navigation.sidebar.promoter_managers') }}</flux:navlist.item>
+                        @if(in_array($user->role, ['supreme', 'superadmin'], true))
+                            <flux:navlist.item icon="chart-bar" :href="route('supremeadmin.overview')" :current="request()->routeIs('supremeadmin.*')" wire:navigate>{{ __('navigation.sidebar.supremeadmin_overview') }}</flux:navlist.item>
+                        @endif
                         <flux:navlist.item icon="ticket" :href="route('ticket_type.index')" :current="request()->routeIs('ticket_type.*')" wire:navigate>{{ __('navigation.sidebar.ticket_types') }}</flux:navlist.item>
                         <flux:navlist.item icon="ticket" :href="route('admin.orders.index')" :current="request()->routeIs('admin.orders.*')" wire:navigate>{{ __('navigation.sidebar.admin_sold_tickets') }}</flux:navlist.item>
                         <flux:navlist.item icon="envelope" :href="route('admin.email-settings.index')" :current="request()->routeIs('admin.email-settings.*')" wire:navigate>{{ __('navigation.sidebar.email_settings') }}</flux:navlist.item>
