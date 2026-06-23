@@ -1,5 +1,5 @@
 <x-layouts.app :title="__('promoters.page_title')">
-    <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="container mx-auto ">
         <div class="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
             <h1 class="text-3xl font-bold text-gray-800 dark:text-white">{{ __('promoters.main_heading') }}</h1>
 
@@ -12,7 +12,7 @@
             </a>
         </div>
 
-        <div class="bg-white dark:bg-gray-800 shadow-xl rounded-lg overflow-hidden">
+        <div class="bg-white dark:bg-gray-800 border rounded-lg overflow-hidden">
             <div class="relative overflow-x-auto">
                 <table id="promoters-table" class="w-full text-sm text-left text-gray-600 dark:text-gray-400">
                     <thead class="text-xs text-gray-700 dark:text-gray-300 uppercase bg-gray-100 dark:bg-gray-700/50">
