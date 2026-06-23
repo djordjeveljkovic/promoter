@@ -17,12 +17,13 @@ class AdminOrderController extends Controller
 	$user = auth()->user();
 	$role = $user->role;
 
-	// Get allowed requested_by user IDs if admin (supreme sees everything)
+	// Admin-level roles (admin / supreme / superadmin) all see the full
+	// orders list. Previously the 'admin' role was restricted to orders
+	// requested by 'admin' or 'promoter' users, which meant orders placed
+	// by promoter_managers / sub_promoters disappeared from the listing,
+	// making the status filter and the sold-tickets display look broken
+	// for the SUPREME admin account (which is seeded with role 'admin').
 	$allowedRequestedByUserIds = null;
-	if ($role === 'admin') {
-	    $allowedRequestedByUserIds = \App\Models\User::whereIn('role', ['admin', 'promoter'])->pluck('id');
-	}
-	// 'supreme' role: $allowedRequestedByUserIds stays null → sees ALL orders.
 
 	$query = TicketOrder::with([
 	    'items.ticketType',

@@ -19,11 +19,12 @@ class AdminController extends Controller
 	$user = auth()->user();
 	$role = $user->role;
 
+	// Admin-level roles (admin / supreme / superadmin) all see every
+	// dashboard metric. Previously the 'admin' role was scoped to only
+	// orders requested by 'admin' or 'promoter' users, which hid orders
+	// (and ticket sales / revenue) placed by promoter_managers and
+	// sub_promoters from the SUPREME admin account (seeded as 'admin').
 	$allowedRequestedByUserIds = null;
-
-	if ($role === 'admin') {
-	    $allowedRequestedByUserIds = User::whereIn('role', ['admin', 'promoter'])->pluck('id');
-	}
 
 	$filterByRequestedByUserIds = function ($query) use ($allowedRequestedByUserIds) {
 	    if ($allowedRequestedByUserIds !== null) {

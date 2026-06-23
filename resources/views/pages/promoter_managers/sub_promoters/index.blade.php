@@ -65,13 +65,19 @@
                                         <div class="text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase mb-2">{{ __('promoter_managers.sub_promoters.table.commission_per_type_label') }}</div>
                                         <div class="flex flex-wrap gap-3">
                                             @foreach($ticketTypes as $type)
-                                                @php $pct = $sub->overridesByType[$type->id] ?? null; @endphp
+                                                @php $ov = $sub->overridesByType[$type->id] ?? null; @endphp
                                                 <div class="px-3 py-1 rounded-md text-xs
-                                                    {{ $pct === null
+                                                    {{ $ov === null
                                                         ? 'bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-400'
                                                         : 'bg-indigo-50 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-200' }}">
                                                     <span class="font-medium">{{ $type->name }}:</span>
-                                                    {{ $pct === null ? __('promoter_managers.sub_promoters.table.no_override') : number_format($pct, 2) . '%' }}
+                                                    @if($ov === null)
+                                                        {{ __('promoter_managers.sub_promoters.table.no_override') }}
+                                                    @elseif(($ov['type'] ?? 'percentage') === 'fixed')
+                                                        {{ number_format((float) ($ov['fixed_amount'] ?? 0), 2) }} {{ __('promoter_managers.sub_promoters.table.per_ticket_suffix') }}
+                                                    @else
+                                                        {{ number_format((float) ($ov['percentage'] ?? 0), 2) }}%
+                                                    @endif
                                                 </div>
                                             @endforeach
                                         </div>

@@ -14,9 +14,10 @@ return [
     ],
 
     'commission_split' => [
-        'heading'        => 'Commission Split My Manager Set',
-        'help'           => 'These percentages show the share of the tier-based commission (set by your manager) that YOU earn. The rest goes to your manager.',
-        'unknown_type'   => 'Unknown ticket type',
+        'heading'           => 'Commission Split My Manager Set',
+        'help'              => 'These show how much YOU earn from each ticket type, as configured by your manager. A percentage means you receive X% of the tier-based commission your manager sets. A fixed RSD amount means you receive that flat sum per ticket, regardless of the tier.',
+        'unknown_type'      => 'Unknown ticket type',
+        'per_ticket_suffix' => 'per ticket',
     ],
 
     'recent_orders' => [

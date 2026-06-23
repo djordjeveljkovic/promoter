@@ -35,11 +35,20 @@
                 <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg">
                     <p class="text-sm text-gray-500 dark:text-gray-400 mb-3">{{ __('sub_promoter_dashboard.commission_split.help') }}</p>
                     <ul class="divide-y divide-gray-200 dark:divide-gray-700">
-                        @foreach($overrides as $typeId => $pct)
-                            @php $type = \App\Models\TicketType::find($typeId); @endphp
+                        @foreach($overrides as $typeId => $ov)
+                            @php
+                                $type = \App\Models\TicketType::find($typeId);
+                                $mode = is_array($ov) ? ($ov['type'] ?? 'percentage') : 'percentage';
+                            @endphp
                             <li class="py-2 flex items-center justify-between">
                                 <span class="text-sm text-gray-800 dark:text-white">{{ $type?->name ?? __('sub_promoter_dashboard.commission_split.unknown_type') }}</span>
-                                <span class="text-sm font-semibold text-indigo-700 dark:text-indigo-300">{{ number_format((float) $pct, 2) }}%</span>
+                                <span class="text-sm font-semibold text-indigo-700 dark:text-indigo-300">
+                                    @if($mode === 'fixed')
+                                        {{ number_format((float) ($ov['fixed_amount'] ?? 0), 2) }} RSD {{ __('sub_promoter_dashboard.commission_split.per_ticket_suffix') }}
+                                    @else
+                                        {{ number_format((float) ($ov['percentage'] ?? 0), 2) }}%
+                                    @endif
+                                </span>
                             </li>
                         @endforeach
                     </ul>

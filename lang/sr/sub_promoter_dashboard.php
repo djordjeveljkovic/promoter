@@ -14,9 +14,10 @@ return [
     ],
 
     'commission_split' => [
-        'heading'        => 'Podela Provizije Koju je Postavio Moj Menadžer',
-        'help'           => 'Ovi procenti prikazuju udeo provizije po nivoima (koju je postavio vaš menadžer) koji VI zarađujete. Ostatak ide vašem menadžeru.',
-        'unknown_type'   => 'Nepoznat tip ulaznice',
+        'heading'           => 'Podela Provizije Koju je Postavio Moj Menadžer',
+        'help'              => 'Ovo pokazuje koliko VI zarađujete od svakog tipa ulaznice, prema podešavanju vašeg menadžera. Procenat znači da dobijate X% provizije po nivoima koju vaš menadžer ostvaruje. Fiksni iznos u RSD znači da dobijate tačno taj iznos po ulaznici, bez obzira na nivo.',
+        'unknown_type'      => 'Nepoznat tip ulaznice',
+        'per_ticket_suffix' => 'po ulaznici',
     ],
 
     'recent_orders' => [
