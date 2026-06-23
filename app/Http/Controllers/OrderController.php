@@ -64,7 +64,7 @@ class OrderController extends Controller
             ? $user->subPromoters()->pluck('id')->all()
             : [];
 
-        $query = TicketOrder::with(['items.ticketType', 'orderedBy', 'requestedByUser'])
+        $query = TicketOrder::with(['items.ticketType', 'orderedBy', 'requestedBy'])
             ->latest();
 
         if (!empty($subIds)) {
@@ -89,7 +89,7 @@ class OrderController extends Controller
                     'is_self'   => true,
                 ];
             } else {
-                $seller = $order->requestedByUser;
+                $seller = $order->requestedBy;
                 $sellerLabelsByOrder[$order->id] = [
                     'name'      => $seller?->name ?? __('orders.seller_unknown'),
                     'is_self'   => false,
@@ -256,7 +256,7 @@ class OrderController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
-        $order->load(['items.ticketType', 'tickets.ticketType', 'orderedByUser', 'requestedByUser']);
+        $order->load(['items.ticketType', 'tickets.ticketType', 'orderedBy', 'requestedBy']);
 
         // Calculate total price for display (if not stored directly on order)
         $totalPrice = 0;

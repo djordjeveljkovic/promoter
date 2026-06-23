@@ -2,10 +2,12 @@
 
 namespace App\Livewire\Admin;
 
+use Livewire\Attributes\Layout;
 use Livewire\Component;
 use App\Models\TicketOrder;
 use App\Models\Ticket; // Make sure to import your Ticket model
 
+#[Layout('components.layouts.app')]
 class OrderDetails extends Component
 {
     public TicketOrder $order;

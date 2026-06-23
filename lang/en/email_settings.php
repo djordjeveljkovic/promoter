@@ -14,9 +14,6 @@ return [
     // Tab 1: Sending Configuration
     // ===========================================================
     'config' => [
-        'heading'                  => 'Sending Configuration',
-        'help_text'                => 'These values control how emails are sent. Save changes here and the new settings are applied immediately — no server restart needed.',
-
         'section_sender' => [
             'heading' => 'Who sends the email',
             'help'    => 'Shown to the recipient as the sender of every email.',
@@ -58,7 +55,6 @@ return [
 
         'submit_button'           => 'Save Configuration',
         'send_test_button'        => 'Send Test Email',
-        'clear_button'            => 'Clear',
 
         'currently_effective' => 'Currently effective',
     ],
@@ -82,7 +78,6 @@ return [
         'source_html'    => 'Inline HTML',
 
         'default_badge'    => 'Default',
-        'no_default_badge' => 'Not default',
 
         'edit_button'      => 'Edit',
         'duplicate_button' => 'Duplicate',
@@ -129,7 +124,6 @@ return [
         'page_title'       => 'Edit Email Template',
         'back_to_list'     => 'Back to Email Settings',
 
-        'metadata_heading' => 'Template',
         'name_label'       => 'Name',
         'subject_label'    => 'Email subject',
         'description_label'=> 'Description',
@@ -145,11 +139,9 @@ return [
 
         'save_metadata_button'   => 'Save settings',
         'save_source_button'     => 'Save code',
-        'cancel_button'          => 'Cancel',
 
         'source_size'         => ':size KB',
         'source_missing'      => 'Underlying file is missing: :path',
-        'editor_hint'         => 'Edit the Blade code on the left and click "Save code". The right side shows a live preview with sample data.',
 
         'editor_blade_variables' => 'Available Blade variables: <code>$order</code> (TicketOrder), <code>$currencySymbol</code>, <code>$template</code>.',
 

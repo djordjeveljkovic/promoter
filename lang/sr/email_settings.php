@@ -14,9 +14,6 @@ return [
     // Tab 1: Konfiguracija slanja
     // ===========================================================
     'config' => [
-        'heading'                  => 'Konfiguracija slanja',
-        'help_text'                => 'Ove vrednosti kontrolišu kako se email-ovi šalju. Sačuvajte promene i nove vrednosti se odmah primenjuju — nije potreban restart servera.',
-
         'section_sender' => [
             'heading' => 'Ko šalje email',
             'help'    => 'Prikazuje se primaocu kao pošiljalac svakog email-a.',
@@ -58,7 +55,6 @@ return [
 
         'submit_button'           => 'Sačuvaj konfiguraciju',
         'send_test_button'        => 'Pošalji test email',
-        'clear_button'            => 'Obriši',
 
         'currently_effective' => 'Trenutno aktivno',
     ],
@@ -82,7 +78,6 @@ return [
         'source_html'    => 'Inline HTML',
 
         'default_badge'    => 'Podrazumevani',
-        'no_default_badge' => 'Nije podrazumevani',
 
         'edit_button'      => 'Izmeni',
         'duplicate_button' => 'Dupliraj',
@@ -129,7 +124,6 @@ return [
         'page_title'       => 'Izmena email šablona',
         'back_to_list'     => 'Nazad na podešavanja emaila',
 
-        'metadata_heading' => 'Šablon',
         'name_label'       => 'Naziv',
         'subject_label'    => 'Naslov emaila',
         'description_label'=> 'Opis',
@@ -145,11 +139,9 @@ return [
 
         'save_metadata_button'   => 'Sačuvaj podešavanja',
         'save_source_button'     => 'Sačuvaj kod',
-        'cancel_button'          => 'Otkaži',
 
         'source_size'         => ':size KB',
         'source_missing'      => 'Fajl nedostaje: :path',
-        'editor_hint'         => 'Izmenite Blade kod sa leve strane i kliknite „Sačuvaj kod". Desna strana prikazuje pregled uživo sa probnim podacima.',
 
         'editor_blade_variables' => 'Blade varijable: <code>$order</code> (TicketOrder), <code>$currencySymbol</code>, <code>$template</code>.',
 
