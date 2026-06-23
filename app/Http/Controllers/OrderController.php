@@ -56,14 +56,15 @@ class OrderController extends Controller
     public function index()
     {
         $promoterId = Auth::id();
+        $user = Auth::user();
         // A promoter-manager sees both his own orders AND the orders placed by
         // his sub-promoters, so he has a full picture of the activity he
         // manages.
-        $subIds = Auth::user()?->isPromoterManager()
-            ? Auth::user()->subPromoters()->pluck('id')->all()
+        $subIds = $user?->isPromoterManager()
+            ? $user->subPromoters()->pluck('id')->all()
             : [];
 
-        $query = TicketOrder::with(['items.ticketType', 'orderedBy'])
+        $query = TicketOrder::with(['items.ticketType', 'orderedBy', 'requestedByUser'])
             ->latest();
 
         if (!empty($subIds)) {
@@ -77,6 +78,25 @@ class OrderController extends Controller
 
         $orders = $query->paginate(15);
 
+        // Pre-compute the "Seller" label for each order so the view can
+        // distinguish own orders from sub-promoter orders without N+1
+        // lookups.
+        $sellerLabelsByOrder = [];
+        foreach ($orders as $order) {
+            if ((int) $order->requested_by === (int) $promoterId) {
+                $sellerLabelsByOrder[$order->id] = [
+                    'name'      => $user->name,
+                    'is_self'   => true,
+                ];
+            } else {
+                $seller = $order->requestedByUser;
+                $sellerLabelsByOrder[$order->id] = [
+                    'name'      => $seller?->name ?? __('orders.seller_unknown'),
+                    'is_self'   => false,
+                ];
+            }
+        }
+
         // Pass status colors for job_status to the view
         $jobStatusColors = [
             'pending'    => 'bg-yellow-100 text-yellow-800 dark:bg-yellow-600 dark:text-yellow-100',
@@ -87,7 +107,7 @@ class OrderController extends Controller
             'sent'       => 'bg-teal-100 text-teal-800 dark:bg-teal-600 dark:text-teal-100',
         ];
 
-        return view('pages.promoters.orders.index', compact('orders', 'jobStatusColors'));
+        return view('pages.promoters.orders.index', compact('orders', 'jobStatusColors', 'sellerLabelsByOrder', 'subIds'));
     }
 
     /**

@@ -141,7 +141,70 @@ class User extends Authenticatable
             ->where('ticket_orders.requested_by', $promoterId)
             ->sum('ticket_order_items.quantity');
 
-        // 2. Get all commission tiers for this ticket type, active at the time the order was created
+        return self::calculateTierCommissionFromBaseline(
+            $ticketTypeId,
+            $quantityPreviousOrders,
+            $quantity,
+            $ticketOrderId,
+            $orderCreatedAtDate
+        );
+    }
+
+    /**
+     * Calculate the tier-based commission for the MANAGER's whole team
+     * (the manager + every sub-promoter he supervises). The tier is
+     * determined by the team's combined sales volume BEFORE the current
+     * order, so as the team sells more the tier (and the manager's
+     * per-ticket commission) automatically rises.
+     *
+     * Used when a sub-promoter places an order so that:
+     *   - the gross commission per ticket reflects the MANAGER's tier
+     *     (driven by the team's total sales), not the sub's personal tier;
+     *   - the sub-promoter's share is delegated via the override row
+     *     (fixed RSD amount or percentage of the manager's tier).
+     */
+    public static function calculateTierCommissionForTeam(
+        int $ticketTypeId,
+        int $ticketOrderId,
+        int $quantity,
+        User $manager,
+        \DateTimeInterface $orderCreatedAtDate
+    ): float {
+        $teamUserIds = collect([$manager->id])
+            ->merge($manager->subPromoters()->pluck('id'))
+            ->unique()
+            ->values();
+
+        $quantityPreviousOrders = TicketOrder::join('ticket_order_items', 'ticket_orders.id', '=', 'ticket_order_items.ticket_order_id')
+            ->where('ticket_orders.job_status', 'completed')
+            ->where('ticket_orders.id', '<', $ticketOrderId)
+            ->where('ticket_order_items.ticket_type_id', $ticketTypeId)
+            ->whereIn('ticket_orders.requested_by', $teamUserIds)
+            ->sum('ticket_order_items.quantity');
+
+        return self::calculateTierCommissionFromBaseline(
+            $ticketTypeId,
+            $quantityPreviousOrders,
+            $quantity,
+            $ticketOrderId,
+            $orderCreatedAtDate
+        );
+    }
+
+    /**
+     * Shared tier-resolution logic used by both individual and team
+     * commission calculations. Given a baseline quantity already sold
+     * and the quantity being sold now, return the tier-based gross
+     * commission.
+     */
+    private static function calculateTierCommissionFromBaseline(
+        int $ticketTypeId,
+        int $quantityPreviousOrders,
+        int $quantity,
+        int $ticketOrderId,
+        \DateTimeInterface $orderCreatedAtDate
+    ): float {
+        // Get all commission tiers for this ticket type, active at the time the order was created.
         $commissionTiers = TicketCommission::where('ticket_type_id', $ticketTypeId)
             ->where('valid_from', '<=', $orderCreatedAtDate)
             ->where(function ($query) use ($orderCreatedAtDate) {
@@ -156,10 +219,7 @@ class User extends Authenticatable
             return 0.0;
         }
 
-        // 3. Calculate commission based on how the current item's quantity falls into these historical tiers
         $commission = 0.0;
-        // $quantityPreviousOrders is the count *before* this order's items.
-        // We are calculating for a block of '$quantity' new items for the current order.
 
         foreach ($commissionTiers as $tier) {
             $minSoldTier = $tier->min_sold;
@@ -167,11 +227,11 @@ class User extends Authenticatable
             $maxSoldTier = ($tier->max_sold === null || $tier->max_sold == 0) ? PHP_INT_MAX : $tier->max_sold;
             $commissionAmountPerUnitInTier = $tier->commission_amount;
 
-            // Determine the range of sales numbers covered by the current order's items
+            // Determine the range of sales numbers covered by the current order's items.
             $startSaleNumberOfCurrentOrder = $quantityPreviousOrders + 1;
             $endSaleNumberOfCurrentOrder = $quantityPreviousOrders + $quantity;
 
-            // Find the overlap between the current order's sale numbers and the tier's range
+            // Find the overlap between the current order's sale numbers and the tier's range.
             $overlapStart = max($startSaleNumberOfCurrentOrder, $minSoldTier);
             $overlapEnd = min($endSaleNumberOfCurrentOrder, $maxSoldTier);
 

@@ -36,6 +36,9 @@
                     <thead class="bg-gray-50 dark:bg-gray-700">
                         <tr>
                             <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300">{{ __('orders.table.header_order_id') }}</th>
+                            @if(!empty($subIds))
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300">{{ __('orders.table.header_seller') }}</th>
+                            @endif
                             <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300">{{ __('orders.table.header_customer_email') }}</th>
                             <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300">{{ __('orders.table.header_order_date') }}</th>
                             <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300">{{ __('orders.table.header_items') }}</th>
@@ -64,6 +67,18 @@
                             @endphp
                             <tr>
                                 <td class="whitespace-nowrap px-6 py-4 text-sm font-medium text-gray-900 dark:text-white">#{{ $order->order_number }}</td>
+                                @if(!empty($subIds))
+                                    @php $sellerInfo = $sellerLabelsByOrder[$order->id] ?? null; @endphp
+                                    <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-500 dark:text-gray-300">
+                                        @if($sellerInfo && $sellerInfo['is_self'])
+                                            <span class="inline-flex items-center rounded-md bg-indigo-50 px-2 py-0.5 text-xs font-medium text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300">
+                                                {{ __('orders.seller_self_badge') }}
+                                            </span>
+                                        @else
+                                            {{ $sellerInfo['name'] ?? __('orders.seller_unknown') }}
+                                        @endif
+                                    </td>
+                                @endif
                                 <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-500 dark:text-gray-300">{{ $order->email }}</td>
                                 <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-500 dark:text-gray-300">{{ $order->created_at->format('M d, Y H:i') }}</td>
                                 <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-500 dark:text-gray-300">
@@ -119,7 +134,7 @@
                             {{-- Row for displaying the error message --}}
                             @if($isJobFailed && !empty($order->job_failure_reason))
                             <tr id="error-row-{{ $order->id }}" class="error-message-row bg-red-50 dark:bg-red-800 dark:bg-opacity-20" style="display: none;">
-                                <td colspan="8" class="px-6 py-3">
+                                <td colspan="{{ !empty($subIds) ? 9 : 8 }}" class="px-6 py-3">
                                     <div class="text-sm text-red-700 dark:text-red-200">
                                         <strong class="font-semibold block mb-1">{{ __('orders.table.job_failure_reason_label') }}</strong>
                                         <pre class="whitespace-pre-wrap text-xs font-mono p-2 bg-red-100 dark:bg-red-700 dark:text-red-100 rounded border border-red-200 dark:border-red-600">{{ $order->job_failure_reason }}</pre>
@@ -129,7 +144,7 @@
                             @endif
                         @empty
                             <tr>
-                                <td colspan="8" class="px-6 py-4 whitespace-nowrap text-sm text-center text-gray-500 dark:text-gray-400"> {{-- Adjusted colspan to 8 --}}
+                                <td colspan="{{ !empty($subIds) ? 9 : 8 }}" class="px-6 py-4 whitespace-nowrap text-sm text-center text-gray-500 dark:text-gray-400">
                                     {{ __('orders.table.no_orders_message') }}
                                 </td>
                             </tr>

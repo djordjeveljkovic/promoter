@@ -124,4 +124,49 @@ class SubPromoterController extends Controller
         // Defer to OrderController@store so the same business rules apply.
         return app(OrderController::class)->store($request);
     }
+
+    /**
+     * Sub-promoter "My Orders" page: full paginated list of every order
+     * the sub-promoter has placed, with the commission they personally
+     * earned on each one. Sub-promoters must NOT see orders placed by
+     * other sub-promoters - this query is strictly scoped to the
+     * currently authenticated user.
+     */
+    public function ordersIndex()
+    {
+        $sub = Auth::user();
+        abort_unless($sub && $sub->role === 'sub_promoter', 403);
+
+        $orders = TicketOrder::where('requested_by', $sub->id)
+            ->with(['items.ticketType', 'orderedBy'])
+            ->latest()
+            ->paginate(15);
+
+        // Build a per-order commission lookup so the view can show "your
+        // earnings" on each row without doing N+1 queries.
+        $orderIds = $orders->pluck('id')->all();
+        $commissionsByOrder = TicketOrderCommission::whereIn('ticket_order_id', $orderIds)
+            ->where('beneficiary_user_id', $sub->id)
+            ->selectRaw('ticket_order_id, SUM(commission_amount) as total')
+            ->groupBy('ticket_order_id')
+            ->pluck('total', 'ticket_order_id')
+            ->map(fn ($v) => (float) $v)
+            ->all();
+
+        $jobStatusColors = [
+            'pending'    => 'bg-yellow-100 text-yellow-800 dark:bg-yellow-600 dark:text-yellow-100',
+            'processing' => 'bg-blue-100 text-blue-800 dark:bg-blue-600 dark:text-blue-100',
+            'failed'     => 'bg-red-100 text-red-800 dark:bg-red-600 dark:text-red-100',
+            'blocked'    => 'bg-gray-200 text-gray-700 dark:bg-gray-500 dark:text-gray-200',
+            'completed'  => 'bg-green-100 text-green-800 dark:bg-green-600 dark:text-green-100',
+            'sent'       => 'bg-teal-100 text-teal-800 dark:bg-teal-600 dark:text-teal-100',
+        ];
+
+        return view('pages.subpromoters.orders', compact(
+            'sub',
+            'orders',
+            'commissionsByOrder',
+            'jobStatusColors'
+        ));
+    }
 }

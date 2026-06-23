@@ -7,6 +7,7 @@ return [
 
     'table' => [
         'header_order_id' => 'Order ID',
+        'header_seller'   => 'Seller',
         'header_customer_email' => 'Customer Email',
         'header_order_date' => 'Order Date',
         'header_items' => 'Items',
@@ -64,4 +65,7 @@ return [
         'sent' => 'Sent',
         'unknown' => 'N/A', // Fallback for undefined status
     ],
+
+    'seller_self_badge' => 'You',
+    'seller_unknown'    => 'Unknown seller',
 ];

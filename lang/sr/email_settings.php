@@ -1,157 +1,171 @@
 <?php
 
 return [
-    'page_title' => 'Podešavanja emaila',
-    'main_heading' => 'Podešavanja emaila i šabloni',
+    'page_title'  => 'Podešavanja emaila',
+    'main_heading'=> 'Podešavanja emaila',
 
-    'current_config' => [
-        'heading'        => 'Trenutna konfiguracija emaila',
-        'help_text'      => 'Ovo su vrednosti koje framework trenutno koristi. Možete ih promeniti iz forme ispod bez diranja .env fajla — nove vrednosti se čuvaju u bazi i odmah primenjuju na runtime konfiguraciju.',
-        'from_address_label' => 'Adresa pošiljaoca (From)',
-        'from_name_label'    => 'Ime pošiljaoca (From Name)',
-        'mailer_label'       => 'Mailer',
-        'host_label'         => 'SMTP Host',
-        'port_label'         => 'SMTP Port',
-        'username_label'     => 'SMTP korisničko ime',
-        'password_label'     => 'SMTP lozinka',
-        'password_set'       => 'podešena',
-        'password_missing'   => 'nije podešena',
-        'scheme_label'       => 'Šifrovanje',
-        'env_label'          => 'Okruženje',
-        'edit_in_env'        => 'Ove vrednosti izmenite u :path fajlu na serveru.',
-        'runtime_label'      => 'Efektivno (baza pregazi .env)',
+    // Tabovi na glavnoj strani
+    'tabs' => [
+        'config'    => 'Konfiguracija slanja',
+        'templates' => 'Šabloni',
     ],
 
-    // Editable mail config form
-    'edit_config' => [
-        'heading'              => 'Izmena konfiguracije emaila',
-        'help_text'            => 'Izmene se čuvaju u `mail_settings` tabeli i odmah primenjuju na runtime konfiguraciju. Ostavite polje prazno da vrednost ostane iz .env fajla.',
-        'mailer_label'         => 'Mailer driver',
-        'mailer_help'          => 'Koji transport koristiti: smtp za pravi email, log za upis u laravel.log, array za testove.',
+    // ===========================================================
+    // Tab 1: Konfiguracija slanja
+    // ===========================================================
+    'config' => [
+        'heading'                  => 'Konfiguracija slanja',
+        'help_text'                => 'Ove vrednosti kontrolišu kako se email-ovi šalju. Sačuvajte promene i nove vrednosti se odmah primenjuju — nije potreban restart servera.',
+
+        'section_sender' => [
+            'heading' => 'Ko šalje email',
+            'help'    => 'Prikazuje se primaocu kao pošiljalac svakog email-a.',
+        ],
+        'section_server' => [
+            'heading' => 'Server (SMTP)',
+            'help'    => 'Podaci za povezivanje na mail server. Ostavite polje prazno da koristite vrednost iz .env.',
+        ],
+        'section_test' => [
+            'heading' => 'Testiranje konfiguracije',
+            'help'    => 'Šalje jedan običan tekstualni email da proverite da li konfiguracija radi.',
+        ],
+
+        'from_name_label'         => 'Ime pošiljaoca',
+        'from_name_placeholder'   => 'npr. REFEST Festival',
+        'from_address_label'      => 'Email pošiljaoca (From adresa)',
+        'from_address_placeholder'=> 'tickets@refest.rs',
+
+        'mailer_label'         => 'Mail driver',
+        'mailer_help'          => 'smtp za pravi email, log za upis u laravel.log, array za testove.',
         'host_label'           => 'SMTP Host',
+        'host_placeholder'     => 'mail.refest.rs',
         'port_label'           => 'SMTP Port',
+        'port_placeholder'     => '465',
         'username_label'       => 'SMTP korisničko ime',
+        'username_placeholder' => 'prodaja@refest.rs',
         'password_label'       => 'SMTP lozinka (ostavite prazno da zadržite trenutnu)',
         'password_placeholder' => '•••••••• (nepromenjeno)',
         'clear_password_label' => 'Obriši sačuvanu lozinku (vrati na .env)',
-        'encryption_label'     => 'Šifrovanje (tls / ssl / bez)',
+        'encryption_label'     => 'Šifrovanje',
         'encryption_none'      => 'Bez',
         'timeout_label'        => 'SMTP Timeout (sekunde)',
-        'from_address_label'   => 'From adresa',
-        'from_name_label'      => 'From ime',
+        'timeout_placeholder'  => '30',
+
         'test_recipient_label' => 'Podrazumevani test primalac',
-        'test_recipient_help'  => 'Gde dugme „Pošalji test email" šalje kada se ne prosledi druga adresa.',
-        'submit_button'        => 'Sačuvaj konfiguraciju emaila',
+        'test_recipient_help'  => 'Gde se šalje test email kada kliknete dugme ispod.',
+        'test_subject_label'   => 'Naslov',
+        'test_message_label'   => 'Telo poruke',
+
+        'submit_button'           => 'Sačuvaj konfiguraciju',
+        'send_test_button'        => 'Pošalji test email',
+        'clear_button'            => 'Obriši',
+
+        'currently_effective' => 'Trenutno aktivno',
     ],
 
-    // "Send test email" form
+    // ===========================================================
+    // Tab 2: Šabloni (lista)
+    // ===========================================================
+    'templates_list' => [
+        'heading'        => 'Email šabloni',
+        'help_text'      => 'Svaki šablon je Blade prikaz (preporučeno) ili inline HTML telo. Šablon označen kao Podrazumevani se koristi za slanje email-ova sa ulaznicama.',
+
+        'add_button'     => 'Dodaj šablon',
+
+        'header_name'    => 'Naziv',
+        'header_subject' => 'Naslov',
+        'header_source'  => 'Izvor',
+        'header_default' => 'Podrazumevani',
+        'header_actions' => 'Akcije',
+
+        'source_view'    => 'Blade prikaz',
+        'source_html'    => 'Inline HTML',
+
+        'default_badge'    => 'Podrazumevani',
+        'no_default_badge' => 'Nije podrazumevani',
+
+        'edit_button'      => 'Izmeni',
+        'duplicate_button' => 'Dupliraj',
+        'delete_button'    => 'Obriši',
+        'make_default_button' => 'Postavi kao podrazumevani',
+        'delete_confirm'   => 'Obriši šablon „:name"?',
+
+        'empty' => 'Još nema šablona. Kliknite „Dodaj šablon" da kreirate jedan.',
+    ],
+
+    // ===========================================================
+    // Stranica za dodavanje šablona
+    // ===========================================================
+    'create' => [
+        'page_title'         => 'Dodaj email šablon',
+        'back_to_list'       => 'Nazad na podešavanja emaila',
+        'heading'            => 'Dodaj email šablon',
+        'help_text'          => 'Šabloni koriste Blade tako da možete ubaciti dinamičke podatke sa {{ $order->email }}, @foreach petljama itd. Nakon čuvanja možete menjati kod sa pregledom uživo.',
+
+        'name_label'        => 'Naziv šablona',
+        'name_placeholder'  => 'npr. Ulaznice V2',
+        'subject_label'     => 'Naslov emaila',
+        'subject_placeholder' => 'npr. Vaše ulaznice za REFEST 2025',
+        'description_label' => 'Opis (opciono)',
+        'description_placeholder' => 'Interna beleška o šablonu',
+
+        'source_type_label' => 'Tip izvora',
+        'source_type_view'  => 'Blade prikaz (preporučeno — podržava @if, @foreach, {{ $order->email }} itd.)',
+        'source_type_html'  => 'Inline HTML (jednostavno — podržava {{ $orderNumber }} placeholder)',
+        'view_name_label'   => 'Putanja Blade prikaza',
+        'view_name_placeholder' => 'emails.customer.tickets',
+        'html_content_label'=> 'HTML telo',
+        'html_content_placeholder' => '<h1>Zdravo!</h1><p>Vaša narudžbina {{ $orderNumber }} …</p>',
+
+        'make_default_label' => 'Postavi kao podrazumevani šablon odmah nakon čuvanja',
+        'submit_button'      => 'Kreiraj šablon',
+        'cancel_button'      => 'Otkaži',
+    ],
+
+    // ===========================================================
+    // Stranica za izmenu šablona (split view)
+    // ===========================================================
+    'edit' => [
+        'page_title'       => 'Izmena email šablona',
+        'back_to_list'     => 'Nazad na podešavanja emaila',
+
+        'metadata_heading' => 'Šablon',
+        'name_label'       => 'Naziv',
+        'subject_label'    => 'Naslov emaila',
+        'description_label'=> 'Opis',
+
+        'make_default_label' => 'Koristi kao podrazumevani šablon',
+        'make_default_help'  => 'Kada je čekirano, ovaj šablon se koristi za slanje email-ova sa ulaznicama. Samo jedan šablon može biti podrazumevani.',
+
+        'editor_heading'   => 'Izvorni kod',
+        'preview_heading'  => 'Pregled uživo',
+        'preview_help'     => 'Renderovano sa probnim podacima — broj narudžbine, ime kupca, tipovi ulaznica i slike ovde su placeholder-i da vidite kako email izgleda pre slanja.',
+        'preview_refresh_button' => 'Osveži pregled',
+        'preview_iframe_title'   => 'Pregled emaila',
+
+        'save_metadata_button'   => 'Sačuvaj podešavanja',
+        'save_source_button'     => 'Sačuvaj kod',
+        'cancel_button'          => 'Otkaži',
+
+        'source_size'         => ':size KB',
+        'source_missing'      => 'Fajl nedostaje: :path',
+        'editor_hint'         => 'Izmenite Blade kod sa leve strane i kliknite „Sačuvaj kod". Desna strana prikazuje pregled uživo sa probnim podacima.',
+
+        'editor_blade_variables' => 'Blade varijable: <code>$order</code> (TicketOrder), <code>$currencySymbol</code>, <code>$template</code>.',
+
+        'danger_heading'   => 'Opasna zona',
+        'danger_help'      => 'Brisanje šablona briše i njegov generisani Blade fajl. Ovo se ne može opozvati.',
+        'delete_button'    => 'Obriši šablon',
+        'delete_confirm'   => 'Obriši šablon „:name"?',
+    ],
+
+    // ===========================================================
+    // Test email
+    // ===========================================================
     'test_email' => [
-        'heading'           => 'Pošalji test email',
-        'help_text'         => 'Šalje običnu tekstualnu poruku koristeći trenutno aktivnu konfiguraciju emaila, kako biste proverili da li su kredencijali ispravni.',
-        'to_label'          => 'Primalac (preglasava podrazumevanog)',
-        'subject_label'     => 'Naslov',
-        'message_label'     => 'Telo poruke',
-        'submit_button'     => 'Pošalji test email',
-        'default_subject'   => 'Test email sa :app_name',
-        'default_body'      => "Zdravo!\n\nOvo je test email poslat sa :app_name da bi se proverila konfiguracija emaila.\n\nMailer: :mailer\nHost: :host\nPort: :port\n\nAko ste dobili ovaj email, konfiguracija radi.",
+        'default_subject' => 'Test email sa :app_name',
+        'default_body'    => "Zdravo!\n\nOvo je test email poslat sa :app_name da se proveri konfiguracija emaila.\n\nMailer: :mailer\nHost: :host\nPort: :port\n\nAko ste dobili ovaj email, konfiguracija radi.",
     ],
 
-    // Inline preview of the currently active template
-    'active_source' => [
-        'heading'           => 'Trenutno aktivni šablon (koristi se za slanje)',
-        'help_text'         => 'Ovo je Blade / HTML kod koji sistem trenutno šalje kada se pokrene email job za narudžbinu. Možete ga menjati preko dugmadi ispod.',
-        'no_active'         => 'Nijedan šablon trenutno nije aktivan. Sistem se vraća na podrazumevani prikaz.',
-        'fallback_view'     => 'Podrazumevani prikaz',
-        'inline_html_kind'  => 'Inline HTML',
-        'blade_view_kind'   => 'Blade prikaz',
-        'view_source_button'=> 'Izmeni kod',
-    ],
-
-    'add_template' => [
-        'heading'                  => 'Dodaj email šablon',
-        'help_text'                => 'Dodajte drugi šablon koji se može koristiti za slanje email-ova sa ulaznicama. Trenutno aktivni šablon sistem koristi prilikom slanja email-ova kupcima. Ako nijedan šablon nije aktivan, koristi se podrazumevani prikaz (:default).',
-        'name_label'               => 'Naziv šablona',
-        'name_placeholder'         => 'npr. Ulaznice V2',
-        'subject_label'            => 'Naslov emaila',
-        'subject_placeholder'      => 'npr. Vaše ulaznice za REFEST 2025',
-        'description_label'        => 'Opis (opciono)',
-        'description_placeholder'  => 'Interna beleška o ovom šablonu',
-        'view_name_label'          => 'Putanja Blade prikaza (opciono)',
-        'view_name_placeholder'    => 'emails.customer.tickets_v2',
-        'view_name_help'           => 'Ostavite prazno da koristite inline HTML ispod. Podrazumevano je :default ako nijedan šablon nije aktivan.',
-        'html_content_label'       => 'Inline HTML telo (opciono)',
-        'html_content_placeholder' => '<h1>Zdravo!</h1><p>Koristite {{ $orderNumber }} itd. kao placeholder-e.</p>',
-        'html_content_help'        => 'Koristi se samo ako je putanja Blade prikaza prazna. Podržani placeholder-i: {{ $orderNumber }}, {{ $customerEmail }}, {{ $total }}.',
-        'activate_label'           => 'Aktiviraj ovaj šablon odmah nakon kreiranja',
-        'submit_button'            => 'Sačuvaj šablon',
-    ],
-
-    'existing_templates' => [
-        'heading'           => 'Postojeći email šabloni',
-        'no_data'           => 'Još nema definisanih šablona. Dodajte jedan iznad.',
-        'header_name'       => 'Naziv',
-        'header_subject'    => 'Naslov',
-        'header_source'     => 'Izvor',
-        'header_active'     => 'Aktivan',
-        'header_actions'    => 'Akcije',
-        'source_view'       => 'Blade prikaz',
-        'source_html'       => 'Inline HTML',
-        'active_badge'      => 'Aktivan',
-        'inactive_badge'    => 'Neaktivan',
-        'edit_button'       => 'Izmeni',
-        'duplicate_button'  => 'Dupliraj',
-        'activate_button'   => 'Aktiviraj',
-        'delete_button'     => 'Obriši',
-        'delete_confirm'    => 'Da li ste sigurni da želite da obrišete ovaj šablon?',
-    ],
-
-    'default_source' => [
-        'heading'                          => 'Podrazumevani email šablon (koristi se kada nijedan šablon nije aktivan)',
-        'help_text'                        => 'Ovo je Blade fajl koji sistem trenutno koristi za prikaz email-ova sa ulaznicama. Kliknite „Pogledaj kod" da ga pregledate, a zatim „Uvezi kao šablon" da ga učitate u editor kao izmenljivu kopiju.',
-        'view_path_label'                  => 'Blade putanja',
-        'size_label'                       => 'Veličina fajla',
-        'view_button'                      => 'Pogledaj kod',
-        'exists'                           => 'fajl postoji',
-        'missing'                          => 'fajl nedostaje',
-    ],
-
-    'editor' => [
-        'page_title'                       => 'Izmena email šablona',
-        'back_to_list'                     => 'Nazad na podešavanja emaila',
-        'heading'                          => 'Izmena: :name',
-        'subtitle'                         => 'Putanja prikaza: :view',
-        'default_heading'                  => 'Izvorni kod podrazumevanog email šablona',
-        'default_subtitle'                 => 'Prikaz samo za čitanje za :view (Blade fajl koji sistem trenutno koristi).',
-        'default_readonly_hint'            => 'Ovaj fajl je ovde samo za čitanje. Kliknite „Uvezi kao šablon" da kreirate izmenljivu kopiju.',
-        'duplicate_button'                 => 'Dupliraj kao novi',
-        'activate_button'                  => 'Aktiviraj',
-        'active_badge'                     => 'Aktivan',
-        'metadata_heading'                 => 'Podešavanja šablona',
-        'save_metadata_button'             => 'Sačuvaj podešavanja',
-        'source_heading'                   => 'Blade / HTML izvorni kod',
-        'source_size'                      => ':size KB',
-        'inline_html'                      => '(inline HTML)',
-        'source_missing'                   => 'Fajl nedostaje: :path',
-        'editor_hint'                      => 'Izmenite Blade kod i sačuvajte. Izmene se upisuju u generisan Blade fajl u resources/views/emails/customer/generated/.',
-        'cancel_button'                    => 'Otkaži',
-        'save_source_button'               => 'Sačuvaj kod',
-        'save_confirm'                     => 'Čuvanje će prepisati Blade fajl. Nastaviti?',
-        'preview_heading'                  => 'Pregled',
-        'preview_help'                     => 'Email možete pregledati aktiviranjem ovog šablona i ponovnim slanjem email-a sa stranice narudžbine.',
-        'preview_link'                     => 'Idi na stranicu narudžbina →',
-        'danger_heading'                   => 'Opasna zona',
-        'danger_help'                      => 'Brisanje šablona takođe briše i njegov generisani Blade fajl. Ovo se ne može opozvati.',
-        'delete_button'                    => 'Obriši šablon',
-        'delete_confirm'                   => 'Obriši šablon „:name"? Takođe će biti obrisan i njegov generisani Blade fajl.',
-
-        'import_button'                    => 'Uvezi kao šablon',
-        'import_modal_heading'             => 'Uvezi podrazumevani email kao šablon',
-        'default_import_name'              => 'Podrazumevani email (uvezen)',
-        'default_import_subject'           => 'Vaše ulaznice',
-        'import_default_description_placeholder' => 'Uvezeno iz podrazumevanog email šablona',
-        'activate_after_import'            => 'Aktiviraj ovaj šablon odmah nakon uvoza',
-    ],
-
-    'duplicate_suffix'                   => '(duplikat)',
-    'imported_default_description'       => 'Uvezeno iz podrazumevanog email šablona',
+    'duplicate_suffix' => '(duplikat)',
 ];

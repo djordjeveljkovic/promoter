@@ -7,6 +7,7 @@ return [
 
     'table' => [
         'header_order_id' => 'ID Porudžbine',
+        'header_seller'   => 'Prodavac',
         'header_customer_email' => 'Email Kupca',
         'header_order_date' => 'Datum Porudžbine',
         'header_items' => 'Stavke',
@@ -64,4 +65,7 @@ return [
         'sent' => 'Poslato',
         'unknown' => 'N/A',
     ],
+
+    'seller_self_badge' => 'Vi',
+    'seller_unknown'    => 'Nepoznat prodavac',
 ];

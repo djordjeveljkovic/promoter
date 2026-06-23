@@ -59,10 +59,16 @@
         <section class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg">
             <div class="flex items-center justify-between mb-4">
                 <h2 class="text-xl font-semibold text-gray-700 dark:text-gray-300">{{ __('sub_promoter_dashboard.recent_orders.heading') }}</h2>
-                <a href="{{ route('sub_promoter.orders.create') }}"
-                   class="inline-flex items-center justify-center rounded-md border border-transparent bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white shadow-sm hover:bg-indigo-700">
-                    {{ __('sub_promoter_dashboard.recent_orders.new_order_button') }}
-                </a>
+                <div class="flex items-center gap-2">
+                    <a href="{{ route('sub_promoter.orders.index') }}"
+                       class="inline-flex items-center justify-center rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">
+                        {{ __('sub_promoter_dashboard.recent_orders.view_all_button') }}
+                    </a>
+                    <a href="{{ route('sub_promoter.orders.create') }}"
+                       class="inline-flex items-center justify-center rounded-md border border-transparent bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white shadow-sm hover:bg-indigo-700">
+                        {{ __('sub_promoter_dashboard.recent_orders.new_order_button') }}
+                    </a>
+                </div>
             </div>
 
             @if($orders->isEmpty())

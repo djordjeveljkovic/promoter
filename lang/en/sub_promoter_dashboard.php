@@ -24,8 +24,27 @@ return [
         'heading'           => 'My Recent Orders',
         'empty'             => 'No orders placed yet.',
         'new_order_button'  => 'New Order',
+        'view_all_button'   => 'View all orders',
         'header_customer'   => 'Customer',
         'header_total'      => 'Total',
         'header_status'     => 'Status',
+    ],
+
+    'orders' => [
+        'page_title'        => 'My Orders',
+        'main_heading'      => 'My Orders',
+        'sub_heading'       => 'Every order you placed, with the commission YOU earned on it. Orders placed by other sub-promoters are not shown here.',
+        'back_to_dashboard' => '&larr; Back to dashboard',
+        'new_order_button'  => 'New Order',
+        'table' => [
+            'header_order'         => 'Order',
+            'header_customer'      => 'Customer',
+            'header_date'          => 'Date',
+            'header_items'         => 'Items',
+            'header_total'         => 'Total',
+            'header_my_commission' => 'My Commission',
+            'header_status'        => 'Status',
+            'empty'                => "You haven't placed any orders yet.",
+        ],
     ],
 ];

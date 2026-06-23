@@ -24,8 +24,27 @@ return [
         'heading'           => 'Moje Nedavne Porudžbine',
         'empty'             => 'Još nema porudžbina.',
         'new_order_button'  => 'Nova Porudžbina',
+        'view_all_button'   => 'Prikaži sve porudžbine',
         'header_customer'   => 'Kupac',
         'header_total'      => 'Ukupno',
         'header_status'     => 'Status',
+    ],
+
+    'orders' => [
+        'page_title'        => 'Moje Porudžbine',
+        'main_heading'      => 'Moje Porudžbine',
+        'sub_heading'       => 'Svaka porudžbina koju ste izvršili, sa provizijom koju ste VI zaradili na njoj. Porudžbine drugih sub-promotera se ne prikazuju ovde.',
+        'back_to_dashboard' => '&larr; Nazad na kontrolnu tablu',
+        'new_order_button'  => 'Nova Porudžbina',
+        'table' => [
+            'header_order'         => 'Porudžbina',
+            'header_customer'      => 'Kupac',
+            'header_date'          => 'Datum',
+            'header_items'         => 'Stavke',
+            'header_total'         => 'Ukupno',
+            'header_my_commission' => 'Moja Provizija',
+            'header_status'        => 'Status',
+            'empty'                => 'Još uvek niste izvršili nijednu porudžbinu.',
+        ],
     ],
 ];

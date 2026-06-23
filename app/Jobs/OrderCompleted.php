@@ -125,16 +125,39 @@ class OrderCompleted implements ShouldQueue
         $newRows = [];
         $newTotal = 0.0;
 
+        // If the seller is a sub-promoter that reports to a promoter-manager,
+        // we compute the gross commission using the MANAGER's team tier
+        // (manager + sub-promoters' combined sales volume). This way the
+        // promoter-manager's commission rises with team sales volume, while
+        // the sub-promoter keeps the flat rate their manager set.
+        $manager = ($seller->role === 'sub_promoter')
+            ? $seller->promoterManager()
+            : null;
+
         foreach ($order->items as $item) {
-            // 1. Tier-based gross commission for this item (same logic as
-            //    before, computed against the direct seller).
-            $itemCommission = (float) User::calculateCommission(
-                $item->ticket_type_id,
-                $order->id,
-                $item->quantity,
-                $seller,
-                $order->created_at
-            );
+            // 1. Tier-based gross commission for this item.
+            //    - For sub-promoter sellers with a manager: use the
+            //      manager's team tier so the manager's per-ticket share
+            //      tracks team sales volume.
+            //    - For everyone else (promoter, promoter_manager,
+            //      orphan sub_promoter): use the seller's own tier.
+            if ($manager) {
+                $itemCommission = (float) User::calculateTierCommissionForTeam(
+                    $item->ticket_type_id,
+                    $order->id,
+                    $item->quantity,
+                    $manager,
+                    $order->created_at
+                );
+            } else {
+                $itemCommission = (float) User::calculateCommission(
+                    $item->ticket_type_id,
+                    $order->id,
+                    $item->quantity,
+                    $seller,
+                    $order->created_at
+                );
+            }
 
             $item->commission_earned = $itemCommission;
             $item->save();
@@ -144,7 +167,8 @@ class OrderCompleted implements ShouldQueue
                 $seller,
                 $item->ticket_type_id,
                 $itemCommission,
-                $item->quantity
+                $item->quantity,
+                $manager
             );
 
             foreach ($splits as $split) {
@@ -190,9 +214,14 @@ class OrderCompleted implements ShouldQueue
     /**
      * Compute the per-beneficiary commission split for a single order item.
      *
+     * The $grossCommission passed in is already tier-resolved by the caller:
+     *  - For sub-promoter sellers with a manager: it is the MANAGER's
+     *    team-tier commission (manager + sub-promoters combined sales).
+     *  - For everyone else: it is the seller's own tier commission.
+     *
      * Rules:
      *  - admin / supreme sellers earn nothing (organisers).
-     *  - promoter / promoter_manager sellers earn 100% (same tier rules).
+     *  - promoter / promoter_manager sellers earn 100% of the gross.
      *  - sub_promoter sellers have their commission split with their
      *    promoter_manager according to promoter_commission_overrides.
      *    The override row is interpreted based on its commission_type:
@@ -209,17 +238,24 @@ class OrderCompleted implements ShouldQueue
      *        tier gross (never paid more than the order generated).
      *
      *    If no override is defined for (manager, sub, ticket_type) the
-     *    sub-promoter earns 100% (acts like an independent promoter) and
-     *    the manager earns nothing for that item.
+     *    sub-promoter earns 100% of the gross and the manager earns
+     *    nothing for that item.
      *
      * @param User $seller
      * @param int $ticketTypeId
      * @param float $grossCommission Total tier-based commission for this item.
      * @param int $quantity
+     * @param User|null $manager Pre-resolved manager for sub-promoter sellers
+     *                          (avoids re-walking the parent chain).
      * @return array<int,array{user_id:int,role:string,amount:float}>
      */
-    private function splitCommissionForBeneficiaries(User $seller, int $ticketTypeId, float $grossCommission, int $quantity): array
-    {
+    private function splitCommissionForBeneficiaries(
+        User $seller,
+        int $ticketTypeId,
+        float $grossCommission,
+        int $quantity,
+        ?User $manager = null
+    ): array {
         // Admins and supreme users do not earn commission.
         if (in_array($seller->role, ['admin', 'supreme'], true)) {
             return [];
@@ -236,7 +272,9 @@ class OrderCompleted implements ShouldQueue
 
         // Sub-promoter: split with their promoter-manager (if any).
         if ($seller->role === 'sub_promoter') {
-            $manager = $seller->promoterManager();
+            // Reuse the manager resolved by the caller if available so we
+            // do not hit the DB twice for the same hierarchy lookup.
+            $manager = $manager ?? $seller->promoterManager();
 
             // No manager -> sub-promoter is "independent" and earns 100%.
             if (!$manager) {
@@ -253,7 +291,7 @@ class OrderCompleted implements ShouldQueue
                 ->where('ticket_type_id', $ticketTypeId)
                 ->first();
 
-            // No override at all: sub-promoter keeps 100%.
+            // No override at all: sub-promoter keeps 100% of the gross.
             if (!$override) {
                 return [[
                     'user_id' => $seller->id,
@@ -324,16 +362,45 @@ class OrderCompleted implements ShouldQueue
     }
 
     /**
-     * Finds subsequent completed orders by the same promoter and dispatches
-     * OrderCompleted jobs for them to recalculate their commission.
+     * Finds subsequent completed orders whose tier commission may have
+     * changed because of this order, and dispatches OrderCompleted jobs
+     * for them to recalculate.
+     *
+     * Two cases require recalculation:
+     *  - Same seller: subsequent orders by the same user (their tier
+     *    baseline just shifted by the current order's quantity).
+     *  - Same team: if the seller is a sub-promoter with a manager, every
+     *    other seller in that manager's team (the manager himself + every
+     *    sibling sub-promoter) needs recalculation too, because the
+     *    team-tier baseline just shifted and their commission depends on
+     *    it.
      *
      * @param TicketOrder $justCompletedOrder The order that just had its commission processed.
      */
     private function triggerRecalculationForSubsequentOrders(TicketOrder $justCompletedOrder): void
     {
-        Log::info("[triggerRecalculation] Checking for subsequent orders to Order ID: {$justCompletedOrder->id} by Promoter ID: {$justCompletedOrder->requested_by} that may need commission recalculation.");
+        $sellerId = (int) $justCompletedOrder->requested_by;
+        Log::info("[triggerRecalculation] Checking for subsequent orders to Order ID: {$justCompletedOrder->id} by User ID: {$sellerId} that may need commission recalculation.");
 
-        $subsequentCompletedOrders = TicketOrder::where('requested_by', $justCompletedOrder->requested_by)
+        // Build the set of seller ids whose tier baseline changed because
+        // of this order: the seller themselves, plus everyone in their
+        // promoter-manager's team if the seller is a sub-promoter.
+        $sellerIdsToRecalculate = [$sellerId];
+        $seller = $justCompletedOrder->requestedBy;
+        if ($seller && $seller->role === 'sub_promoter') {
+            $manager = $seller->promoterManager();
+            if ($manager) {
+                $sellerIdsToRecalculate = $manager->subPromoters()
+                    ->pluck('id')
+                    ->push($manager->id)
+                    ->unique()
+                    ->values()
+                    ->all();
+                Log::info("[triggerRecalculation] Seller is sub-promoter of manager {$manager->id}; expanding recalculation to team sellers: " . implode(',', $sellerIdsToRecalculate));
+            }
+        }
+
+        $subsequentCompletedOrders = TicketOrder::whereIn('requested_by', $sellerIdsToRecalculate)
             ->where('id', '>', $justCompletedOrder->id) // Orders created after the one that just completed
             ->where('job_status', 'completed')           // That are already marked as completed
             ->orderBy('id', 'asc') // Process them in their creation order

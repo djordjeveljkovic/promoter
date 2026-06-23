@@ -1,157 +1,171 @@
 <?php
 
 return [
-    'page_title' => 'Email Settings',
-    'main_heading' => 'Email Settings & Templates',
+    'page_title'  => 'Email Settings',
+    'main_heading'=> 'Email Settings',
 
-    'current_config' => [
-        'heading'        => 'Current Email Configuration',
-        'help_text'      => 'These values are what the framework is using right now. You can change them from the form below without editing .env — the new values are saved in the database and applied to the runtime config immediately.',
-        'from_address_label' => 'From Address',
-        'from_name_label'    => 'From Name',
-        'mailer_label'       => 'Mailer',
-        'host_label'         => 'SMTP Host',
-        'port_label'         => 'SMTP Port',
-        'username_label'     => 'SMTP Username',
-        'password_label'     => 'SMTP Password',
-        'password_set'       => 'configured',
-        'password_missing'   => 'not set',
-        'scheme_label'       => 'Encryption',
-        'env_label'          => 'Environment',
-        'edit_in_env'        => 'Edit these values in the :path file on the server.',
-        'runtime_label'      => 'Effective (DB overrides .env)',
+    // Top-level tabs on the index page
+    'tabs' => [
+        'config'    => 'Sending Configuration',
+        'templates' => 'Templates',
     ],
 
-    // Editable mail config form
-    'edit_config' => [
-        'heading'              => 'Edit Email Configuration',
-        'help_text'            => 'Changes are saved in the `mail_settings` table and applied to the runtime config immediately. Leave a field blank to fall back to the value from .env.',
-        'mailer_label'         => 'Mailer driver',
-        'mailer_help'          => 'Which transport to use: smtp for real email, log to write to laravel.log, array for tests.',
+    // ===========================================================
+    // Tab 1: Sending Configuration
+    // ===========================================================
+    'config' => [
+        'heading'                  => 'Sending Configuration',
+        'help_text'                => 'These values control how emails are sent. Save changes here and the new settings are applied immediately — no server restart needed.',
+
+        'section_sender' => [
+            'heading' => 'Who sends the email',
+            'help'    => 'Shown to the recipient as the sender of every email.',
+        ],
+        'section_server' => [
+            'heading' => 'Server (SMTP)',
+            'help'    => 'Connection details for your mail server. Leave a field blank to fall back to .env.',
+        ],
+        'section_test' => [
+            'heading' => 'Test the configuration',
+            'help'    => 'Sends a one-off plain-text email to verify the configuration is correct.',
+        ],
+
+        'from_name_label'         => 'Sender name',
+        'from_name_placeholder'   => 'e.g. REFEST Festival',
+        'from_address_label'      => 'Sender email (From address)',
+        'from_address_placeholder'=> 'tickets@refest.rs',
+
+        'mailer_label'         => 'Mail driver',
+        'mailer_help'          => 'smtp for real email, log to write to laravel.log, array for tests.',
         'host_label'           => 'SMTP Host',
+        'host_placeholder'     => 'mail.refest.rs',
         'port_label'           => 'SMTP Port',
+        'port_placeholder'     => '465',
         'username_label'       => 'SMTP Username',
+        'username_placeholder' => 'prodaja@refest.rs',
         'password_label'       => 'SMTP Password (leave blank to keep current)',
         'password_placeholder' => '•••••••• (unchanged)',
         'clear_password_label' => 'Clear stored password (fall back to .env)',
-        'encryption_label'     => 'Encryption (tls / ssl / none)',
+        'encryption_label'     => 'Encryption',
         'encryption_none'      => 'None',
         'timeout_label'        => 'SMTP Timeout (seconds)',
-        'from_address_label'   => 'From Address',
-        'from_name_label'      => 'From Name',
-        'test_recipient_label' => 'Default Test Recipient',
-        'test_recipient_help'  => 'Where the "Send Test Email" button sends to when no override is given.',
-        'submit_button'        => 'Save Email Configuration',
+        'timeout_placeholder'  => '30',
+
+        'test_recipient_label' => 'Default test recipient',
+        'test_recipient_help'  => 'Where the test email goes when you click the button below.',
+        'test_subject_label'   => 'Subject',
+        'test_message_label'   => 'Message body',
+
+        'submit_button'           => 'Save Configuration',
+        'send_test_button'        => 'Send Test Email',
+        'clear_button'            => 'Clear',
+
+        'currently_effective' => 'Currently effective',
     ],
 
-    // "Send test email" form
+    // ===========================================================
+    // Tab 2: Templates (list)
+    // ===========================================================
+    'templates_list' => [
+        'heading'        => 'Email Templates',
+        'help_text'      => 'Each template is a Blade view (recommended) or a raw HTML body. The template marked as Default is the one used when sending ticket emails.',
+
+        'add_button'     => 'Add Template',
+
+        'header_name'    => 'Name',
+        'header_subject' => 'Subject',
+        'header_source'  => 'Source',
+        'header_default' => 'Default',
+        'header_actions' => 'Actions',
+
+        'source_view'    => 'Blade view',
+        'source_html'    => 'Inline HTML',
+
+        'default_badge'    => 'Default',
+        'no_default_badge' => 'Not default',
+
+        'edit_button'      => 'Edit',
+        'duplicate_button' => 'Duplicate',
+        'delete_button'    => 'Delete',
+        'make_default_button' => 'Make default',
+        'delete_confirm'   => 'Delete template ":name"?',
+
+        'empty' => 'No templates yet. Click "Add Template" to create one.',
+    ],
+
+    // ===========================================================
+    // Add Template page
+    // ===========================================================
+    'create' => [
+        'page_title'         => 'Add Email Template',
+        'back_to_list'       => 'Back to Email Settings',
+        'heading'            => 'Add Email Template',
+        'help_text'          => 'Templates use Blade so you can drop in dynamic data with {{ $order->email }}, @foreach loops, etc. After saving you can edit the code with a live preview.',
+
+        'name_label'        => 'Template name',
+        'name_placeholder'  => 'e.g. Tickets V2',
+        'subject_label'     => 'Email subject',
+        'subject_placeholder' => 'e.g. Your tickets for REFEST 2025',
+        'description_label' => 'Description (optional)',
+        'description_placeholder' => 'Internal note describing this template',
+
+        'source_type_label' => 'Source type',
+        'source_type_view'  => 'Blade view (recommended — supports @if, @foreach, {{ $order->email }} etc.)',
+        'source_type_html'  => 'Inline HTML (simple — supports {{ $orderNumber }} placeholder)',
+        'view_name_label'   => 'Blade view path',
+        'view_name_placeholder' => 'emails.customer.tickets',
+        'html_content_label'=> 'HTML body',
+        'html_content_placeholder' => '<h1>Hello!</h1><p>Your order {{ $orderNumber }} …</p>',
+
+        'make_default_label' => 'Make this the default template after saving',
+        'submit_button'      => 'Create Template',
+        'cancel_button'      => 'Cancel',
+    ],
+
+    // ===========================================================
+    // Edit Template page (split view)
+    // ===========================================================
+    'edit' => [
+        'page_title'       => 'Edit Email Template',
+        'back_to_list'     => 'Back to Email Settings',
+
+        'metadata_heading' => 'Template',
+        'name_label'       => 'Name',
+        'subject_label'    => 'Email subject',
+        'description_label'=> 'Description',
+
+        'make_default_label' => 'Use as default template',
+        'make_default_help'  => 'When checked, this template is used for sending ticket emails. Only one template can be the default at a time.',
+
+        'editor_heading'   => 'Source code',
+        'preview_heading'  => 'Live preview',
+        'preview_help'     => 'Rendered with sample data — the order number, customer name, ticket types and images shown here are placeholders so you can see how the email looks before sending it for real.',
+        'preview_refresh_button' => 'Refresh preview',
+        'preview_iframe_title'   => 'Email preview',
+
+        'save_metadata_button'   => 'Save settings',
+        'save_source_button'     => 'Save code',
+        'cancel_button'          => 'Cancel',
+
+        'source_size'         => ':size KB',
+        'source_missing'      => 'Underlying file is missing: :path',
+        'editor_hint'         => 'Edit the Blade code on the left and click "Save code". The right side shows a live preview with sample data.',
+
+        'editor_blade_variables' => 'Available Blade variables: <code>$order</code> (TicketOrder), <code>$currencySymbol</code>, <code>$template</code>.',
+
+        'danger_heading'   => 'Danger zone',
+        'danger_help'      => 'Deleting a template also removes its generated Blade file. This cannot be undone.',
+        'delete_button'    => 'Delete template',
+        'delete_confirm'   => 'Delete template ":name"?',
+    ],
+
+    // ===========================================================
+    // Test email
+    // ===========================================================
     'test_email' => [
-        'heading'           => 'Send Test Email',
-        'help_text'         => 'Sends a plain-text test message using the currently effective mail configuration so you can verify credentials are correct.',
-        'to_label'          => 'Recipient (overrides default)',
-        'subject_label'     => 'Subject',
-        'message_label'     => 'Message body',
-        'submit_button'     => 'Send Test Email',
-        'default_subject'   => 'Test email from :app_name',
-        'default_body'      => "Hello!\n\nThis is a test email sent from :app_name to verify the mail configuration.\n\nMailer: :mailer\nHost: :host\nPort: :port\n\nIf you received this, the configuration is working.",
+        'default_subject' => 'Test email from :app_name',
+        'default_body'    => "Hello!\n\nThis is a test email sent from :app_name to verify the mail configuration.\n\nMailer: :mailer\nHost: :host\nPort: :port\n\nIf you received this, the configuration is working.",
     ],
 
-    // Inline preview of the currently active template
-    'active_source' => [
-        'heading'           => 'Currently Active Template (used for sending)',
-        'help_text'         => 'This is the Blade / HTML code that the system is sending right now when an order\'s email job runs. Edit it through the action buttons below.',
-        'no_active'         => 'No template is currently active. The system is falling back to the default view.',
-        'fallback_view'     => 'Default view',
-        'inline_html_kind'  => 'Inline HTML',
-        'blade_view_kind'   => 'Blade view',
-        'view_source_button'=> 'Edit source',
-    ],
-
-    'add_template' => [
-        'heading'                  => 'Add Email Template',
-        'help_text'                => 'Add a second template that can be used to send ticket emails. The currently active template is used by the system when sending customer emails. If no template is active, the system uses the default view (:default).',
-        'name_label'               => 'Template Name',
-        'name_placeholder'         => 'e.g. Tickets V2',
-        'subject_label'            => 'Email Subject',
-        'subject_placeholder'      => 'e.g. Your tickets for REFEST 2025',
-        'description_label'        => 'Description (optional)',
-        'description_placeholder'  => 'Internal note describing this template',
-        'view_name_label'          => 'Blade View Path (optional)',
-        'view_name_placeholder'    => 'emails.customer.tickets_v2',
-        'view_name_help'           => 'Leave blank to use the inline HTML body below. Defaults to :default if no template is active.',
-        'html_content_label'       => 'Inline HTML Body (optional)',
-        'html_content_placeholder' => '<h1>Hello!</h1><p>Use {{ $orderNumber }} etc. as placeholders.</p>',
-        'html_content_help'        => 'Used only if Blade View Path is empty. Supported placeholders: {{ $orderNumber }}, {{ $customerEmail }}, {{ $total }}.',
-        'activate_label'           => 'Activate this template immediately after creating it',
-        'submit_button'            => 'Save Template',
-    ],
-
-    'existing_templates' => [
-        'heading'           => 'Existing Email Templates',
-        'no_data'           => 'No templates defined yet. Add one above.',
-        'header_name'       => 'Name',
-        'header_subject'    => 'Subject',
-        'header_source'     => 'Source',
-        'header_active'     => 'Active',
-        'header_actions'    => 'Actions',
-        'source_view'       => 'Blade view',
-        'source_html'       => 'Inline HTML',
-        'active_badge'      => 'Active',
-        'inactive_badge'    => 'Inactive',
-        'edit_button'       => 'Edit',
-        'duplicate_button'  => 'Duplicate',
-        'activate_button'   => 'Activate',
-        'delete_button'     => 'Delete',
-        'delete_confirm'    => 'Are you sure you want to delete this template?',
-    ],
-
-    'default_source' => [
-        'heading'                          => 'Default Email Template (sent when no template is active)',
-        'help_text'                        => 'This is the Blade file that is currently used by the system to render ticket emails. Use “View Source” to inspect it, then “Import as Template” to load it into the editor as an editable copy.',
-        'view_path_label'                  => 'Blade View',
-        'size_label'                       => 'File Size',
-        'view_button'                      => 'View Source',
-        'exists'                           => 'file present',
-        'missing'                          => 'file missing',
-    ],
-
-    'editor' => [
-        'page_title'                       => 'Edit Email Template',
-        'back_to_list'                     => 'Back to Email Settings',
-        'heading'                          => 'Editing: :name',
-        'subtitle'                         => 'View path: :view',
-        'default_heading'                  => 'Default Email Template Source',
-        'default_subtitle'                 => 'Read-only view of :view (the Blade file currently used by the system).',
-        'default_readonly_hint'            => 'This file is read-only here. Click “Import as Template” to create an editable copy.',
-        'duplicate_button'                 => 'Duplicate as New',
-        'activate_button'                  => 'Activate',
-        'active_badge'                     => 'Active',
-        'metadata_heading'                 => 'Template Settings',
-        'save_metadata_button'             => 'Save Settings',
-        'source_heading'                   => 'Blade / HTML Source',
-        'source_size'                      => ':size KB',
-        'inline_html'                      => '(inline HTML)',
-        'source_missing'                   => 'Underlying file is missing: :path',
-        'editor_hint'                      => 'Edit the Blade code and save. Changes are written to a generated Blade file under resources/views/emails/customer/generated/.',
-        'cancel_button'                    => 'Cancel',
-        'save_source_button'               => 'Save Source',
-        'save_confirm'                     => 'Saving will overwrite the underlying Blade file. Continue?',
-        'preview_heading'                  => 'Preview',
-        'preview_help'                     => 'You can preview the email by activating this template and re-running an order\'s email job from the order detail page.',
-        'preview_link'                     => 'Go to orders page →',
-        'danger_heading'                   => 'Danger Zone',
-        'danger_help'                      => 'Deleting a template also removes its generated Blade file. This cannot be undone.',
-        'delete_button'                    => 'Delete Template',
-        'delete_confirm'                   => 'Delete template ":name"? This will also remove its generated Blade file.',
-
-        'import_button'                    => 'Import as Template',
-        'import_modal_heading'             => 'Import Default Email as Template',
-        'default_import_name'              => 'Default Email (imported)',
-        'default_import_subject'           => 'Your tickets',
-        'import_default_description_placeholder' => 'Imported from the default email template',
-        'activate_after_import'            => 'Activate this template immediately after import',
-    ],
-
-    'duplicate_suffix'                   => '(duplicated)',
-    'imported_default_description'       => 'Imported from the default email template',
+    'duplicate_suffix' => '(duplicated)',
 ];

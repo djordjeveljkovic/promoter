@@ -79,22 +79,22 @@ Route::middleware('auth')->group(function () {
             ->name('admin.email-settings.mail-config.update');
         Route::post('/email-settings/test-email', [EmailSettingsController::class, 'sendTestEmail'])
             ->name('admin.email-settings.test-email');
-        Route::get('/email-settings/default-source', [EmailSettingsController::class, 'viewDefaultSource'])
-            ->name('admin.email-settings.default-source');
-        Route::post('/email-settings/import-default', [EmailSettingsController::class, 'seedFromDefault'])
-            ->name('admin.email-settings.import-default');
+        Route::get('/email-settings/templates/create', [EmailSettingsController::class, 'createTemplate'])
+            ->name('admin.email-settings.templates.create');
         Route::post('/email-settings/templates', [EmailSettingsController::class, 'storeTemplate'])
             ->name('admin.email-settings.templates.store');
-        Route::get('/email-settings/templates/{emailTemplate}/edit', [EmailSettingsController::class, 'edit'])
+        Route::get('/email-settings/templates/{emailTemplate}/edit', [EmailSettingsController::class, 'editTemplate'])
             ->name('admin.email-settings.templates.edit');
+        Route::put('/email-settings/templates/{emailTemplate}', [EmailSettingsController::class, 'updateTemplate'])
+            ->name('admin.email-settings.templates.update');
         Route::put('/email-settings/templates/{emailTemplate}/source', [EmailSettingsController::class, 'updateTemplateSource'])
             ->name('admin.email-settings.templates.source.update');
+        Route::get('/email-settings/templates/{emailTemplate}/preview', [EmailSettingsController::class, 'previewTemplate'])
+            ->name('admin.email-settings.templates.preview');
         Route::post('/email-settings/templates/{emailTemplate}/duplicate', [EmailSettingsController::class, 'duplicateTemplate'])
             ->name('admin.email-settings.templates.duplicate');
         Route::patch('/email-settings/templates/{emailTemplate}/activate', [EmailSettingsController::class, 'activateTemplate'])
             ->name('admin.email-settings.templates.activate');
-        Route::put('/email-settings/templates/{emailTemplate}', [EmailSettingsController::class, 'updateTemplate'])
-            ->name('admin.email-settings.templates.update');
         Route::delete('/email-settings/templates/{emailTemplate}', [EmailSettingsController::class, 'destroyTemplate'])
             ->name('admin.email-settings.templates.destroy');
     });
@@ -134,6 +134,7 @@ Route::middleware('auth')->group(function () {
      */
     Route::middleware('role:sub_promoter')->prefix('sub-promoter')->group(function () {
         Route::get('/dashboard', [SubPromoterController::class, 'dashboard'])->name('sub_promoter.dashboard');
+        Route::get('/orders', [SubPromoterController::class, 'ordersIndex'])->name('sub_promoter.orders.index');
         Route::get('/order/create', [SubPromoterController::class, 'create'])->name('sub_promoter.orders.create');
         Route::post('/orders', [SubPromoterController::class, 'placeOrder'])->name('sub_promoter.orders.store');
     });

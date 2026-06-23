@@ -4,7 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\EmailTemplate;
 use App\Models\MailSetting;
-use Illuminate\Contracts\View\View as ViewContract;
+use App\Models\TicketOrder;
+use App\Models\TicketType;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Mail\Message;
@@ -30,13 +31,11 @@ class EmailSettingsController extends Controller
     protected string $generatedViewsDir = 'emails/customer/generated';
 
     /**
-     * Show the current email configuration and list of available templates,
-     * along with the form to add a new template and the source code of the
-     * currently active template.
+     * Main page — two tabs: "Configuration" (mail settings + test) and
+     * "Templates" (list of templates with Edit / Add buttons).
      */
-    public function index(): ViewResponse
+    public function index(Request $request): ViewResponse
     {
-        // Read-only snapshot of the current mail configuration (read from .env at boot time).
         $config = [
             'mailer'       => config('mail.default'),
             'host'         => config('mail.mailers.smtp.host'),
@@ -46,37 +45,20 @@ class EmailSettingsController extends Controller
             'password_set' => !empty(config('mail.mailers.smtp.password')),
             'from_address' => config('mail.from.address'),
             'from_name'    => config('mail.from.name'),
-            'app_url'      => config('app.url'),
-            'app_env'      => config('app.env'),
         ];
 
-        $templates   = EmailTemplate::orderByDesc('is_active')->latest()->get();
-        $active      = EmailTemplate::active();
+        $templates     = EmailTemplate::orderByDesc('is_active')->latest()->get();
+        $active        = EmailTemplate::active();
+        $mailSettings  = MailSetting::current();
 
-        $defaultViewExists = View::exists(self::DEFAULT_VIEW);
-        $defaultViewPath   = resource_path('views/' . str_replace('.', '/', self::DEFAULT_VIEW) . '.blade.php');
-
-        // We never load the entire Blade source into the listing page (it can be
-        // very large). Instead, we expose just the file path and let the user
-        // open the dedicated viewer when needed.
-        $defaultViewSize = $defaultViewExists ? File::size($defaultViewPath) : 0;
-
-        // Snapshot of the active template source. We resolve it here so the
-        // view can render a "what's currently being sent" panel without
-        // having to round-trip to /default-source.
-        $activeSource = $active ? $this->resolveTemplateSource($active) : null;
-
-        // DB-overridable mail settings (form on the page edits these).
-        $mailSettings = MailSetting::current();
+        // Pick which tab to show: ?tab=config or ?tab=templates (default: config)
+        $tab = $request->query('tab', 'config');
+        if (!in_array($tab, ['config', 'templates'], true)) {
+            $tab = 'config';
+        }
 
         return view('pages.admin.email_settings.index', compact(
-            'config',
-            'templates',
-            'active',
-            'defaultViewExists',
-            'defaultViewSize',
-            'activeSource',
-            'mailSettings',
+            'config', 'templates', 'active', 'mailSettings', 'tab',
         ))->with('defaultView', self::DEFAULT_VIEW);
     }
 
@@ -95,8 +77,6 @@ class EmailSettingsController extends Controller
             'host'          => 'nullable|string|max:255',
             'port'          => 'nullable|integer|min:1|max:65535',
             'username'      => 'nullable|string|max:255',
-            // Allow blank = "do not change" semantics only on update via a
-            // separate checkbox, so we always re-store what the user typed.
             'password'      => 'nullable|string|max:1024',
             'clear_password'=> 'sometimes|boolean',
             'encryption'    => 'nullable|string|in:tls,ssl,null,',
@@ -120,14 +100,14 @@ class EmailSettingsController extends Controller
             $encryption = null;
         }
 
-        $row->mailer        = $data['mailer'] ?? null;
-        $row->host          = $data['host'] ?? null;
-        $row->port          = $data['port'] ?? null;
-        $row->username      = $data['username'] ?? null;
-        $row->encryption    = $encryption;
-        $row->timeout       = $data['timeout'] ?? null;
-        $row->from_address  = $data['from_address'] ?? null;
-        $row->from_name     = $data['from_name'] ?? null;
+        $row->mailer         = $data['mailer'] ?? null;
+        $row->host           = $data['host'] ?? null;
+        $row->port           = $data['port'] ?? null;
+        $row->username       = $data['username'] ?? null;
+        $row->encryption     = $encryption;
+        $row->timeout        = $data['timeout'] ?? null;
+        $row->from_address   = $data['from_address'] ?? null;
+        $row->from_name      = $data['from_name'] ?? null;
         $row->test_recipient = $data['test_recipient'] ?? null;
 
         // Password is a "leave alone" field by default — typing a new
@@ -146,7 +126,7 @@ class EmailSettingsController extends Controller
         $row->applyToConfig();
 
         return redirect()
-            ->route('admin.email-settings.index')
+            ->route('admin.email-settings.index', ['tab' => 'config'])
             ->with('success', __('alert.email_settings_saved'));
     }
 
@@ -162,7 +142,7 @@ class EmailSettingsController extends Controller
             'subject' => 'nullable|string|max:255',
             'message' => 'nullable|string|max:5000',
         ], [
-            'to.email'      => __('alert.email_settings_test_recipient_invalid'),
+            'to.email' => __('alert.email_settings_test_recipient_invalid'),
         ]);
 
         $settings = MailSetting::current();
@@ -192,12 +172,12 @@ class EmailSettingsController extends Controller
             });
 
             return redirect()
-                ->route('admin.email-settings.index')
+                ->route('admin.email-settings.index', ['tab' => 'config'])
                 ->with('success', __('alert.email_settings_test_sent', ['to' => $to]));
         } catch (\Throwable $e) {
             Log::error('[EmailSettings] Test email failed: ' . $e->getMessage());
             return redirect()
-                ->route('admin.email-settings.index')
+                ->route('admin.email-settings.index', ['tab' => 'config'])
                 ->withInput()
                 ->withErrors(['test_email' => __('alert.email_settings_test_failed', [
                     'error' => $e->getMessage(),
@@ -206,82 +186,19 @@ class EmailSettingsController extends Controller
     }
 
     /**
-     * Display the Blade source of a single template (or the default email
-     * blade) in a dedicated editor page.
+     * "Add new template" page — a simple form with name / subject /
+     * description / source (view_name OR inline HTML) and a "make default"
+     * checkbox.
      */
-    public function edit(Request $request, EmailTemplate $emailTemplate): ViewResponse
+    public function createTemplate(): ViewResponse
     {
-        $source = $this->resolveTemplateSource($emailTemplate);
-
-        return view('pages.admin.email_settings.edit', [
-            'template'   => $emailTemplate,
-            'source'     => $source,
-            'isDefault'  => false,
-            'defaultView'=> self::DEFAULT_VIEW,
+        return view('pages.admin.email_settings.create', [
+            'defaultView' => self::DEFAULT_VIEW,
         ]);
     }
 
     /**
-     * Show the source code of the *default* Blade email file
-     * (emails/customer/tickets.blade.php) so the admin can review it and
-     * decide whether to import it as a new editable template.
-     */
-    public function viewDefaultSource(): ViewResponse
-    {
-        $defaultViewPath = resource_path('views/' . str_replace('.', '/', self::DEFAULT_VIEW) . '.blade.php');
-
-        $source = [
-            'view_name'     => self::DEFAULT_VIEW,
-            'absolute_path' => $defaultViewPath,
-            'exists'        => File::exists($defaultViewPath),
-            'content'       => File::exists($defaultViewPath) ? File::get($defaultViewPath) : '',
-            'size'          => File::exists($defaultViewPath) ? File::size($defaultViewPath) : 0,
-        ];
-
-        return view('pages.admin.email_settings.edit', [
-            'template'   => null,
-            'source'     => $source,
-            'isDefault'  => true,
-            'defaultView'=> self::DEFAULT_VIEW,
-        ]);
-    }
-
-    /**
-     * Resolve the Blade source content for a given template.
-     *
-     * - If the template references a Blade view via `view_name`, we read the
-     *   file from disk.
-     * - If the template has inline `html_content`, we use that as the source.
-     * - Otherwise we return an empty string.
-     *
-     * @return array{view_name:?string, absolute_path:?string, exists:bool, content:string, size:int, source_kind:string}
-     */
-    protected function resolveTemplateSource(EmailTemplate $template): array
-    {
-        if ($template->usesBladeView()) {
-            $path = resource_path('views/' . str_replace('.', '/', $template->view_name) . '.blade.php');
-            return [
-                'view_name'     => $template->view_name,
-                'absolute_path' => $path,
-                'exists'        => File::exists($path),
-                'content'       => File::exists($path) ? File::get($path) : '',
-                'size'          => File::exists($path) ? File::size($path) : 0,
-                'source_kind'   => 'blade_view',
-            ];
-        }
-
-        return [
-            'view_name'     => null,
-            'absolute_path' => null,
-            'exists'        => true,
-            'content'       => $template->html_content ?? '',
-            'size'          => strlen((string) $template->html_content),
-            'source_kind'   => 'inline_html',
-        ];
-    }
-
-    /**
-     * Store a new email template.
+     * Persist a brand-new template.
      */
     public function storeTemplate(Request $request): RedirectResponse
     {
@@ -289,6 +206,7 @@ class EmailSettingsController extends Controller
             'name'         => 'required|string|max:255|unique:email_templates,name',
             'subject'      => 'required|string|max:255',
             'description'  => 'nullable|string|max:500',
+            'source_type'  => ['required', Rule::in(['view', 'html'])],
             'view_name'    => [
                 'nullable',
                 'string',
@@ -305,37 +223,72 @@ class EmailSettingsController extends Controller
             'name.required'        => __('alert.email_template_name_required'),
             'name.unique'          => __('alert.email_template_name_unique'),
             'subject.required'     => __('alert.email_template_subject_required'),
+            'source_type.required' => __('alert.email_template_source_type_required'),
+            'source_type.in'       => __('alert.email_template_source_type_invalid'),
             'view_name.string'     => __('alert.email_template_view_string'),
         ]);
 
-        if (empty($data['view_name']) && empty($data['html_content'])) {
-            return back()
-                ->withInput()
-                ->withErrors(['view_name' => __('alert.email_template_needs_view_or_html')]);
+        if ($data['source_type'] === 'view') {
+            if (empty($data['view_name'])) {
+                return back()->withInput()->withErrors([
+                    'view_name' => __('alert.email_template_view_required'),
+                ]);
+            }
+            $viewName    = $data['view_name'];
+            $htmlContent = null;
+        } else {
+            if (empty($data['html_content'])) {
+                return back()->withInput()->withErrors([
+                    'html_content' => __('alert.email_template_html_required'),
+                ]);
+            }
+            $viewName    = null;
+            $htmlContent = $data['html_content'];
         }
 
         $shouldActivate = !empty($data['is_active']);
-        unset($data['is_active']);
 
         if ($shouldActivate) {
             EmailTemplate::query()->update(['is_active' => false]);
         }
 
-        $template = EmailTemplate::create($data);
+        $template = EmailTemplate::create([
+            'name'         => $data['name'],
+            'subject'      => $data['subject'],
+            'description'  => $data['description'] ?? null,
+            'view_name'    => $viewName,
+            'html_content' => $htmlContent,
+            'is_active'    => false,
+        ]);
 
         if ($shouldActivate) {
-            $template->update(['is_active' => true]);
+            $template->activate();
         }
 
         return redirect()
-            ->route('admin.email-settings.index')
+            ->route('admin.email-settings.templates.edit', $template)
             ->with('success', __('alert.email_template_created', ['name' => $template->name]));
     }
 
     /**
-     * Update an existing template's metadata. Source content (blade/html) is
-     * updated through `updateTemplateSource` so we can persist to disk for
-     * Blade-backed templates.
+     * Edit template — split view with the code editor on the left and a
+     * server-rendered preview (using sample data) on the right.
+     */
+    public function editTemplate(Request $request, EmailTemplate $emailTemplate): ViewResponse
+    {
+        $source = $this->resolveTemplateSource($emailTemplate);
+
+        return view('pages.admin.email_settings.edit', [
+            'template'    => $emailTemplate,
+            'source'      => $source,
+            'defaultView' => self::DEFAULT_VIEW,
+        ]);
+    }
+
+    /**
+     * Update template metadata (name, subject, description, default flag).
+     * Source content (blade/html) is updated through `updateTemplateSource`
+     * so we can persist to disk for Blade-backed templates.
      */
     public function updateTemplate(Request $request, EmailTemplate $emailTemplate): RedirectResponse
     {
@@ -348,18 +301,32 @@ class EmailSettingsController extends Controller
             ],
             'subject'      => 'required|string|max:255',
             'description'  => 'nullable|string|max:500',
-            'view_name'    => 'nullable|string|max:255',
+            'is_active'    => 'sometimes|boolean',
         ]);
 
-        $emailTemplate->update($data);
+        $shouldActivate = !empty($data['is_active']);
+
+        // Persist metadata first.
+        $emailTemplate->update([
+            'name'        => $data['name'],
+            'subject'     => $data['subject'],
+            'description' => $data['description'] ?? null,
+        ]);
+
+        // Handle the "use as default" checkbox — exclusive activation.
+        if ($shouldActivate && !$emailTemplate->is_active) {
+            $emailTemplate->activate();
+        } elseif (!$shouldActivate && $emailTemplate->is_active) {
+            $emailTemplate->update(['is_active' => false]);
+        }
 
         return redirect()
-            ->route('admin.email-settings.index')
+            ->route('admin.email-settings.templates.edit', $emailTemplate)
             ->with('success', __('alert.email_template_updated', ['name' => $emailTemplate->name]));
     }
 
     /**
-     * Persist edits made in the Blade/HTML source editor to a dedicated view
+     * Persist edits made in the source code editor to a dedicated view
      * file on disk and update the template's `view_name` accordingly.
      */
     public function updateTemplateSource(Request $request, EmailTemplate $emailTemplate): RedirectResponse
@@ -401,6 +368,43 @@ class EmailSettingsController extends Controller
     }
 
     /**
+     * Server-rendered preview of the template using fake/sample data.
+     * Used by the right-hand pane in the editor. Returns the rendered HTML
+     * — NOT a full Blade view — so it can be dropped into an iframe via
+     * `srcdoc` and the parent's styles won't leak in.
+     */
+    public function previewTemplate(Request $request, EmailTemplate $emailTemplate): ViewResponse
+    {
+        $sample = $this->buildSampleOrder();
+
+        try {
+            if ($emailTemplate->usesBladeView() && View::exists($emailTemplate->view_name)) {
+                $html = View::make($emailTemplate->view_name, [
+                    'order'          => $sample,
+                    'currencySymbol' => 'RSD',
+                    'template'       => $emailTemplate,
+                ])->render();
+            } elseif (!$emailTemplate->usesBladeView() && !empty($emailTemplate->html_content)) {
+                $html = $this->renderInlineHtml($emailTemplate->html_content, $sample);
+            } else {
+                $html = View::make(self::DEFAULT_VIEW, [
+                    'order'          => $sample,
+                    'currencySymbol' => 'RSD',
+                ])->render();
+            }
+        } catch (\Throwable $e) {
+            $html = '<div style="padding:24px;font-family:sans-serif;color:#b91c1c;">'
+                  . '<strong>Preview error:</strong> ' . htmlspecialchars($e->getMessage())
+                  . '</div>';
+        }
+
+        // Bare HTML, no app layout — meant for the iframe srcdoc.
+        return view('pages.admin.email_settings._preview_frame', [
+            'html' => $html,
+        ]);
+    }
+
+    /**
      * Create a duplicate of the given template (both metadata and source).
      * For Blade-backed templates we copy the underlying file to a new path,
      * so the duplicate can be edited independently of the original.
@@ -438,18 +442,6 @@ class EmailSettingsController extends Controller
     }
 
     /**
-     * Mark the given template as the active one.
-     */
-    public function activateTemplate(EmailTemplate $emailTemplate): RedirectResponse
-    {
-        $emailTemplate->activate();
-
-        return redirect()
-            ->route('admin.email-settings.index')
-            ->with('success', __('alert.email_template_activated', ['name' => $emailTemplate->name]));
-    }
-
-    /**
      * Remove an email template and its underlying Blade file (if any lives
      * in our generated directory).
      */
@@ -469,49 +461,147 @@ class EmailSettingsController extends Controller
         $emailTemplate->delete();
 
         return redirect()
-            ->route('admin.email-settings.index')
+            ->route('admin.email-settings.index', ['tab' => 'templates'])
             ->with('success', __('alert.email_template_deleted', ['name' => $name]));
     }
 
     /**
-     * Import the current default Blade email view into a new template row.
-     * The new template references the default view via `view_name` so the
-     * admin can see and edit it; saving the editor copies it into a safe
-     * generated location.
+     * Mark the given template as the active one.
      */
-    public function seedFromDefault(Request $request): RedirectResponse
+    public function activateTemplate(EmailTemplate $emailTemplate): RedirectResponse
     {
-        $defaultViewPath = resource_path('views/' . str_replace('.', '/', self::DEFAULT_VIEW) . '.blade.php');
-
-        if (!File::exists($defaultViewPath)) {
-            return back()->with('error', __('alert.email_template_view_not_found', ['view' => self::DEFAULT_VIEW]));
-        }
-
-        $data = $request->validate([
-            'name'        => 'required|string|max:255|unique:email_templates,name',
-            'subject'     => 'required|string|max:255',
-            'description' => 'nullable|string|max:500',
-            'activate'    => 'sometimes|boolean',
-        ]);
-
-        $shouldActivate = $request->boolean('activate');
-
-        $template = EmailTemplate::create([
-            'name'         => $data['name'],
-            'subject'      => $data['subject'],
-            'description'  => $data['description'] ?? __('email_settings.imported_default_description'),
-            'view_name'    => self::DEFAULT_VIEW,
-            'html_content' => null,
-            'is_active'    => false,
-        ]);
-
-        if ($shouldActivate) {
-            $template->activate();
-        }
+        $emailTemplate->activate();
 
         return redirect()
-            ->route('admin.email-settings.templates.edit', $template)
-            ->with('success', __('alert.email_template_imported', ['name' => $template->name]));
+            ->route('admin.email-settings.index', ['tab' => 'templates'])
+            ->with('success', __('alert.email_template_activated', ['name' => $emailTemplate->name]));
+    }
+
+    /**
+     * Resolve the Blade source content for a given template.
+     *
+     * @return array{view_name:?string, absolute_path:?string, exists:bool, content:string, size:int, source_kind:string}
+     */
+    protected function resolveTemplateSource(EmailTemplate $template): array
+    {
+        if ($template->usesBladeView()) {
+            $path = resource_path('views/' . str_replace('.', '/', $template->view_name) . '.blade.php');
+            return [
+                'view_name'     => $template->view_name,
+                'absolute_path' => $path,
+                'exists'        => File::exists($path),
+                'content'       => File::exists($path) ? File::get($path) : '',
+                'size'          => File::exists($path) ? File::size($path) : 0,
+                'source_kind'   => 'blade_view',
+            ];
+        }
+
+        return [
+            'view_name'     => null,
+            'absolute_path' => null,
+            'exists'        => true,
+            'content'       => $template->html_content ?? '',
+            'size'          => strlen((string) $template->html_content),
+            'source_kind'   => 'inline_html',
+        ];
+    }
+
+    /**
+     * Build a fake TicketOrder with realistic items + tickets so the
+     * preview pane always has something to render. Pulls real ticket
+     * types from the DB and stubs ticket images so the QR-bearing rows
+     * look the way they will in production.
+     */
+    protected function buildSampleOrder(): TicketOrder
+    {
+        $ticketTypes = TicketType::orderBy('id')->limit(3)->get();
+        if ($ticketTypes->isEmpty()) {
+            // No ticket types yet — fabricate a placeholder row so the
+            // preview at least renders the text parts.
+            $ticketTypes = collect([
+                new TicketType([
+                    'name'  => 'VIP',
+                    'price' => 100,
+                ]),
+            ]);
+        }
+
+        // Build items from those types.
+        $items = $ticketTypes->map(function (TicketType $tt, int $i) {
+            return new \App\Models\TicketOrderItem([
+                'ticket_type_id' => $tt->id,
+                'quantity'       => $i === 0 ? 2 : 1,
+                'price_at_order' => $tt->price ?? 0,
+            ]);
+        });
+
+        // Build ticket rows — first item contributes multiple ticket codes,
+        // the rest one each. We give them dummy image_path values so the
+        // preview's @if($ticket->image_path) branches render the same way
+        // they would in production.
+        $tickets = collect();
+        $counter = 0;
+        foreach ($items as $itemIndex => $item) {
+            $type = $ticketTypes[$itemIndex] ?? $ticketTypes->first();
+            for ($n = 0; $n < $item->quantity; $n++) {
+                $t = new \App\Models\Ticket([
+                    'code'           => 'SAMPLE-' . strtoupper(substr(md5($counter . '|' . $type->id), 0, 8)),
+                    'ticket_type_id' => $type->id,
+                    'is_active'      => true,
+                    // Empty image_path would skip the image in the default
+                    // template, which is fine for preview. Admins can see
+                    // the layout without generated PNGs cluttering the pane.
+                    'image_path'     => null,
+                ]);
+                $t->setRelation('ticketType', $type);
+                $tickets->push($t);
+                $counter++;
+            }
+        }
+
+        // Customer name — not stored on TicketOrder, so we fake it on a
+        // dynamic property. The default template uses
+        // `$order->customer_name` which would otherwise always be null.
+        $order = new TicketOrder([
+            'id'           => 999999,
+            'order_number' => 'PREVIEW',
+            'email'        => 'korisnik@primer.rs',
+            'total'        => $ticketTypes->sum(fn ($t) => ($t->price ?? 0)),
+            'paid'         => $ticketTypes->sum(fn ($t) => ($t->price ?? 0)),
+            'job_status'   => 'completed',
+        ]);
+        $order->created_at = now();
+        $order->customer_name = 'Marko';
+
+        $order->setRelation('items', $items);
+        $order->setRelation('tickets', $tickets);
+
+        // Each item's ticketType relation is needed by the default template.
+        foreach ($items as $i => $item) {
+            $item->setRelation('ticketType', $ticketTypes[$i] ?? $ticketTypes->first());
+        }
+
+        return $order;
+    }
+
+    /**
+     * Very small placeholder engine for templates defined as raw HTML.
+     * Supports {{ $orderNumber }}, {{ $customerEmail }}, {{ $total }}.
+     */
+    protected function renderInlineHtml(string $html, TicketOrder $order): string
+    {
+        $total = '0.00';
+        foreach ($order->items ?? [] as $item) {
+            $total += (float) ($item->price_at_order ?? 0) * (int) ($item->quantity ?? 0);
+        }
+
+        $replacements = [
+            '{{ $orderNumber }}'   => (string) ($order->order_number ?? $order->id),
+            '{{ $customerEmail }}' => (string) ($order->email ?? ''),
+            '{{ $total }}'         => number_format((float) $total, 2),
+        ];
+
+        return strtr($html, $replacements);
     }
 
     /**
