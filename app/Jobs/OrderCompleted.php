@@ -206,8 +206,17 @@ class OrderCompleted implements ShouldQueue
         });
 
         $precision = 2;
-        $commissionHasChanged = $originalCommission === null
-            || bccomp((string)$originalCommission, (string)$newTotal, $precision) !== 0;
+        // Compare with 2-decimal precision. Prefer bcmath when the
+        // extension is loaded, fall back to a simple float compare so the
+        // job still runs in environments without bcmath (e.g. the SQLite
+        // test driver).
+        if ($originalCommission === null) {
+            $commissionHasChanged = true;
+        } elseif (function_exists('bccomp')) {
+            $commissionHasChanged = bccomp((string) $originalCommission, (string) $newTotal, $precision) !== 0;
+        } else {
+            $commissionHasChanged = round((float) $originalCommission, $precision) !== round((float) $newTotal, $precision);
+        }
 
         if ($commissionHasChanged) {
             Log::info("[storeOrderCommission] Order ID: {$order->id}. Commission " . ($originalCommission === null ? "CALCULATED" : "RECALCULATED") . ". Old: " . ($originalCommission ?? 'NULL') . ", New: {$newTotal}.");

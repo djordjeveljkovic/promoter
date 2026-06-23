@@ -115,7 +115,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/dashboard', [PromoterController::class, 'dashboard'])->name('promoter.dashboard');
         Route::get('/help', [PromoterController::class, 'help'])->name('promoter.help');
         Route::get('/orders', [OrderController::class, 'index'])->name('promoter.orders.index');
-        Route::get('/orders/{id}', [OrderController::class, 'show'])->name('promoter.orders.show');
+        Route::get('/orders/{order}', [OrderController::class, 'show'])->name('promoter.orders.show');
     });
 
     /**

@@ -88,7 +88,14 @@
                                 </td>
                                 <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-500 dark:text-gray-300">{{ number_format($order->total, 2) }} RSD</td>
                                 <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-500 dark:text-gray-300">
-                                    {{ (in_array($order->job_status, ['completed', 'sent']) && isset($order->total_commission_earned)) ? number_format($order->total_commission_earned, 2). ' RSD' : __('orders.table.commission_not_calculated') }}
+                                    @php
+                                        $myCommission = $viewerCommissionByOrder[$order->id] ?? null;
+                                    @endphp
+                                    @if (in_array($order->job_status, ['completed', 'sent']) && $myCommission !== null)
+                                        <span class="font-semibold text-emerald-700 dark:text-emerald-400">{{ number_format($myCommission, 2) }} RSD</span>
+                                    @else
+                                        <span class="text-gray-400 dark:text-gray-500">{{ __('orders.table.commission_not_calculated') }}</span>
+                                    @endif
                                 </td>
                                 <td class="whitespace-nowrap px-6 py-4 text-sm">
                                     <span
@@ -106,6 +113,11 @@
                                     </span>
                                 </td>
                                 <td class="whitespace-nowrap px-6 py-4 flex flex-col text-center text-sm font-medium space-x-1"> {{-- Consider items-center for alignment --}}
+                                    <a href="{{ route('promoter.orders.show', $order->id) }}"
+                                       class="inline-flex items-center justify-center mb-1 px-2 py-1 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-400 rounded-md transition-colors"
+                                       title="{{ __('orders.table.actions_view_tooltip') }}">
+                                        {{ __('orders.table.actions_view_button') }}
+                                    </a>
                                     @if ($order->job_status === 'failed')
                                         <form action="{{ route('orders.rerunImageJob', $order->id) }}" method="POST" class="inline-block mb-1 sm:mb-0 sm:mr-1">
                                             @csrf

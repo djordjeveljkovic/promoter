@@ -8,6 +8,7 @@ use App\Jobs\OrderCompleted;
 use App\Events\TicketOrderStatusUpdated;
 use App\Models\Ticket;
 use App\Models\TicketOrder;
+use App\Models\TicketOrderCommission;
 use App\Models\TicketOrderItem;
 use App\Models\TicketType;
 use App\Models\User;
@@ -97,6 +98,21 @@ class OrderController extends Controller
             }
         }
 
+        // Pre-compute the viewer's PERSONAL commission for each order.
+        // For a regular promoter this equals the order's total commission
+        // (they are the only beneficiary). For a promoter-manager it is
+        // only HIS share - the sub-promoter's share is intentionally NOT
+        // included, otherwise the "My Earnings" column would show the full
+        // commission pool and double-count the sub's earnings.
+        $orderIds = $orders->pluck('id')->all();
+        $viewerCommissionByOrder = TicketOrderCommission::whereIn('ticket_order_id', $orderIds)
+            ->where('beneficiary_user_id', $promoterId)
+            ->selectRaw('ticket_order_id, SUM(commission_amount) as total')
+            ->groupBy('ticket_order_id')
+            ->pluck('total', 'ticket_order_id')
+            ->map(fn ($v) => (float) $v)
+            ->all();
+
         // Pass status colors for job_status to the view
         $jobStatusColors = [
             'pending'    => 'bg-yellow-100 text-yellow-800 dark:bg-yellow-600 dark:text-yellow-100',
@@ -107,7 +123,13 @@ class OrderController extends Controller
             'sent'       => 'bg-teal-100 text-teal-800 dark:bg-teal-600 dark:text-teal-100',
         ];
 
-        return view('pages.promoters.orders.index', compact('orders', 'jobStatusColors', 'sellerLabelsByOrder', 'subIds'));
+        return view('pages.promoters.orders.index', compact(
+            'orders',
+            'jobStatusColors',
+            'sellerLabelsByOrder',
+            'subIds',
+            'viewerCommissionByOrder'
+        ));
     }
 
     /**
@@ -247,8 +269,9 @@ class OrderController extends Controller
         }
 
         // The seller can always view his own order. A promoter-manager can
-        // additionally view orders placed by his sub-promoters.
-        $isSeller = $order->requested_by === $user->id;
+        // additionally view orders placed by his sub-promoters. A
+        // sub-promoter can only view their own order.
+        $isSeller = (int) $order->requested_by === (int) $user->id;
         $isManagerOfSeller = $user->isPromoterManager()
             && $user->subPromoters()->where('id', $order->requested_by)->exists();
 
@@ -264,7 +287,30 @@ class OrderController extends Controller
             $totalPrice += $item->quantity * $item->ticketType->price;
         }
 
-        return view('pages.promoters.orders.show', compact('order', 'totalPrice'));
+        // The viewer's PERSONAL commission for this order (manager's share
+        // only when a sub-promoter placed it; full amount when the viewer
+        // placed it themselves).
+        $commissionByOrder = [
+            $order->id => (float) TicketOrderCommission::where('ticket_order_id', $order->id)
+                ->where('beneficiary_user_id', $user->id)
+                ->sum('commission_amount'),
+        ];
+
+        $jobStatusColors = [
+            'pending'    => 'bg-yellow-100 text-yellow-800 dark:bg-yellow-600 dark:text-yellow-100',
+            'processing' => 'bg-blue-100 text-blue-800 dark:bg-blue-600 dark:text-blue-100',
+            'failed'     => 'bg-red-100 text-red-800 dark:bg-red-600 dark:text-red-100',
+            'blocked'    => 'bg-gray-200 text-gray-700 dark:bg-gray-500 dark:text-gray-200',
+            'completed'  => 'bg-green-100 text-green-800 dark:bg-green-600 dark:text-green-100',
+            'sent'       => 'bg-teal-100 text-teal-800 dark:bg-teal-600 dark:text-teal-100',
+        ];
+
+        return view('pages.promoters.orders.show', compact(
+            'order',
+            'totalPrice',
+            'commissionByOrder',
+            'jobStatusColors'
+        ));
     }
 
     public function rerunImageGeneration(TicketOrder $order)
