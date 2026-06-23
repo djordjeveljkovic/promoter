@@ -30,6 +30,15 @@ class PromoterManagerController extends Controller
         /** @var DebtService $debt */
         $debt = app(DebtService::class);
 
+        // Map of manager_id => list of sub debt rows for the admin modal.
+        // Each row: ['user' => User, 'gross_sales', 'sub_commission',
+        //            'amount_owed_to_manager', 'amount_already_paid']
+        $subDebtsByManager = [];
+
+        // Map of manager_id => ['fromSubs' => Collection, 'toOrganizers' => Collection]
+        // for the payment-history modal on each row.
+        $recentPaymentsByManager = [];
+
         foreach ($managers as $manager) {
             $summary = $debt->promoterManagerDebt($manager);
             $manager->totalGrossSales = $summary['gross_sales'];
@@ -37,9 +46,25 @@ class PromoterManagerController extends Controller
             $manager->subCommissionsAllTime = $summary['sub_commissions'];
             $manager->amountPaidToOrganizers = $summary['amount_already_paid_to_organizers'];
             $manager->amountOwedToOrganizers = $summary['amount_owed_to_organizers'];
+
+            // Pre-compute per-sub debt figures so the view can render
+            // the sub-promoters modal without re-querying.
+            $subDebtsByManager[$manager->id] = $debt->subDebtsForManager($manager);
+
+            // Recent payment history (capped at 20 rows each) used by
+            // the History modal so the admin can review and delete
+            // mistakenly-recorded rows.
+            $recentPaymentsByManager[$manager->id] = [
+                'fromSubs'       => $debt->recentPaymentsReceivedByManager($manager, 20),
+                'toOrganizers'   => $debt->recentPaymentsToOrganizersByManager($manager, 20),
+            ];
         }
 
-        return view('pages.admin.promoter_managers.index', compact('managers'));
+        return view('pages.admin.promoter_managers.index', compact(
+            'managers',
+            'subDebtsByManager',
+            'recentPaymentsByManager'
+        ));
     }
 
     public function create()

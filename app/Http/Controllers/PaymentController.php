@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Services\DebtService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 /**
  * Controller for the payment-recording flows in the promoter hierarchy.
@@ -136,6 +137,7 @@ class PaymentController extends Controller
 
         $redirect = match ($back) {
             'supremeadmin_overview' => route('supremeadmin.overview'),
+            'manager_index'         => route('admin.promoter_managers.index'),
             default                 => route('admin.promoter_managers.edit', $manager->id),
         };
 
@@ -195,6 +197,7 @@ class PaymentController extends Controller
 
         $redirect = match ($back) {
             'supremeadmin_overview' => route('supremeadmin.overview'),
+            'manager_index'         => route('admin.promoter_managers.index'),
             default                 => route('admin.promoter_managers.edit', $manager->id),
         };
 
@@ -203,5 +206,63 @@ class PaymentController extends Controller
                 'name'   => $manager->name,
                 'amount' => number_format((float) $validated['amount'], 2),
             ]));
+    }
+
+    /* ============================================================== */
+    /*  ADMIN ACTIONS — DELETE recorded payments                       */
+    /* ============================================================== */
+
+    /**
+     * Delete a 'manager_to_organizers' payment that was recorded by
+     * mistake. Reverses the cached `users.paid` adjustment that
+     * adminRecordFromManager performed when the row was first created.
+     *
+     * Only the admin-tier roles may invoke this action. The deletion is
+     * wrapped in a transaction so the ledger row and the `users.paid`
+     * cache can never disagree.
+     */
+    public function adminDestroyFromManager(Request $request, int $paymentId)
+    {
+        $admin = Auth::user();
+        abort_unless($admin && $admin->isAdmin(), 403);
+
+        $payment = SubPromoterPayment::where('payment_type', SubPromoterPayment::TYPE_MANAGER_TO_ORGANIZERS)
+            ->findOrFail($paymentId);
+
+        DB::transaction(function () use ($payment) {
+            $manager = User::find($payment->payer_id);
+            if ($manager) {
+                $manager->paid = max(0.0, (float) ($manager->paid ?? 0) - (float) $payment->amount);
+                $manager->save();
+            }
+            $payment->delete();
+        });
+
+        return back()->with('success', __('alert.admin_payment_deleted_success', [
+            'amount' => number_format((float) $payment->amount, 2),
+        ]));
+    }
+
+    /**
+     * Delete a 'sub_to_manager' payment that was recorded by mistake.
+     * Does not touch any cached columns (sub_to_manager flows do not
+     * update users.paid — the cached column tracks only
+     * manager_to_organizers payments).
+     */
+    public function adminDestroyFromSub(Request $request, int $paymentId)
+    {
+        $admin = Auth::user();
+        abort_unless($admin && $admin->isAdmin(), 403);
+
+        $payment = SubPromoterPayment::where('payment_type', SubPromoterPayment::TYPE_SUB_TO_MANAGER)
+            ->findOrFail($paymentId);
+
+        DB::transaction(function () use ($payment) {
+            $payment->delete();
+        });
+
+        return back()->with('success', __('alert.admin_payment_deleted_success', [
+            'amount' => number_format((float) $payment->amount, 2),
+        ]));
     }
 }

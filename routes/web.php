@@ -104,6 +104,16 @@ Route::middleware('auth')->group(function () {
             [PaymentController::class, 'adminRecordFromManager']
         )->name('admin.payments.from_manager.store');
 
+        // Admin deletes a previously recorded payment (mistake correction).
+        // Two routes — one per payment type — because the model binding and
+        // authorization constraints are different (see PaymentController).
+        Route::delete('/payments/from-manager/{payment}',
+            [PaymentController::class, 'adminDestroyFromManager']
+        )->name('admin.payments.from_manager.destroy');
+        Route::delete('/payments/from-sub/{payment}',
+            [PaymentController::class, 'adminDestroyFromSub']
+        )->name('admin.payments.from_sub.destroy');
+
         // Email settings (admin only): see current config + manage email templates.
         Route::get('/email-settings', [EmailSettingsController::class, 'index'])
             ->name('admin.email-settings.index');

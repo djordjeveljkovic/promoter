@@ -57,6 +57,7 @@ return [
     'payment_amount_invalid'                     => 'Iznos uplate mora biti veći od nule.',
     'admin_payment_from_sub_recorded_success'    => 'Evidentirana uplata od :amount RSD od :name (sub-promoter kod :manager) ka menadžeru.',
     'admin_payment_from_manager_recorded_success'=> 'Evidentirana uplata od :amount RSD od :name ka organizatorima.',
+    'admin_payment_deleted_success'             => 'Uplata od :amount RSD je obrisana i dug je vraćen na prethodno stanje.',
     'payment_recording_forbidden'                => 'Nemate dozvolu da evidentirate ovu uplatu.',
 
     // Poruke za email šablone

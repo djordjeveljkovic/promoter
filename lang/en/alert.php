@@ -56,6 +56,7 @@ return [
     'payment_amount_invalid'                    => 'Payment amount must be greater than zero.',
     'admin_payment_from_sub_recorded_success'   => 'Recorded :amount RSD from :name (sub-promoter of :manager) to the manager.',
     'admin_payment_from_manager_recorded_success'=> 'Recorded :amount RSD payment from :name to the organizers.',
+    'admin_payment_deleted_success'             => 'Payment of :amount RSD deleted and balance restored.',
     'payment_recording_forbidden'               => 'You are not allowed to record this payment.',
 
     // Email template alerts
