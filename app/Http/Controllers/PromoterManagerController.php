@@ -78,7 +78,6 @@ class PromoterManagerController extends Controller
             'name'     => 'required|string|max:255',
             'email'    => ['required', 'string', 'email', 'max:255', Rule::unique('users', 'email')],
             'password' => 'required|string|min:8',
-            'paid'     => 'nullable|numeric|min:0',
         ]);
 
         $manager = new User();
@@ -86,7 +85,11 @@ class PromoterManagerController extends Controller
         $manager->email = $validated['email'];
         $manager->password = Hash::make($validated['password']);
         $manager->role  = 'promoter_manager';
-        $manager->paid  = $validated['paid'] ?? 0;
+        // `paid` always starts at 0 for new managers — it is a cached
+        // aggregate of SubPromoterPayment rows of type
+        // 'manager_to_organizers' and must only ever be touched by
+        // PaymentController's record / destroy methods.
+        $manager->paid  = 0;
         $manager->save();
 
         return redirect()->route('admin.promoter_managers.index')
@@ -134,15 +137,18 @@ class PromoterManagerController extends Controller
             'name'     => 'required|string|max:255',
             'email'    => ['required', 'string', 'email', 'max:255', Rule::unique('users', 'email')->ignore($manager->id)],
             'password' => 'nullable|string|min:8',
-            'paid'     => 'nullable|numeric|min:0',
         ]);
 
         $manager->name  = $validated['name'];
         $manager->email = $validated['email'];
-        $manager->paid  = $validated['paid'] ?? 0;
         if (!empty($validated['password'])) {
             $manager->password = Hash::make($validated['password']);
         }
+        // NOTE: `paid` is intentionally NOT editable here. It is a
+        // cached aggregate of SubPromoterPayment rows of type
+        // 'manager_to_organizers' and is maintained exclusively by
+        // PaymentController::adminRecordFromManager and
+        // PaymentController::adminDestroyFromManager.
         $manager->save();
 
         return redirect()->route('admin.promoter_managers.edit', $manager->id)

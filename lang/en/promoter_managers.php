@@ -15,6 +15,7 @@ return [
         'password_label'    => 'Password',
         'cancel_button'     => 'Cancel',
         'create_button'     => 'Create Promoter Manager',
+        'errors_title'      => 'Please fix the following errors',
     ],
 
     'edit_form' => [
@@ -27,6 +28,7 @@ return [
         'paid_label'    => 'Amount Paid to Organizers',
         'cancel_button' => 'Cancel',
         'update_button' => 'Update Promoter Manager',
+        'errors_title'  => 'Please fix the following errors',
     ],
 
     'table' => [
@@ -36,6 +38,7 @@ return [
         'header_commission_earned'   => 'Commission Earned',
         'header_paid_to_organizers'  => 'Paid to Organizers',
         'header_owed_to_organizers'  => 'Owed to Organizers',
+        'header_team_commission'     => 'Team Commission',
         'header_actions'             => 'Actions',
         'action_edit'                => 'Edit',
         'action_delete'              => 'Delete',

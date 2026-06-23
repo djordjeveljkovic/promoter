@@ -15,6 +15,7 @@ return [
         'password_label'    => 'Lozinka',
         'cancel_button'     => 'Otkaži',
         'create_button'     => 'Kreiraj Promoter Menadžera',
+        'errors_title'      => 'Molimo ispravite sledeće greške',
     ],
 
     'edit_form' => [
@@ -27,6 +28,7 @@ return [
         'paid_label'    => 'Plaćeni iznos organizatorima',
         'cancel_button' => 'Otkaži',
         'update_button' => 'Ažuriraj Promoter Menadžera',
+        'errors_title'  => 'Molimo ispravite sledeće greške',
     ],
 
     'table' => [
@@ -36,6 +38,7 @@ return [
         'header_commission_earned'   => 'Ostvarena Provizija',
         'header_paid_to_organizers'  => 'Plaćeno Organizatorima',
         'header_owed_to_organizers'  => 'Duguje Organizatorima',
+        'header_team_commission'     => 'Timski Provizije',
         'header_actions'             => 'Akcije',
         'action_edit'                => 'Izmeni',
         'action_delete'              => 'Obriši',

@@ -26,7 +26,7 @@
                         <x-ui.table-cell header align="right" class="hidden lg:table-cell">{{ __('promoter_managers.table.header_commission_earned') }}</x-ui.table-cell>
                         <x-ui.table-cell header align="right" class="hidden lg:table-cell">{{ __('promoter_managers.table.header_paid_to_organizers') }}</x-ui.table-cell>
                         <x-ui.table-cell header align="right">{{ __('promoter_managers.table.header_owed_to_organizers') }}</x-ui.table-cell>
-                        <x-ui.table-cell header align="right" class="hidden lg:table-cell">{{ __('promoter_managers.dashboard.quick_stats.team_commission') }}</x-ui.table-cell>
+                        <x-ui.table-cell header align="right" class="hidden lg:table-cell">{{ __('promoter_managers.table.header_team_commission') }}</x-ui.table-cell>
                         <x-ui.table-cell header align="center">{{ __('promoter_managers.table.header_actions') }}</x-ui.table-cell>
                     </x-ui.table-row>
                 </x-ui.table-header>
