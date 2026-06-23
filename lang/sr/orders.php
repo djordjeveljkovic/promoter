@@ -71,6 +71,10 @@ return [
     'seller_self_badge' => 'Vi',
     'seller_unknown'    => 'Nepoznat prodavac',
 
+    // Banner shown on /promoter/orders for supreme-admin sellers. Explains
+    // that the list shows their PRIVATE sales which no one else can see.
+    'private_banner'    => 'Privatne prodaje — vidljive samo vama',
+
     'show_page_title' => 'Porudžbina :orderNumber',
     'show' => [
         'eyebrow'                       => 'Detalji porudžbine',

@@ -35,6 +35,12 @@ class OrderDetails extends Component
         // Load order with tickets and their types. Ensure 'is_active' is loaded for tickets.
         $order = TicketOrder::with('tickets.ticketType')->findOrFail($id);
 
+        // Private (supreme-admin) sales are owned by the seller alone — no
+        // other admin can open this page or download QR codes from it.
+        if ($order->is_private) {
+            abort(403, 'Unauthorized action.');
+        }
+
         $this->order = $order;
         $this->paid = $order->paid;
         $this->totalPrice = $order->total;

@@ -1,5 +1,11 @@
+// Laravel Echo setup — self-hosted WebSocket via laravel/reverb.
+//
+// NOTE: Despite the import name, `pusher-js` is just the free, open-source
+// (MIT) client that speaks the Pusher wire protocol. It does NOT contact
+// pusher.com and does NOT require any paid license. We point it at our
+// own Reverb server (host from VITE_REVERB_HOST) which speaks the same
+// protocol. Everything here is free.
 import Echo from 'laravel-echo';
-
 import Pusher from 'pusher-js';
 window.Pusher = Pusher;
 

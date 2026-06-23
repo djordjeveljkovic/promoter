@@ -297,4 +297,16 @@ class User extends Authenticatable
 	    // tier-based rules. Sub-promoters earn via the manager's rules.
 	    return in_array($this->role, ['promoter', 'promoter_manager', 'admin', 'supreme']);
 	}
+
+	/**
+	 * True for users whose ticket sales are private: only the seller can see
+	 * them, and they are excluded from every dashboard / statistics query.
+	 *
+	 * Mirrors the middleware used on the /superadmin/* route group so the
+	 * "who is a supreme-admin" definition lives in one place.
+	 */
+	public function isSupreme(): bool
+	{
+	    return in_array($this->role, ['supreme', 'superadmin'], true);
+	}
 }

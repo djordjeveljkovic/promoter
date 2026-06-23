@@ -31,6 +31,11 @@ class AdminOrderController extends Controller
 	    'requestedBy'
 	]);
 
+	// Hide private (supreme-admin) sales from the admin orders list.
+	// Supreme-admins see only their own private sales via the /promoter/*
+	// routes (promoter.orders.index).
+	$query->publicOnly();
+
 	// Apply role-based filtering
 	if ($allowedRequestedByUserIds !== null) {
 	    $query->whereIn('requested_by', $allowedRequestedByUserIds);
@@ -80,11 +85,18 @@ class AdminOrderController extends Controller
 	// admins we offer every user that has ever placed (requested) an order
 	// plus active promoters/managers so a freshly-filtered scope is
 	// always possible.
+	//
+	// The filter dropdown is intentionally built from PUBLIC orders only
+	// (publicOnly() on the inner query). Listing a supreme-admin as a
+	// filter option would let other admins narrow the list down to that
+	// user's private sales via the ?requested_by=ID parameter — which the
+	// role-based $allowedRequestedByUserIds gate below would then turn
+	// into a forced empty result. Better to never offer it as an option.
 	if ($allowedRequestedByUserIds === null) {
 	    $filterableUsers = \App\Models\User::query()
 	        ->where(function ($q) {
 	            $q->whereIn('role', ['admin', 'supreme', 'promoter', 'promoter_manager', 'sub_promoter'])
-	                ->orWhereIn('id', TicketOrder::query()->select('requested_by')->distinct());
+	                ->orWhereIn('id', TicketOrder::query()->publicOnly()->select('requested_by')->distinct());
 	        })
 	        ->orderBy('name')
 	        ->get(['id', 'name', 'email', 'role']);
@@ -129,6 +141,12 @@ class AdminOrderController extends Controller
 
     public function updatePayment(Request $request, TicketOrder $order)
     {
+        // Private (supreme-admin) sales cannot have their payment edited
+        // by another admin.
+        if ($order->is_private) {
+            abort(403, 'Unauthorized action.');
+        }
+
         $request->validate([
             'paid' => 'required|numeric|min:0',
         ]);
@@ -141,6 +159,11 @@ class AdminOrderController extends Controller
 
     public function downloadQRCodes(Request $request, TicketOrder $order)
     {
+        // Private (supreme-admin) sales cannot be downloaded by any other
+        // admin — they are owned by the seller alone.
+        if ($order->is_private) {
+            abort(403, 'Unauthorized action.');
+        }
         $zip = new ZipArchive();
         $fileName = 'qrcodes_order_' . $order->id . '.zip';
 

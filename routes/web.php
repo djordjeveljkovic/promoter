@@ -116,7 +116,7 @@ Route::middleware('auth')->group(function () {
      * additionally manages his own sub-promoters via the /promoter-manager
      * routes below.
      */
-    Route::middleware('role:promoter|promoter_manager|sub_promoter|superadmin')->prefix('promoter')->group(function () {
+    Route::middleware('role:promoter|promoter_manager|sub_promoter|superadmin|supreme')->prefix('promoter')->group(function () {
         Route::get('/dashboard', [PromoterController::class, 'dashboard'])->name('promoter.dashboard');
         Route::get('/help', [PromoterController::class, 'help'])->name('promoter.help');
         Route::get('/orders', [OrderController::class, 'index'])->name('promoter.orders.index');

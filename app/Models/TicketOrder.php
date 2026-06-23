@@ -18,7 +18,30 @@ class TicketOrder extends Model
         'job_failure_reason',
         'paid',
         'total',
+        'is_private',
     ];
+
+    protected $casts = [
+        'is_private' => 'boolean',
+    ];
+
+    /**
+     * Scope: orders that are NOT private (i.e. visible to the rest of the
+     * system: admin listings, dashboards, statistics, promoter-manager
+     * team totals, etc.).
+     */
+    public function scopePublicOnly($query)
+    {
+        return $query->where('is_private', false);
+    }
+
+    /**
+     * Scope: orders that ARE private (supreme-admin sales).
+     */
+    public function scopePrivateOnly($query)
+    {
+        return $query->where('is_private', true);
+    }
 
     // Existing Relationships //
 

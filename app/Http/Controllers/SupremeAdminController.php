@@ -57,7 +57,10 @@ class SupremeAdminController extends Controller
         $relevantUserIds = collect($managerIds)->merge($allSubIds)->unique()->values();
 
         // ---- Sales sums grouped by requested_by (one row per user) ----
+        // Excludes private (supreme-admin) sales — they belong to the
+        // supreme-admin alone and must not appear in any team total.
         $salesByUser = TicketOrder::whereIn('requested_by', $relevantUserIds)
+            ->publicOnly()
             ->whereIn('job_status', self::SALE_STATUSES)
             ->selectRaw('requested_by, COALESCE(SUM(total), 0) AS gross_sales, COUNT(*) AS orders_count')
             ->groupBy('requested_by')
@@ -67,6 +70,7 @@ class SupremeAdminController extends Controller
         // ---- Ticket count by requested_by (sum of item quantities) ----
         $ticketsByUser = TicketOrderItem::whereHas('ticketOrder', function ($q) use ($relevantUserIds) {
             $q->whereIn('requested_by', $relevantUserIds)
+              ->publicOnly()
               ->whereIn('job_status', self::SALE_STATUSES);
         })
             ->selectRaw('ticket_orders.requested_by AS requested_by, COALESCE(SUM(ticket_order_items.quantity), 0) AS tickets_sold')

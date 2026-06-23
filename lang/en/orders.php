@@ -71,6 +71,10 @@ return [
     'seller_self_badge' => 'You',
     'seller_unknown'    => 'Unknown seller',
 
+    // Banner shown on /promoter/orders for supreme-admin sellers. Explains
+    // that the list shows their PRIVATE sales which no one else can see.
+    'private_banner'    => 'Private sales — visible only to you',
+
     'show_page_title' => 'Order :orderNumber',
     'show' => [
         'eyebrow'                       => 'Order details',

@@ -2,7 +2,17 @@
     <div class="flex h-full w-full flex-1 flex-col gap-4 rounded-xl">
         <div class="max-w-full rounded-lg bg-white p-6 shadow-sm dark:bg-zinc-800">
             <div class="mb-6 flex items-center justify-between">
-                <h1 class="text-2xl font-semibold text-gray-900 dark:text-white">{{ __('orders.main_heading') }}</h1>
+                <div>
+                    <h1 class="text-2xl font-semibold text-gray-900 dark:text-white">{{ __('orders.main_heading') }}</h1>
+                    @if(auth()->user()?->isSupreme())
+                        <p class="mt-1 inline-flex items-center gap-1.5 rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-medium text-amber-800 dark:bg-amber-900/40 dark:text-amber-300">
+                            <svg class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                <path fill-rule="evenodd" d="M10 1a4.5 4.5 0 00-4.5 4.5V9H5a2 2 0 00-2 2v6a2 2 0 002 2h10a2 2 0 002-2v-6a2 2 0 00-2-2h-.5V5.5A4.5 4.5 0 0010 1zm3 8V5.5a3 3 0 10-6 0V9h6z" clip-rule="evenodd" />
+                            </svg>
+                            {{ __('orders.private_banner') }}
+                        </p>
+                    @endif
+                </div>
                 <a href="{{ route('promoter.orders.create') }}"
                    class="inline-flex items-center justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800">
                     <svg class="w-5 h-5 mr-2 -ml-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">

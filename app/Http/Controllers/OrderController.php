@@ -77,6 +77,21 @@ class OrderController extends Controller
             $query->where('requested_by', $promoterId);
         }
 
+        // Visibility scope:
+        //   - non-supreme users (regular promoters, sub-promoters) only see
+        //     public orders — private sales belong to a supreme-admin and
+        //     must never appear in anyone else's promoter view,
+        //   - supreme-admin users see their OWN orders, all of which are
+        //     private. Restricting to `is_private = true` is defensive —
+        //     if a supreme-admin ever sold a public order through some
+        //     other code path, we still only show them what they should
+        //     be seeing here.
+        if ($user?->isSupreme()) {
+            $query->privateOnly();
+        } else {
+            $query->publicOnly();
+        }
+
         $orders = $query->paginate(15);
 
         // Pre-compute the "Seller" label for each order so the view can
@@ -178,6 +193,16 @@ class OrderController extends Controller
 
             $orderNumber = $this->generateUniqueCrypticOrderNumber(); // e.g., "aK9ZxP4qR7Vc"
             // --- Create the main order record ---
+            //
+            // Orders placed by a supreme-admin (role: supreme or superadmin)
+            // are marked private. Private orders:
+            //   - are excluded from every dashboard / statistic / list
+            //     except the seller's own promoter-facing pages,
+            //   - never produce a commission row (the OrderCompleted job
+            //     already returns [] for these roles),
+            //   - cannot be seen by other admins, promoter-managers or
+            //     sub-promoters.
+            $isPrivate = $promoterUser->isSupreme();
             $ticketOrder = TicketOrder::create([
                 'order_number' => $orderNumber,
                 'ordered_by' => $customerUser->id,
@@ -185,7 +210,8 @@ class OrderController extends Controller
                 'email' => $validatedData['email'],
                 'job_status' => 'processing', // Or 'pending' if jobs handle setting to 'processing'
                 'paid' => 0.00, // Assuming payment handling is separate or comes later
-                'total' => 0.00 // Will be updated after calculating
+                'total' => 0.00, // Will be updated after calculating
+                'is_private' => $isPrivate,
             ]);
 
             $ticketTypeIds = collect($validatedData['items'])->pluck('ticket_type_id')->unique();
@@ -276,6 +302,14 @@ class OrderController extends Controller
             && $user->subPromoters()->where('id', $order->requested_by)->exists();
 
         if (!$isSeller && !$isManagerOfSeller) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        // Private (supreme-admin) sales are visible ONLY to the seller.
+        // Even a promoter-manager who supervises the supreme-admin's user
+        // row (impossible in practice, but defensive) would be blocked
+        // here: if the order is private, the viewer must BE the seller.
+        if ($order->is_private && !$isSeller) {
             abort(403, 'Unauthorized action.');
         }
 

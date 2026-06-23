@@ -27,6 +27,8 @@ class AdminController extends Controller
 	$allowedRequestedByUserIds = null;
 
 	$filterByRequestedByUserIds = function ($query) use ($allowedRequestedByUserIds) {
+	    // Hide private (supreme-admin) sales from every dashboard metric.
+	    $query->publicOnly();
 	    if ($allowedRequestedByUserIds !== null) {
 		$query->whereIn('requested_by', $allowedRequestedByUserIds);
 	    }
@@ -68,7 +70,8 @@ class AdminController extends Controller
 	    )
 	    ->join('ticket_order_items', 'ticket_types.id', '=', 'ticket_order_items.ticket_type_id')
 	    ->join('ticket_orders', 'ticket_order_items.ticket_order_id', '=', 'ticket_orders.id')
-	    ->where('ticket_orders.job_status', 'completed');
+	    ->where('ticket_orders.job_status', 'completed')
+	    ->where('ticket_orders.is_private', false);
 
 	if ($allowedRequestedByUserIds !== null) {
 	    $ticketTypePerformanceQuery->whereIn('ticket_orders.requested_by', $allowedRequestedByUserIds);
@@ -81,6 +84,7 @@ class AdminController extends Controller
 	    ->get();
 
         // --- Promoter Performance (All Time, based on revenue from completed orders) ---
+        // Excludes private (supreme-admin) sales.
         $promoterPerformance = User::where('role', 'promoter')
             ->select(
                 'users.id',
@@ -91,7 +95,8 @@ class AdminController extends Controller
             )
             ->leftJoin('ticket_orders', function ($join) {
                 $join->on('users.id', '=', 'ticket_orders.requested_by')
-                    ->where('ticket_orders.job_status', '=', 'completed');
+                    ->where('ticket_orders.job_status', '=', 'completed')
+                    ->where('ticket_orders.is_private', '=', false);
             })
             ->groupBy('users.id', 'users.name', 'users.email')
             ->orderBy('total_revenue_generated', 'desc')
