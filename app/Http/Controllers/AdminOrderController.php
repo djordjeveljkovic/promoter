@@ -17,11 +17,12 @@ class AdminOrderController extends Controller
 	$user = auth()->user();
 	$role = $user->role;
 
-	// Get allowed requested_by user IDs if admin (superadmin sees everything)
+	// Get allowed requested_by user IDs if admin (supreme sees everything)
 	$allowedRequestedByUserIds = null;
 	if ($role === 'admin') {
 	    $allowedRequestedByUserIds = \App\Models\User::whereIn('role', ['admin', 'promoter'])->pluck('id');
 	}
+	// 'supreme' role: $allowedRequestedByUserIds stays null → sees ALL orders.
 
 	$query = TicketOrder::with([
 	    'items.ticketType',
@@ -54,8 +55,44 @@ class AdminOrderController extends Controller
 	    $query->where('job_status', $request->input('status_filter'));
 	}
 
+	// Per-promoter filter. Lets a supreme admin (or a regular admin) scope
+	// the listing to a single promoter's orders — i.e. "show me only what
+	// user X sees" or "what X sold this week". Applied AFTER role filtering
+	// so the dropdown can never surface rows the current user is not allowed
+	// to see. For regular admins the list is also intersected with the
+	// role-based allowed IDs above.
+	if ($request->filled('requested_by')) {
+	    $requestedBy = (int) $request->input('requested_by');
+	    if ($allowedRequestedByUserIds === null || $allowedRequestedByUserIds->contains($requestedBy)) {
+	        $query->where('requested_by', $requestedBy);
+	    } else {
+	        // Disallowed: force an empty result rather than silently widening visibility.
+	        $query->whereRaw('1 = 0');
+	    }
+	}
+
 	// Final result
 	$orders = $query->latest()->paginate(15)->withQueryString();
+
+	// Build the dropdown of selectable promoters. For a regular admin we
+	// only offer users whose orders they could already see. For supreme
+	// admins we offer every user that has ever placed (requested) an order
+	// plus active promoters/managers so a freshly-filtered scope is
+	// always possible.
+	if ($allowedRequestedByUserIds === null) {
+	    $filterableUsers = \App\Models\User::query()
+	        ->where(function ($q) {
+	            $q->whereIn('role', ['admin', 'supreme', 'promoter', 'promoter_manager', 'sub_promoter'])
+	                ->orWhereIn('id', TicketOrder::query()->select('requested_by')->distinct());
+	        })
+	        ->orderBy('name')
+	        ->get(['id', 'name', 'email', 'role']);
+	} else {
+	    $filterableUsers = \App\Models\User::query()
+	        ->whereIn('id', $allowedRequestedByUserIds)
+	        ->orderBy('name')
+	        ->get(['id', 'name', 'email', 'role']);
+	}
 
 
         $jobStatusColors = [
@@ -65,11 +102,11 @@ class AdminOrderController extends Controller
             'failed_clickable' => 'bg-red-100 text-red-800 dark:bg-red-700 dark:text-red-200 hover:bg-red-200 dark:hover:bg-red-600 cursor-pointer',
             'blocked'    => 'bg-gray-300 text-gray-700 dark:bg-gray-600 dark:text-gray-100',
             'completed'  => 'bg-green-100 text-green-800 dark:bg-green-700 dark:text-green-200',
-            'sent'       => 'bg-teal-100 text-teal-800 dark:bg-teal-700 dark:text-teal-200',
+            'sent'       => 'bg-teal-100 text-teal-800 dark:text-teal-200',
             'N/A'        => 'bg-gray-100 text-gray-800 dark:bg-gray-500 dark:text-gray-300',
         ];
 
-        return view('pages.admin.orders.index', compact('orders', 'jobStatusColors'));
+        return view('pages.admin.orders.index', compact('orders', 'jobStatusColors', 'filterableUsers', 'role'));
     }
 
     /**

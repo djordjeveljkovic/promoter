@@ -3,6 +3,14 @@
 return [
     'page_title' => 'Admin Dashboard',
     'main_heading' => 'Admin Analytics Dashboard',
+    'subtitle' => 'A real-time overview of your platform’s performance.',
+    'system_status_active' => 'All systems operational',
+    'all_time_label' => 'Across all time',
+    'last_30_days_label' => 'Last 30 days',
+    'completed_orders_label' => 'From completed orders',
+    'top_5_label' => 'Top 5',
+    'entries_label' => 'entries',
+    'no_data_short' => 'No data available.',
 
     'overall_performance' => [
         'heading' => 'Overall Performance',

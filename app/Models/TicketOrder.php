@@ -61,6 +61,27 @@ class TicketOrder extends Model
         return $this->hasMany(Ticket::class);
     }
 
+    /**
+     * Per-beneficiary commission records for this order.
+     */
+    public function commissionBeneficiaries(): HasMany
+    {
+        return $this->hasMany(TicketOrderCommission::class);
+    }
+
+    /**
+     * Sum of the per-beneficiary commission records for this order. If no
+     * detail rows exist yet, fall back to the legacy stored total.
+     */
+    public function getTotalCommissionEarnedAttribute(): float
+    {
+        $sum = (float) $this->commissionBeneficiaries()->sum('commission_amount');
+        if ($sum > 0) {
+            return $sum;
+        }
+        return (float) ($this->attributes['total_commission_earned'] ?? 0);
+    }
+
     public function ticketsSold($id)
     {
         return TicketOrder::where();

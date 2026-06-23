@@ -7,19 +7,34 @@
         <flux:sidebar sticky stashable class="border-e border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900">
             <flux:sidebar.toggle class="lg:hidden" icon="x-mark" />
 
-            {{-- Assuming 'dashboard' route is the general home/logo link for admin --}}
-            {{-- and 'promoter.dashboard' for promoter. You might need logic here or a generic home. --}}
-            <a href="{{ Auth::user()->isAdmin() ? route('dashboard') : route('promoter.dashboard') }}" class="me-5 flex items-center space-x-2 rtl:space-x-reverse" wire:navigate>
+            @php
+                $user = Auth::user();
+                $homeRoute = match (true) {
+                    $user?->isAdmin()       => 'dashboard',
+                    $user?->isPromoterManager() => 'promoter_manager.dashboard',
+                    default                 => 'promoter.dashboard',
+                };
+            @endphp
+
+            <a href="{{ route($homeRoute) }}" class="me-5 flex items-center space-x-2 rtl:space-x-reverse" wire:navigate>
                 <x-app-logo />
             </a>
 
             <flux:navlist variant="outline">
                 <flux:navlist.group :heading="__('navigation.sidebar.group_platform')" class="grid">
-                    @if(Auth::user()->isAdmin())
+                    @if($user?->isAdmin())
                         <flux:navlist.item icon="home" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>{{ __('navigation.sidebar.admin_dashboard') }}</flux:navlist.item>
-                        <flux:navlist.item icon="user" :href="route('admin.promoters.index')" :current="request()->routeIs('admin.promoters.index')" wire:navigate>{{ __('navigation.sidebar.promoters') }}</flux:navlist.item>
-                        <flux:navlist.item icon="ticket" :href="route('ticket_type.index')" :current="request()->routeIs('ticket_type.index')" wire:navigate>{{ __('navigation.sidebar.ticket_types') }}</flux:navlist.item>
-                        <flux:navlist.item icon="ticket" :href="route('admin.orders.index')" :current="request()->routeIs('admin.orders.index')" wire:navigate>{{ __('navigation.sidebar.admin_sold_tickets') }}</flux:navlist.item>
+                        <flux:navlist.item icon="user" :href="route('admin.promoters.index')" :current="request()->routeIs('admin.promoters.*')" wire:navigate>{{ __('navigation.sidebar.promoters') }}</flux:navlist.item>
+                        <flux:navlist.item icon="users" :href="route('admin.promoter_managers.index')" :current="request()->routeIs('admin.promoter_managers.*')" wire:navigate>{{ __('navigation.sidebar.promoter_managers') }}</flux:navlist.item>
+                        <flux:navlist.item icon="ticket" :href="route('ticket_type.index')" :current="request()->routeIs('ticket_type.*')" wire:navigate>{{ __('navigation.sidebar.ticket_types') }}</flux:navlist.item>
+                        <flux:navlist.item icon="ticket" :href="route('admin.orders.index')" :current="request()->routeIs('admin.orders.*')" wire:navigate>{{ __('navigation.sidebar.admin_sold_tickets') }}</flux:navlist.item>
+                        <flux:navlist.item icon="envelope" :href="route('admin.email-settings.index')" :current="request()->routeIs('admin.email-settings.*')" wire:navigate>{{ __('navigation.sidebar.email_settings') }}</flux:navlist.item>
+                    @elseif($user?->isPromoterManager())
+                        <flux:navlist.item icon="home" :href="route('promoter_manager.dashboard')" :current="request()->routeIs('promoter_manager.dashboard')" wire:navigate>{{ __('navigation.sidebar.promoter_manager_dashboard') }}</flux:navlist.item>
+                        <flux:navlist.item icon="users" :href="route('promoter_manager.sub_promoters.index')" :current="request()->routeIs('promoter_manager.sub_promoters.*')" wire:navigate>{{ __('navigation.sidebar.sub_promoters') }}</flux:navlist.item>
+                        <flux:navlist.item icon="ticket" :href="route('promoter.orders.create')" :current="request()->routeIs('promoter.orders.create')" wire:navigate>{{ __('navigation.sidebar.sales') }}</flux:navlist.item>
+                        <flux:navlist.item icon="ticket" :href="route('promoter.orders.index')" :current="request()->routeIs('promoter.orders.index')" wire:navigate>{{ __('navigation.sidebar.promoter_sold_tickets') }}</flux:navlist.item>
+                        <flux:navlist.item icon="user" :href="route('promoter.help')" :current="request()->routeIs('promoter.help')" wire:navigate>{{ __('navigation.sidebar.support') }}</flux:navlist.item>
                     @else
                         <flux:navlist.item icon="home" :href="route('promoter.dashboard')" :current="request()->routeIs('promoter.dashboard')" wire:navigate>{{ __('navigation.sidebar.promoter_dashboard') }}</flux:navlist.item>
                         <flux:navlist.item icon="ticket" :href="route('promoter.orders.create')" :current="request()->routeIs('promoter.orders.create')" wire:navigate>{{ __('navigation.sidebar.sales') }}</flux:navlist.item>

@@ -7,9 +7,20 @@ return [
 
     'filters' => [
         'all_job_statuses_option' => 'Svi Statusi Posla',
+        'all_promoters_option' => 'Svi Promoteri / Prodavci',
         'search_placeholder' => 'Pretraži ID, Email, Promotera...',
         'search_button' => 'Pretraži',
         'clear_button' => 'Očisti',
+        'role_supreme' => 'Suprem',
+        'role_admin' => 'Admin',
+        'role_promoter' => 'Promoter',
+        'role_promoter_manager' => 'Menadžer Promotera',
+        'role_sub_promoter' => 'Pod-Promoter',
+    ],
+
+    'live' => [
+        'order_prefix' => 'Porudžbina #',
+        'click_to_dismiss' => 'Kliknite da zatvorite',
     ],
 
     'table' => [

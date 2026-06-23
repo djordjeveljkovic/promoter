@@ -31,6 +31,14 @@ return [
 
     'promoter_updated_success' => 'Promoter updated successfully!',
     'auth_required' => 'Authentication required.',
+
+    // Promoter-manager alerts
+    'promoter_manager_created_success' => 'Promoter Manager created successfully!',
+    'promoter_manager_updated_success' => 'Promoter Manager updated successfully!',
+    'promoter_manager_deleted_success' => 'Promoter Manager deleted successfully!',
+    'sub_promoter_created_success'     => 'Sub-Promoter created successfully!',
+    'sub_promoter_updated_success'     => 'Sub-Promoter updated successfully!',
+    'sub_promoter_deleted_success'     => 'Sub-Promoter deleted successfully!',
     'ticket_type_created_success' => 'Ticket Type created successfully!',
     'ticket_type_create_failed' => 'Failed to create Ticket Type. Please try again. Error: :message',
     'ticket_type_updated_success' => 'Ticket Type updated successfully!',
@@ -41,4 +49,19 @@ return [
     'password_update_success' => 'Password updated successfully!',
     'password_update_failed' => 'Failed to update password. Please try again.',
     'validation_failed_check_fields' => 'Validation failed. Please check the input fields for errors.',
+
+    // Email template alerts
+    'email_template_created'           => 'Email template ":name" created successfully.',
+    'email_template_updated'           => 'Email template ":name" updated successfully.',
+    'email_template_activated'         => 'Email template ":name" is now active. All outgoing ticket emails will use this template.',
+    'email_template_deleted'           => 'Email template ":name" deleted.',
+    'email_template_name_required'     => 'Template name is required.',
+    'email_template_name_unique'       => 'A template with this name already exists.',
+    'email_template_subject_required'  => 'Email subject is required.',
+    'email_template_view_string'       => 'Blade view path must be a string.',
+    'email_template_view_not_found'    => 'Blade view ":view" does not exist. Please create the view file first or leave the field empty.',
+    'email_template_needs_view_or_html' => 'You must provide either a Blade view path or an inline HTML body for the template.',
+    'email_template_source_saved'      => 'Source code for template ":name" saved.',
+    'email_template_duplicated'        => 'Template ":name" created as a copy. You can now edit it independently.',
+    'email_template_imported'          => 'Default email imported as template ":name". You can now edit it.',
 ];

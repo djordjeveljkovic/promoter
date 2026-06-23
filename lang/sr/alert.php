@@ -32,6 +32,14 @@ return [
 
     'promoter_updated_success' => 'Promoter je uspešno ažuriran!',
     'auth_required' => 'Potrebna je autentifikacija.',
+
+    // Poruke za Promoter Menadžere
+    'promoter_manager_created_success' => 'Promoter menadžer je uspešno kreiran!',
+    'promoter_manager_updated_success' => 'Promoter menadžer je uspešno ažuriran!',
+    'promoter_manager_deleted_success' => 'Promoter menadžer je uspešno obrisan!',
+    'sub_promoter_created_success'     => 'Sub-promoter je uspešno kreiran!',
+    'sub_promoter_updated_success'     => 'Sub-promoter je uspešno ažuriran!',
+    'sub_promoter_deleted_success'     => 'Sub-promoter je uspešno obrisan!',
     'ticket_type_created_success' => 'Tip ulaznice je uspešno kreiran!',
     'ticket_type_create_failed' => 'Kreiranje tipa ulaznice nije uspelo. Molimo pokušajte ponovo. Greška: :message',
     'ticket_type_updated_success' => 'Tip ulaznice je uspešno ažuriran!',
@@ -42,4 +50,19 @@ return [
     'password_update_success' => 'Lozinka je uspešno ažurirana!',
     'password_update_failed' => 'Ažuriranje lozinke nije uspelo. Molimo pokušajte ponovo.',
     'validation_failed_check_fields' => 'Validacija nije uspela. Molimo proverite polja za unos radi grešaka.',
+
+    // Poruke za email šablone
+    'email_template_created'           => 'Email šablon „:name" je uspešno kreiran.',
+    'email_template_updated'           => 'Email šablon „:name" je uspešno ažuriran.',
+    'email_template_activated'         => 'Email šablon „:name" je sada aktivan. Svi budući email-ovi sa ulaznicama koristiće ovaj šablon.',
+    'email_template_deleted'           => 'Email šablon „:name" je obrisan.',
+    'email_template_name_required'     => 'Naziv šablona je obavezan.',
+    'email_template_name_unique'       => 'Šablon sa ovim nazivom već postoji.',
+    'email_template_subject_required'  => 'Naslov emaila je obavezan.',
+    'email_template_view_string'       => 'Putanja Blade prikaza mora biti tekst.',
+    'email_template_view_not_found'    => 'Blade prikaz „:view" ne postoji. Prvo kreirajte fajl prikaza ili ostavite polje prazno.',
+    'email_template_needs_view_or_html' => 'Morate uneti ili putanju Blade prikaza ili inline HTML telo za šablon.',
+    'email_template_source_saved'      => 'Izvorni kod šablona „:name" je sačuvan.',
+    'email_template_duplicated'        => 'Šablon „:name" je kreiran kao kopija. Možete ga sada nezavisno menjati.',
+    'email_template_imported'          => 'Podrazumevani email je uvezen kao šablon „:name". Možete ga sada menjati.',
 ];

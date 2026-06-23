@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Jobs\GenerateTicketImagesJob;
 use App\Jobs\SendCustomerTicketsEmailJob;
 use App\Jobs\OrderCompleted;
+use App\Events\TicketOrderStatusUpdated;
 use App\Models\Ticket;
 use App\Models\TicketOrder;
 use App\Models\TicketOrderItem;
@@ -55,10 +56,26 @@ class OrderController extends Controller
     public function index()
     {
         $promoterId = Auth::id();
-        $orders = TicketOrder::where('requested_by', $promoterId)
-            ->with(['items.ticketType', 'orderedBy']) // Removed 'requestedBy' as it's the current user
-            ->latest()
-            ->paginate(15);
+        // A promoter-manager sees both his own orders AND the orders placed by
+        // his sub-promoters, so he has a full picture of the activity he
+        // manages.
+        $subIds = Auth::user()?->isPromoterManager()
+            ? Auth::user()->subPromoters()->pluck('id')->all()
+            : [];
+
+        $query = TicketOrder::with(['items.ticketType', 'orderedBy'])
+            ->latest();
+
+        if (!empty($subIds)) {
+            $query->where(function ($q) use ($promoterId, $subIds) {
+                $q->where('requested_by', $promoterId)
+                  ->orWhereIn('requested_by', $subIds);
+            });
+        } else {
+            $query->where('requested_by', $promoterId);
+        }
+
+        $orders = $query->paginate(15);
 
         // Pass status colors for job_status to the view
         $jobStatusColors = [
@@ -204,8 +221,18 @@ class OrderController extends Controller
      */
     public function show(TicketOrder $order) // Route model binding
     {
-        // Ensure the authenticated promoter is authorized to view this order
-        if ($order->requested_by !== Auth::id()) {
+        $user = Auth::user();
+        if (!$user) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        // The seller can always view his own order. A promoter-manager can
+        // additionally view orders placed by his sub-promoters.
+        $isSeller = $order->requested_by === $user->id;
+        $isManagerOfSeller = $user->isPromoterManager()
+            && $user->subPromoters()->where('id', $order->requested_by)->exists();
+
+        if (!$isSeller && !$isManagerOfSeller) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -223,9 +250,11 @@ class OrderController extends Controller
     public function rerunImageGeneration(TicketOrder $order)
     {
         if (in_array($order->job_status, ['failed', 'pending', 'processing'])) {
+            $previousStatus = (string) $order->job_status;
             $order->job_status = 'pending'; // Reset status to re-trigger processing pipeline
             $order->job_failure_reason = null;
             $order->save();
+            $this->broadcastOrderStatus($order, $previousStatus);
 
             GenerateTicketImagesJob::dispatch($order->id);
 
@@ -247,6 +276,7 @@ class OrderController extends Controller
                 $order->job_failure_reason = null;
             }
             $order->save();
+            $this->broadcastOrderStatus($order, $originalStatusBeforeRetry);
 
             SendCustomerTicketsEmailJob::dispatch($order->id, $order->email);
             return back()->with('success', __('alert.email_requeued_success', ['orderId' => $order->id]));
@@ -255,5 +285,24 @@ class OrderController extends Controller
             'orderId' => $order->id,
             'status' => $order->job_status
         ]));
+    }
+
+    /**
+     * Broadcast a status change so admin/supreme dashboards refresh in
+     * real time without polling. Wrapped in try/catch — a failed broadcast
+     * must never cause a user-facing rerun action to 500.
+     */
+    private function broadcastOrderStatus(TicketOrder $order, ?string $previousStatus): void
+    {
+        try {
+            TicketOrderStatusUpdated::dispatch(
+                (int) $order->id,
+                (string) ($order->job_status ?? 'unknown'),
+                $order->job_failure_reason,
+                $previousStatus,
+            );
+        } catch (\Throwable $e) {
+            \Log::warning('[OrderController] Failed to broadcast TicketOrderStatusUpdated for order ' . $order->id . ': ' . $e->getMessage());
+        }
     }
 }

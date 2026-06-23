@@ -48,6 +48,12 @@ return [
     'create_total_label' => 'Ukupno',
     'create_cancel_button' => 'Otkaži',
     'create_submit_button' => 'Izvrši Porudžbinu i Pošalji Ulaznice',
+
+    // Baner sa podelom provizije prikazan sub-promoterima na formi za kreiranje porudžbine
+    'commission_split_notice_title'       => 'Podela Provizije',
+    'commission_split_notice_managed_by'  => 'Vaš promoter menadžer je :name. Provizija će biti podeljena prema pravilima ispod:',
+    'commission_split_notice_default'     => 'Nisu podešena specifična pravila podele. Zadržaćete 100% provizije od svoje prodaje.',
+    'commission_split_notice_no_manager'  => 'Niste dodeljeni promoter menadžeru, pa zadržavate 100% provizije.',
     // Translatable job statuses
     'statuses' => [
         'pending' => 'Na čekanju',

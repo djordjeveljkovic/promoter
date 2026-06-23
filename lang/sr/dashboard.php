@@ -3,6 +3,14 @@
 return [
     'page_title' => 'Admin Kontrolna Tabla',
     'main_heading' => 'Admin Analitička Kontrolna Tabla',
+    'subtitle' => 'Pregled performansi vaše platforme u realnom vremenu.',
+    'system_status_active' => 'Svi sistemi operativni',
+    'all_time_label' => 'Za sve vreme',
+    'last_30_days_label' => 'Poslednjih 30 dana',
+    'completed_orders_label' => 'Iz završenih porudžbina',
+    'top_5_label' => 'Top 5',
+    'entries_label' => 'unosa',
+    'no_data_short' => 'Nema dostupnih podataka.',
 
     'overall_performance' => [
         'heading' => 'Ukupni Performans',

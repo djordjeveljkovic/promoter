@@ -1,5 +1,9 @@
 <x-layouts.app :title="__('admin_orders.page_title')">
-    <div class="container mx-auto px-2 sm:px-4 lg:px-6 py-8">
+    <div
+        class="container mx-auto px-2 sm:px-4 lg:px-6 py-8"
+        x-data="orderStatusBoard(@js($jobStatusColors))"
+        x-init="init()"
+    >
         <div class="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
             <h1 class="text-2xl sm:text-3xl font-bold text-gray-800 dark:text-white">{{ __('admin_orders.main_heading') }}</h1>
 
@@ -21,6 +25,18 @@
                             {{ __('admin_orders.statuses.' . ($statusKey ?? 'unknown'), [], app()->getLocale()) !== 'admin_orders.statuses.' . ($statusKey ?? 'unknown') ? __('admin_orders.statuses.' . ($statusKey ?? 'unknown')) : Illuminate\Support\Str::ucfirst($statusKey) }}
                         </option>
                     @endif
+                @endforeach
+            </select>
+
+            {{-- Per-promoter filter. Lets a supreme admin scope the list to a single
+                 promoter's orders (and a regular admin filter among their visible
+                 promoters). Auto-submits on change to mirror the status dropdown. --}}
+            <select name="requested_by" onchange="this.form.submit()" class="w-full sm:w-auto rounded-md border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 py-2 px-3 text-xs sm:text-sm">
+                <option value="">{{ __('admin_orders.filters.all_promoters_option') }}</option>
+                @foreach($filterableUsers as $filterableUser)
+                    <option value="{{ $filterableUser->id }}" {{ request('requested_by') == $filterableUser->id ? 'selected' : '' }}>
+                        {{ $filterableUser->name }} ({{ __('admin_orders.filters.role_' . $filterableUser->role, [], app()->getLocale()) !== 'admin_orders.filters.role_' . $filterableUser->role ? __('admin_orders.filters.role_' . $filterableUser->role) : ucfirst($filterableUser->role) }})
+                    </option>
                 @endforeach
             </select>
             <input type="text" name="search" id="search_orders" value="{{ request('search') }}"
@@ -62,7 +78,10 @@
                                 $hasFailureReason = $jobStatusSlug === 'failed' && !empty($order->job_failure_reason);
                                 $cssOrder = $hasFailureReason ? ($jobStatusColors['failed_clickable'] ?? $jobStatusColors['failed']) : ($jobStatusColors[$jobStatusSlug] ?? $jobStatusColors['unknown']);
                             @endphp
-                            <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors text-xs sm:text-sm">
+                            <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors text-xs sm:text-sm"
+                                data-order-id="{{ $order->id }}"
+                                data-job-status="{{ $jobStatusSlug }}"
+                                data-order-number="{{ $order->order_number }}">
                                 <td class="px-3 py-2 whitespace-nowrap font-medium text-gray-900 dark:text-white">#{{ $order->order_number }}</td>
                                 <td class="px-3 py-2 whitespace-nowrap">
                                     <div class="truncate w-32 sm:w-auto" title="{{ $order->email }}">{{ $order->email }}</div>
@@ -81,7 +100,7 @@
                                 <td class="px-3 py-2 whitespace-nowrap text-right hidden md:table-cell">
                                     {{ (in_array($order->job_status, ['completed', 'sent']) && isset($order->total_commission_earned)) ? number_format($order->total_commission_earned, 2) : __('admin_orders.table.commission_not_calculated') }} <span class="text-gray-400 text-xs">RSD</span>
                                 </td>
-                                <td class="px-3 py-2 whitespace-nowrap text-center">
+                                <td class="px-3 py-2 whitespace-nowrap text-center" data-status-cell>
                                     <span class="px-2 py-1 inline-flex text-xs leading-tight font-semibold rounded-full {{ $cssOrder }}"
                                         @if($hasFailureReason)
                                             data-target-row="error-row-{{ $order->id }}"
@@ -147,5 +166,101 @@
                 {{ $orders->links() }}
             </div>
         @endif
+    </div>
+
+    {{-- Live status updates via Laravel Echo + Reverb.
+         `orderStatusBoard` subscribes to the private `orders` channel and
+         patches the status cell of the row whose data-order-id matches the
+         broadcast. If a new status arrives for an order not on this page
+         (or filtered out), a tiny toast appears so admins notice it. --}}
+    <script>
+        function orderStatusBoard(jobStatusColors) {
+            return {
+                jobStatusColors: jobStatusColors || {},
+                toast: null,
+                toastTimer: null,
+                init() {
+                    if (!window.Echo) {
+                        // Echo not loaded (e.g. bundle failed or this page
+                        // doesn't include app.js). Stay silent rather than
+                        // throwing in the browser console.
+                        return;
+                    }
+                    window.Echo.private('orders')
+                        .listen('.order.status.updated', (event) => this.handleStatusUpdate(event))
+                        .error((err) => console.warn('[orderStatusBoard] Echo error:', err));
+                },
+                handleStatusUpdate(event) {
+                    if (!event || !event.order_id) return;
+                    const row = this.rootEl().querySelector('tr[data-order-id="' + event.order_id + '"]');
+                    if (!row) {
+                        this.showToast(event);
+                        return;
+                    }
+                    const statusCell = row.querySelector('[data-status-cell]');
+                    if (statusCell) {
+                        statusCell.innerHTML = this.renderBadge(event.status, event.failure_reason);
+                    }
+                    row.setAttribute('data-job-status', event.status);
+                    // Briefly highlight the row so the change is visually obvious.
+                    row.classList.add('ring-2', 'ring-indigo-400', 'ring-offset-1', 'dark:ring-indigo-500');
+                    setTimeout(() => {
+                        row.classList.remove('ring-2', 'ring-indigo-400', 'ring-offset-1', 'dark:ring-indigo-500');
+                    }, 2500);
+                },
+                renderBadge(status, failureReason) {
+                    const colorClasses = (this.jobStatusColors[status] || this.jobStatusColors['N/A'] || 'bg-gray-100 text-gray-800');
+                    const label = status ? status.charAt(0).toUpperCase() + status.slice(1) : 'Unknown';
+                    const hasFailure = status === 'failed' && failureReason;
+                    const titleAttr = hasFailure
+                        ? ' title="Failure: ' + this.escapeAttr(failureReason) + '"'
+                        : '';
+                    const chevron = hasFailure
+                        ? '<svg class="ml-1 w-3 h-3 status-icon" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>'
+                        : '';
+                    return '<span class="px-2 py-1 inline-flex text-xs leading-tight font-semibold rounded-full ' + colorClasses + '"' + titleAttr + '>' + this.escapeHtml(label) + chevron + '</span>';
+                },
+                escapeHtml(s) {
+                    return String(s ?? '').replace(/[&<>"']/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+                },
+                escapeAttr(s) {
+                    return String(s ?? '').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+                },
+                rootEl() {
+                    return this.$root || document;
+                },
+                showToast(event) {
+                    this.toast = event;
+                    if (this.toastTimer) clearTimeout(this.toastTimer);
+                    this.toastTimer = setTimeout(() => { this.toast = null; }, 6000);
+                },
+                dismissToast() {
+                    this.toast = null;
+                    if (this.toastTimer) clearTimeout(this.toastTimer);
+                },
+            };
+        }
+        window.orderStatusBoard = orderStatusBoard;
+    </script>
+
+    {{-- Toast for off-page / filtered-out status updates. --}}
+    <div
+        x-show="toast"
+        x-transition.opacity
+        @click="dismissToast()"
+        class="fixed bottom-6 right-6 z-50 max-w-sm cursor-pointer rounded-lg bg-indigo-600 px-4 py-3 text-white shadow-lg dark:bg-indigo-500"
+        style="display: none;"
+    >
+        <template x-if="toast">
+            <div>
+                <p class="text-sm font-semibold">
+                    {{ __('admin_orders.live.order_prefix') }}<span x-text="toast.order_id"></span>
+                    —
+                    <span x-text="toast.status"></span>
+                </p>
+                <p class="mt-1 text-xs opacity-90" x-show="toast.failure_reason" x-text="toast.failure_reason"></p>
+                <p class="mt-1 text-[10px] opacity-75">{{ __('admin_orders.live.click_to_dismiss') }}</p>
+            </div>
+        </template>
     </div>
 </x-layouts.app>

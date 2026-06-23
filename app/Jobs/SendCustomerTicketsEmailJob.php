@@ -3,6 +3,7 @@
 namespace App\Jobs;
 
 use App\Events\JobCompleted;
+use App\Events\TicketOrderStatusUpdated;
 use App\Mail\CustomerTicketsMail; // Import the Mailable we will create
 use App\Models\TicketOrder;
 use App\Models\TicketType;
@@ -59,10 +60,12 @@ class SendCustomerTicketsEmailJob implements ShouldQueue
             Log::info("Successfully initiated mail sending (to log) for Order ID: {$this->ticketOrderId} to {$this->customerEmail}");
 
             $order = TicketOrder::find($this->ticketOrderId);
+            $previousStatus = (string) $order->job_status;
             $order->update([
                 'job_status' => 'completed',
                 'job_failure_reason' => null,
             ]);
+            $this->broadcastStatus($order, $previousStatus);
 
             event(new JobCompleted('Email sent Successfully'));
         } catch (\Exception $e) {
@@ -71,15 +74,36 @@ class SendCustomerTicketsEmailJob implements ShouldQueue
             ]);
             // Mark job as failed and save message
             $order = TicketOrder::find($this->ticketOrderId);
+            $previousStatus = $order ? (string) $order->job_status : null;
             if ($order) {
                 $order->update([
                     'job_status' => 'failed',
                     'job_failure_reason' => $e->getMessage(),
                 ]);
+                $this->broadcastStatus($order, $previousStatus);
             }
 
             event(new JobCompleted('Error sending email'));
             throw $e;
+        }
+    }
+
+    /**
+     * Fire a TicketOrderStatusUpdated broadcast so admin dashboards react
+     * in real time. Failure to broadcast is non-fatal — the queue job's
+     * outcome must not depend on the Reverb endpoint being reachable.
+     */
+    private function broadcastStatus(TicketOrder $order, ?string $previousStatus): void
+    {
+        try {
+            TicketOrderStatusUpdated::dispatch(
+                (int) $order->id,
+                (string) ($order->job_status ?? 'unknown'),
+                $order->job_failure_reason,
+                $previousStatus,
+            );
+        } catch (\Throwable $broadcastError) {
+            Log::warning("[SendCustomerTicketsEmailJob] Failed to broadcast status for Order {$this->ticketOrderId}: " . $broadcastError->getMessage());
         }
     }
 }

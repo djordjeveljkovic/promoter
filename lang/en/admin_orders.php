@@ -7,9 +7,23 @@ return [
 
     'filters' => [
         'all_job_statuses_option' => 'All Job Statuses',
+        'all_promoters_option' => 'All Promoters / Sellers',
         'search_placeholder' => 'Search ID, Email, Promoter...',
         'search_button' => 'Search',
         'clear_button' => 'Clear',
+        // Role labels shown next to promoter names in the filter dropdown.
+        'role_supreme' => 'Supreme',
+        'role_admin' => 'Admin',
+        'role_promoter' => 'Promoter',
+        'role_promoter_manager' => 'Promoter Manager',
+        'role_sub_promoter' => 'Sub-Promoter',
+    ],
+
+    'live' => [
+        // Toast shown when a status update arrives for an order that is not
+        // currently visible (e.g. on another page or filtered out).
+        'order_prefix' => 'Order #',
+        'click_to_dismiss' => 'Click to dismiss',
     ],
 
     'table' => [

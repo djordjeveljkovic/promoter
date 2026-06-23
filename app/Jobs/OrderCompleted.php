@@ -2,13 +2,16 @@
 
 namespace App\Jobs;
 
+use App\Models\PromoterCommissionOverride;
 use App\Models\TicketOrder; // Your TicketOrder model
+use App\Models\TicketOrderCommission;
 use App\Models\User;       // Your User/Promoter model
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Throwable;
 
@@ -49,7 +52,11 @@ class OrderCompleted implements ShouldQueue
     {
         // Fetch a fresh instance of the order to ensure up-to-date relations and status,
         // especially important if the job was delayed or retried.
-        $currentOrder = TicketOrder::with(['requestedBy', 'items'])->find($this->orderInstance->id);
+        $currentOrder = TicketOrder::with([
+            'requestedBy',
+            'items',
+            'commissionBeneficiaries',
+        ])->find($this->orderInstance->id);
 
         if (!$currentOrder) {
             Log::error("[OrderCompleted Job] Order ID: {$this->orderInstance->id} not found. Job cannot proceed.");
@@ -76,12 +83,6 @@ class OrderCompleted implements ShouldQueue
             Log::error("[OrderCompleted Job] Exception for Order ID: {$currentOrder->id}. Error: " . $e->getMessage(), [
                 'exception' => $e
             ]);
-            // Let Laravel handle retries/failed job logging based on $this->fail() or re-throwing.
-            // You might want custom logic if the job is failing after multiple retries.
-            // For example, update the order with a commission calculation error status.
-            // $currentOrder->commission_calculation_status = 'failed';
-            // $currentOrder->commission_failure_reason = substr($e->getMessage(), 0, 255);
-            // $currentOrder->saveQuietly(); // Avoid triggering more events/observers if any
             $this->fail($e); // Mark the job as failed
         }
     }
@@ -100,58 +101,226 @@ class OrderCompleted implements ShouldQueue
             return false;
         }
 
-        // It's okay if $order->total_commission_earned is already set, as we might be recalculating.
         $originalCommission = $order->total_commission_earned;
+        $seller = $order->requestedBy; // The user who created/placed the order
 
-        $totalOrderCommission = 0;
-        $promoter = $order->requestedBy; // Should be loaded via `with` in handle()
-
-        if (!$promoter) {
-            Log::error("[storeOrderCommission] Promoter not found for Order ID {$order->id}.");
-            throw new \RuntimeException("Promoter not found for order {$order->id} during commission calculation.");
+        if (!$seller) {
+            Log::error("[storeOrderCommission] Seller (requested_by) not found for Order ID {$order->id}.");
+            throw new \RuntimeException("Seller not found for order {$order->id} during commission calculation.");
         }
-        $promoterModelClass = get_class($promoter);
 
         if ($order->items->isEmpty()) {
-            Log::info("[storeOrderCommission] Order ID {$order->id} has no items. Current stored commission: {$originalCommission}. Setting total commission to 0.");
-            $totalOrderCommission = 0.00; // Explicitly float
-        } else {
-            foreach ($order->items as $item) {
-                $itemCommissionEarned = 0;
-                if (method_exists($promoterModelClass, 'calculateCommission')) {
-                    $itemCommissionEarned = $promoterModelClass::calculateCommission(
-                        $item->ticket_type_id,
-                        $order->id,
-                        $item->quantity,
-                        $promoter,
-                        $order->created_at
-                    );
-                } else {
-                    Log::error("[storeOrderCommission] Static method 'calculateCommission' not found on class {$promoterModelClass} for Order ID {$order->id}, Item ID {$item->id}.");
-                    throw new \BadMethodCallException("Static method calculateCommission not found on {$promoterModelClass}.");
-                }
+            Log::info("[storeOrderCommission] Order ID {$order->id} has no items. Setting total commission to 0.");
+            DB::transaction(function () use ($order) {
+                $order->commissionBeneficiaries()->delete();
+                $order->total_commission_earned = 0.00;
+                $order->save();
+            });
+            return true;
+        }
 
-                $item->commission_earned = $itemCommissionEarned;
-                $item->save(); // Save commission for individual item
-                $totalOrderCommission += $itemCommissionEarned;
+        // Build the new per-beneficiary detail rows. We compute them in memory
+        // first, then delete-and-insert inside a single transaction to keep
+        // the data consistent across recalculations.
+        $newRows = [];
+        $newTotal = 0.0;
+
+        foreach ($order->items as $item) {
+            // 1. Tier-based gross commission for this item (same logic as
+            //    before, computed against the direct seller).
+            $itemCommission = (float) User::calculateCommission(
+                $item->ticket_type_id,
+                $order->id,
+                $item->quantity,
+                $seller,
+                $order->created_at
+            );
+
+            $item->commission_earned = $itemCommission;
+            $item->save();
+
+            // 2. Split the item commission across beneficiaries.
+            $splits = $this->splitCommissionForBeneficiaries(
+                $seller,
+                $item->ticket_type_id,
+                $itemCommission,
+                $item->quantity
+            );
+
+            foreach ($splits as $split) {
+                $newRows[] = [
+                    'ticket_order_id'      => $order->id,
+                    'ticket_order_item_id' => $item->id,
+                    'beneficiary_user_id'  => $split['user_id'],
+                    'beneficiary_role'     => $split['role'],
+                    'quantity'             => $item->quantity,
+                    'commission_amount'    => round($split['amount'], 2),
+                    'created_at'           => now(),
+                    'updated_at'           => now(),
+                ];
+                $newTotal += $split['amount'];
             }
         }
 
-        // Check if the newly calculated commission is different from the stored one.
-        // Handle floating point comparisons carefully.
-        $precision = 2; // Define your desired decimal precision
-        $commissionHasChanged = (bccomp((string)$originalCommission, (string)$totalOrderCommission, $precision) !== 0);
+        $newTotal = round($newTotal, 2);
 
+        DB::transaction(function () use ($order, $newRows, $newTotal) {
+            // Drop any existing detail rows - we are rewriting them.
+            $order->commissionBeneficiaries()->delete();
+            if (!empty($newRows)) {
+                TicketOrderCommission::insert($newRows);
+            }
+            $order->total_commission_earned = $newTotal;
+            $order->save();
+        });
 
-        if ($commissionHasChanged || $originalCommission === null) {
-             Log::info("[storeOrderCommission] Order ID: {$order->id}. Commission " . ($originalCommission === null ? "CALCULATED" : "RECALCULATED") . ". Old: " . ($originalCommission ?? 'NULL') . ", New: {$totalOrderCommission}. Based on rules at {$order->created_at->format('Y-m-d H:i:s')}");
-            $order->total_commission_earned = $totalOrderCommission;
-            $order->save(); // Save total commission to the order
-            return true; // Commission was set or changed
-        } else {
-            Log::info("[storeOrderCommission] Order ID: {$order->id}. Commission re-evaluated but value remains {$totalOrderCommission}. No update performed.");
-            return false; // Commission value did not change
+        $precision = 2;
+        $commissionHasChanged = $originalCommission === null
+            || bccomp((string)$originalCommission, (string)$newTotal, $precision) !== 0;
+
+        if ($commissionHasChanged) {
+            Log::info("[storeOrderCommission] Order ID: {$order->id}. Commission " . ($originalCommission === null ? "CALCULATED" : "RECALCULATED") . ". Old: " . ($originalCommission ?? 'NULL') . ", New: {$newTotal}.");
+            return true;
         }
+
+        Log::info("[storeOrderCommission] Order ID: {$order->id}. Commission value unchanged at {$newTotal}.");
+        return false;
+    }
+
+    /**
+     * Compute the per-beneficiary commission split for a single order item.
+     *
+     * Rules:
+     *  - admin / supreme sellers earn nothing (organisers).
+     *  - promoter / promoter_manager sellers earn 100% (same tier rules).
+     *  - sub_promoter sellers have their commission split with their
+     *    promoter_manager according to promoter_commission_overrides.
+     *    The override row is interpreted based on its commission_type:
+     *
+     *      * 'percentage' (default / legacy): the sub-promoter earns
+     *        commission_percentage % of the manager's tier-based gross
+     *        commission for every ticket of that type.
+     *
+     *      * 'fixed': the sub-promoter earns a flat fixed_commission_amount
+     *        RSD per ticket, regardless of the manager's tier. The
+     *        promoter-manager keeps the remainder (gross - fixed_share);
+     *        if the fixed amount exceeds the tier gross the manager gets
+     *        zero for that item and the sub-promoter is capped at the
+     *        tier gross (never paid more than the order generated).
+     *
+     *    If no override is defined for (manager, sub, ticket_type) the
+     *    sub-promoter earns 100% (acts like an independent promoter) and
+     *    the manager earns nothing for that item.
+     *
+     * @param User $seller
+     * @param int $ticketTypeId
+     * @param float $grossCommission Total tier-based commission for this item.
+     * @param int $quantity
+     * @return array<int,array{user_id:int,role:string,amount:float}>
+     */
+    private function splitCommissionForBeneficiaries(User $seller, int $ticketTypeId, float $grossCommission, int $quantity): array
+    {
+        // Admins and supreme users do not earn commission.
+        if (in_array($seller->role, ['admin', 'supreme'], true)) {
+            return [];
+        }
+
+        // Promoter and promoter_manager earn the full commission.
+        if (in_array($seller->role, ['promoter', 'promoter_manager'], true)) {
+            return [[
+                'user_id' => $seller->id,
+                'role'    => $seller->role,
+                'amount'  => $grossCommission,
+            ]];
+        }
+
+        // Sub-promoter: split with their promoter-manager (if any).
+        if ($seller->role === 'sub_promoter') {
+            $manager = $seller->promoterManager();
+
+            // No manager -> sub-promoter is "independent" and earns 100%.
+            if (!$manager) {
+                return [[
+                    'user_id' => $seller->id,
+                    'role'    => 'sub_promoter',
+                    'amount'  => $grossCommission,
+                ]];
+            }
+
+            // Look for an explicit override for this (manager, sub, type).
+            $override = PromoterCommissionOverride::where('promoter_manager_id', $manager->id)
+                ->where('sub_promoter_id', $seller->id)
+                ->where('ticket_type_id', $ticketTypeId)
+                ->first();
+
+            // No override at all: sub-promoter keeps 100%.
+            if (!$override) {
+                return [[
+                    'user_id' => $seller->id,
+                    'role'    => 'sub_promoter',
+                    'amount'  => $grossCommission,
+                ]];
+            }
+
+            $rows = [];
+
+            // ----- Fixed-amount mode -----------------------------------
+            // The promoter-manager has set a flat RSD amount per ticket.
+            // The sub-promoter's share is independent of the tier: they
+            // always get fixed_commission_amount * quantity. The manager
+            // receives the difference between the tier gross and the fixed
+            // share (never less than zero).
+            if ($override->isFixed()) {
+                $fixedPerTicket = (float) $override->fixed_commission_amount;
+                $subShare = round($fixedPerTicket * $quantity, 2);
+                // Cap the sub-promoter's share at the gross so we never
+                // create a negative remainder for the manager.
+                if ($subShare > $grossCommission) {
+                    $subShare = round($grossCommission, 2);
+                }
+                $managerShare = round($grossCommission - $subShare, 2);
+
+                if ($subShare > 0) {
+                    $rows[] = [
+                        'user_id' => $seller->id,
+                        'role'    => 'sub_promoter',
+                        'amount'  => $subShare,
+                    ];
+                }
+                if ($managerShare > 0) {
+                    $rows[] = [
+                        'user_id' => $manager->id,
+                        'role'    => 'promoter_manager',
+                        'amount'  => $managerShare,
+                    ];
+                }
+                return $rows;
+            }
+
+            // ----- Percentage mode (default / legacy) -------------------
+            $subPct = (float) $override->commission_percentage;
+            $subPct = max(0.0, min(100.0, $subPct));
+            $managerPct = 100.0 - $subPct;
+
+            if ($subPct > 0) {
+                $rows[] = [
+                    'user_id' => $seller->id,
+                    'role'    => 'sub_promoter',
+                    'amount'  => round($grossCommission * ($subPct / 100.0), 2),
+                ];
+            }
+            if ($managerPct > 0) {
+                $rows[] = [
+                    'user_id' => $manager->id,
+                    'role'    => 'promoter_manager',
+                    'amount'  => round($grossCommission * ($managerPct / 100.0), 2),
+                ];
+            }
+            return $rows;
+        }
+
+        // Buyers and any other roles earn no commission.
+        return [];
     }
 
     /**
@@ -167,8 +336,6 @@ class OrderCompleted implements ShouldQueue
         $subsequentCompletedOrders = TicketOrder::where('requested_by', $justCompletedOrder->requested_by)
             ->where('id', '>', $justCompletedOrder->id) // Orders created after the one that just completed
             ->where('job_status', 'completed')           // That are already marked as completed
-            // No need to check whereNotNull('total_commission_earned') here,
-            // as storeOrderCommissionForOrder will handle initial calculation if it was null.
             ->orderBy('id', 'asc') // Process them in their creation order
             ->get();
 
@@ -181,9 +348,6 @@ class OrderCompleted implements ShouldQueue
 
         foreach ($subsequentCompletedOrders as $orderToRecalculate) {
             Log::info("[triggerRecalculation] Dispatching OrderCompleted job for subsequent Order ID: {$orderToRecalculate->id} to re-evaluate commission.");
-            // Dispatch a new job. The `storeOrderCommissionForOrder` method within that job
-            // will recalculate and save if the value is different.
-            // Consider a specific queue for recalculations if load is a concern.
             OrderCompleted::dispatch($orderToRecalculate)->onQueue('commission_recalc');
         }
     }

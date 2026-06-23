@@ -48,6 +48,12 @@ return [
     'create_total_label' => 'Total',
     'create_cancel_button' => 'Cancel',
     'create_submit_button' => 'Place Order & Send Tickets',
+
+    // Commission split banner shown to sub-promoters on the create-order form
+    'commission_split_notice_title'       => 'Commission Split',
+    'commission_split_notice_managed_by'  => 'Your promoter-manager is :name. Your commission will be split per the rules below:',
+    'commission_split_notice_default'     => 'No specific commission split is configured. You will keep 100% of the commission on your sales.',
+    'commission_split_notice_no_manager'  => 'You are not assigned to a promoter-manager, so you will keep 100% of the commission.',
     // Translatable job statuses
     'statuses' => [
         'pending' => 'Pending',

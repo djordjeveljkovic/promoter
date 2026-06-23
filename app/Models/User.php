@@ -30,14 +30,50 @@ class User extends Authenticatable
         'parent_id',
     ];
 
+    /* ---------- Hierarchy / relationships ---------- */
+
+    /**
+     * The user that created / supervises this user (typically a promoter or
+     * promoter_manager who added this user as a sub-promoter). The users
+     * table is self-referential via parent_id.
+     */
     public function parent(): BelongsTo
     {
         return $this->belongsTo(User::class, 'parent_id');
     }
 
+    /**
+     * Direct children of this user (sub-promoters he added).
+     */
     public function subPromoters(): HasMany
     {
         return $this->hasMany(User::class, 'parent_id');
+    }
+
+    /**
+     * Commission delegation rules created by this user (only meaningful when
+     * this user is a promoter_manager). They define what % of the manager's
+     * tier-based commission each sub-promoter of his earns per ticket type.
+     */
+    public function commissionOverridesGiven(): HasMany
+    {
+        return $this->hasMany(PromoterCommissionOverride::class, 'promoter_manager_id');
+    }
+
+    /**
+     * Commission delegation rules that apply to this user as a sub-promoter.
+     */
+    public function commissionOverridesReceived(): HasMany
+    {
+        return $this->hasMany(PromoterCommissionOverride::class, 'sub_promoter_id');
+    }
+
+    /**
+     * Per-beneficiary commission records earned by this user.
+     */
+    public function orderCommissions(): HasMany
+    {
+        return $this->hasMany(TicketOrderCommission::class, 'beneficiary_user_id');
     }
 
     public function ticketOrders(): HasMany
@@ -49,6 +85,7 @@ class User extends Authenticatable
     {
         return $this->hasMany(TicketCommission::class);
     }
+
     /**
      * The attributes that should be hidden for serialization.
      *
@@ -149,6 +186,36 @@ class User extends Authenticatable
         return $commission;
     }
 
+    /**
+     * Calculate total commission earned (all-time) for a user across every
+     * beneficiary role he has held. Sums the per-beneficiary rows in
+     * ticket_order_commissions. Safe to call on a fresh model instance.
+     */
+    public function totalCommissionEarned(): float
+    {
+        return (float) $this->orderCommissions()->sum('commission_amount');
+    }
+
+    /**
+     * Resolve the promoter-manager who supervises this user (if any).
+     *
+     * Walks up the parent_id chain looking for a user with role
+     * 'promoter_manager'. Returns null if the user has no such ancestor.
+     */
+    public function promoterManager(): ?User
+    {
+        $current = $this->parent;
+        $guard = 0;
+        while ($current && $guard < 10) { // hard cap to avoid infinite loops
+            if ($current->role === 'promoter_manager') {
+                return $current;
+            }
+            $current = $current->parent;
+            $guard++;
+        }
+        return null;
+    }
+
 	public function hasRole($roles)
 	{
 	    return in_array($this->role, (array) $roles);
@@ -156,6 +223,18 @@ class User extends Authenticatable
 
 	public function isAdmin()
 	{
-	    return $this->hasRole(['admin', 'superadmin']);
+	    return $this->hasRole(['admin', 'superadmin', 'supreme']);
+	}
+
+	public function isPromoterManager(): bool
+	{
+	    return $this->role === 'promoter_manager';
+	}
+
+	public function isPromoterLike(): bool
+	{
+	    // Promoter, promoter_manager and admin can all earn commission via the
+	    // tier-based rules. Sub-promoters earn via the manager's rules.
+	    return in_array($this->role, ['promoter', 'promoter_manager', 'admin', 'supreme']);
 	}
 }

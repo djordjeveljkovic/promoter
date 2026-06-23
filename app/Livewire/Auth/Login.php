@@ -43,12 +43,21 @@ class Login extends Component
         RateLimiter::clear($this->throttleKey());
         Session::regenerate();
 
+        // Redirect each role to its own landing page. Fall through to a
+        // sensible default if a future role is added without a redirect
+        // (we deliberately do not leave the user on the login form).
+        $user = Auth::user();
+        $defaultRoute = match ($user->role) {
+            'admin', 'supreme'           => route('dashboard', absolute: false),
+            'promoter_manager'           => route('promoter_manager.dashboard', absolute: false),
+            'sub_promoter'               => route('sub_promoter.dashboard', absolute: false),
+            'promoter'                   => route('promoter.dashboard', absolute: false),
+            // Buyers and any other future role fall back to the promoter
+            // dashboard rather than getting stuck on the login page.
+            default                      => route('promoter.dashboard', absolute: false),
+        };
 
-        if (Auth::user()->role === 'admin') {
-            $this->redirectIntended(default: route('dashboard', absolute: false), navigate: true);
-        }elseif (Auth::user()-> role === 'promoter') {
-            $this->redirectIntended(default: route('promoter.dashboard', absolute: false), navigate: true);
-        }
+        $this->redirectIntended(default: $defaultRoute, navigate: true);
     }
 
     /**

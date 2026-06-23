@@ -1,120 +1,332 @@
 <x-layouts.app :title="__('dashboard.page_title')">
-    <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <h1 class="text-3xl font-bold text-gray-800 dark:text-white mb-8">{{ __('dashboard.main_heading') }}</h1>
+    @php
+        // Override status colors with dark-mode-aware styles for the badges.
+        $statusColors = [
+            'processing' => 'bg-blue-50 text-blue-700 ring-blue-700/10 dark:bg-blue-500/10 dark:text-blue-400 dark:ring-blue-500/20',
+            'failed'     => 'bg-rose-50 text-rose-700 ring-rose-700/10 dark:bg-rose-500/10 dark:text-rose-400 dark:ring-rose-500/20',
+            'blocked'    => 'bg-zinc-100 text-zinc-700 ring-zinc-700/10 dark:bg-zinc-500/10 dark:text-zinc-300 dark:ring-zinc-500/20',
+            'completed'  => 'bg-emerald-50 text-emerald-700 ring-emerald-700/10 dark:bg-emerald-500/10 dark:text-emerald-400 dark:ring-emerald-500/20',
+            'sent'       => 'bg-teal-50 text-teal-700 ring-teal-700/10 dark:bg-teal-500/10 dark:text-teal-400 dark:ring-teal-500/20',
+            'pending'    => 'bg-amber-50 text-amber-700 ring-amber-700/10 dark:bg-amber-500/10 dark:text-amber-400 dark:ring-amber-500/20',
+        ];
+    @endphp
 
-        <section class="mb-8">
-            <h2 class="text-2xl font-semibold text-gray-700 dark:text-gray-300 mb-4">{{ __('dashboard.overall_performance.heading') }}</h2>
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg">
-                    <h3 class="text-gray-500 dark:text-gray-400 text-sm font-medium uppercase">{{ __('dashboard.overall_performance.total_revenue_all_time') }}</h3>
-                    <p class="text-3xl font-bold text-gray-800 dark:text-white mt-1">{{ number_format($totalRevenueAllTime, 2) }}</p>
+    <div class="space-y-6 sm:space-y-8">
+
+        {{-- ============================================================
+             PAGE HEADER
+        ============================================================ --}}
+        <header class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+            <div class="min-w-0">
+                <h1 class="text-2xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-50 sm:text-3xl">
+                    {{ __('dashboard.main_heading') }}
+                </h1>
+                <p class="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
+                    {{ __('dashboard.subtitle') }}
+                </p>
+            </div>
+
+            <div class="flex flex-wrap items-center gap-2">
+                <span class="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-700 ring-1 ring-inset ring-emerald-700/10 dark:bg-emerald-500/10 dark:text-emerald-400 dark:ring-emerald-500/20">
+                    <span class="relative flex h-1.5 w-1.5">
+                        <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
+                        <span class="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
+                    </span>
+                    {{ __('dashboard.system_status_active') }}
+                </span>
+                <span class="inline-flex items-center gap-1.5 rounded-full bg-zinc-100 px-2.5 py-1 text-xs font-medium text-zinc-600 ring-1 ring-inset ring-zinc-200 dark:bg-zinc-800 dark:text-zinc-300 dark:ring-zinc-700">
+                    <flux:icon.calendar-days class="h-3.5 w-3.5" />
+                    <time datetime="{{ now()->toDateString() }}">{{ now()->format('M d, Y') }}</time>
+                </span>
+            </div>
+        </header>
+
+        {{-- ============================================================
+             OVERALL PERFORMANCE — STAT CARDS
+        ============================================================ --}}
+        <section aria-labelledby="overall-performance-heading">
+            <h2 id="overall-performance-heading" class="sr-only">{{ __('dashboard.overall_performance.heading') }}</h2>
+            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+
+                {{-- Total Revenue (All Time) --}}
+                <div class="group relative overflow-hidden rounded-xl border border-zinc-200 bg-white p-5 transition hover:border-zinc-300 hover:shadow-sm dark:border-zinc-800 dark:bg-zinc-900/60 dark:hover:border-zinc-700">
+                    <div class="flex items-start justify-between gap-3">
+                        <p class="text-xs font-medium uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+                            {{ __('dashboard.overall_performance.total_revenue_all_time') }}
+                        </p>
+                        <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600 ring-1 ring-inset ring-emerald-700/10 dark:bg-emerald-500/10 dark:text-emerald-400 dark:ring-emerald-500/20">
+                            <flux:icon.currency-dollar class="h-5 w-5" />
+                        </span>
+                    </div>
+                    <p class="mt-4 text-2xl font-semibold tracking-tight tabular-nums text-zinc-900 dark:text-zinc-50 sm:text-3xl">
+                        {{ number_format($totalRevenueAllTime, 2) }}
+                    </p>
+                    <p class="mt-1 text-xs text-zinc-500 dark:text-zinc-500">
+                        {{ __('dashboard.all_time_label') }}
+                    </p>
                 </div>
-                <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg">
-                    <h3 class="text-gray-500 dark:text-gray-400 text-sm font-medium uppercase">{{ __('dashboard.overall_performance.total_orders_all_time') }}</h3>
-                    <p class="text-3xl font-bold text-gray-800 dark:text-white mt-1">{{ number_format($totalOrdersAllTime) }}</p>
+
+                {{-- Total Orders (All Time) --}}
+                <div class="group relative overflow-hidden rounded-xl border border-zinc-200 bg-white p-5 transition hover:border-zinc-300 hover:shadow-sm dark:border-zinc-800 dark:bg-zinc-900/60 dark:hover:border-zinc-700">
+                    <div class="flex items-start justify-between gap-3">
+                        <p class="text-xs font-medium uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+                            {{ __('dashboard.overall_performance.total_orders_all_time') }}
+                        </p>
+                        <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600 ring-1 ring-inset ring-indigo-700/10 dark:bg-indigo-500/10 dark:text-indigo-400 dark:ring-indigo-500/20">
+                            <flux:icon.shopping-bag class="h-5 w-5" />
+                        </span>
+                    </div>
+                    <p class="mt-4 text-2xl font-semibold tracking-tight tabular-nums text-zinc-900 dark:text-zinc-50 sm:text-3xl">
+                        {{ number_format($totalOrdersAllTime) }}
+                    </p>
+                    <p class="mt-1 text-xs text-zinc-500 dark:text-zinc-500">
+                        {{ __('dashboard.all_time_label') }}
+                    </p>
                 </div>
-                <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg">
-                    <h3 class="text-gray-500 dark:text-gray-400 text-sm font-medium uppercase">{{ __('dashboard.overall_performance.tickets_sold_completed_all_time') }}</h3>
-                    <p class="text-3xl font-bold text-gray-800 dark:text-white mt-1">{{ number_format($totalTicketsEffectivelySoldAllTime) }}</p>
+
+                {{-- Tickets Sold (Completed Orders) --}}
+                <div class="group relative overflow-hidden rounded-xl border border-zinc-200 bg-white p-5 transition hover:border-zinc-300 hover:shadow-sm dark:border-zinc-800 dark:bg-zinc-900/60 dark:hover:border-zinc-700">
+                    <div class="flex items-start justify-between gap-3">
+                        <p class="text-xs font-medium uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+                            {{ __('dashboard.overall_performance.tickets_sold_completed_all_time') }}
+                        </p>
+                        <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-violet-50 text-violet-600 ring-1 ring-inset ring-violet-700/10 dark:bg-violet-500/10 dark:text-violet-400 dark:ring-violet-500/20">
+                            <flux:icon.ticket class="h-5 w-5" />
+                        </span>
+                    </div>
+                    <p class="mt-4 text-2xl font-semibold tracking-tight tabular-nums text-zinc-900 dark:text-zinc-50 sm:text-3xl">
+                        {{ number_format($totalTicketsEffectivelySoldAllTime) }}
+                    </p>
+                    <p class="mt-1 text-xs text-zinc-500 dark:text-zinc-500">
+                        {{ __('dashboard.completed_orders_label') }}
+                    </p>
                 </div>
-                 <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg">
-                    <h3 class="text-gray-500 dark:text-gray-400 text-sm font-medium uppercase">{{ __('dashboard.overall_performance.revenue_last_30_days') }}</h3>
-                    <p class="text-3xl font-bold text-gray-800 dark:text-white mt-1">{{ number_format($totalRevenueLast30Days, 2) }}</p>
+
+                {{-- Revenue (Last 30 Days) --}}
+                <div class="group relative overflow-hidden rounded-xl border border-zinc-200 bg-white p-5 transition hover:border-zinc-300 hover:shadow-sm dark:border-zinc-800 dark:bg-zinc-900/60 dark:hover:border-zinc-700">
+                    <div class="flex items-start justify-between gap-3">
+                        <p class="text-xs font-medium uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+                            {{ __('dashboard.overall_performance.revenue_last_30_days') }}
+                        </p>
+                        <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-amber-50 text-amber-600 ring-1 ring-inset ring-amber-700/10 dark:bg-amber-500/10 dark:text-amber-400 dark:ring-amber-500/20">
+                            <flux:icon.arrow-trending-up class="h-5 w-5" />
+                        </span>
+                    </div>
+                    <p class="mt-4 text-2xl font-semibold tracking-tight tabular-nums text-zinc-900 dark:text-zinc-50 sm:text-3xl">
+                        {{ number_format($totalRevenueLast30Days, 2) }}
+                    </p>
+                    <p class="mt-1 text-xs text-zinc-500 dark:text-zinc-500">
+                        {{ __('dashboard.last_30_days_label') }}
+                    </p>
                 </div>
             </div>
         </section>
 
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
-            <section class="lg:col-span-2 bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg">
-                <h2 class="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-4">{{ __('dashboard.top_ticket_types.heading') }}</h2>
+        {{-- ============================================================
+             TOP TICKET TYPES  +  USER / ORDER STATS
+        ============================================================ --}}
+        <section class="grid grid-cols-1 gap-6 lg:grid-cols-3">
+
+            {{-- Top Ticket Types (2/3 width on desktop) --}}
+            <div class="overflow-hidden rounded-xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900/60 lg:col-span-2">
+                <div class="flex items-center justify-between border-b border-zinc-200 px-5 py-4 dark:border-zinc-800">
+                    <div class="min-w-0">
+                        <h2 class="text-base font-semibold text-zinc-900 dark:text-zinc-100">
+                            {{ __('dashboard.top_ticket_types.heading') }}
+                        </h2>
+                    </div>
+                    <span class="hidden text-xs text-zinc-500 dark:text-zinc-400 sm:inline">
+                        {{ $ticketTypePerformance->count() }}
+                        {{ __('dashboard.entries_label') }}
+                    </span>
+                </div>
+
                 @if($ticketTypePerformance->isEmpty())
-                    <p class="text-gray-600 dark:text-gray-400">{{ __('dashboard.top_ticket_types.no_data') }}</p>
+                    <div class="flex flex-col items-center justify-center px-5 py-14 text-center">
+                        <flux:icon.ticket class="h-8 w-8 text-zinc-300 dark:text-zinc-600" />
+                        <p class="mt-3 text-sm text-zinc-500 dark:text-zinc-400">
+                            {{ __('dashboard.top_ticket_types.no_data') }}
+                        </p>
+                    </div>
                 @else
                     <div class="overflow-x-auto">
-                        <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                            <thead class="bg-gray-50 dark:bg-gray-700">
-                                <tr>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">{{ __('dashboard.top_ticket_types.table_header_type_name') }}</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">{{ __('dashboard.top_ticket_types.table_header_quantity_sold') }}</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">{{ __('dashboard.top_ticket_types.table_header_est_revenue') }}</th>
+                        <table class="min-w-full divide-y divide-zinc-200 dark:divide-zinc-800">
+                            <thead>
+                                <tr class="bg-zinc-50/60 dark:bg-zinc-900/30">
+                                    <th scope="col" class="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+                                        {{ __('dashboard.top_ticket_types.table_header_type_name') }}
+                                    </th>
+                                    <th scope="col" class="px-5 py-3 text-right text-xs font-medium uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+                                        {{ __('dashboard.top_ticket_types.table_header_quantity_sold') }}
+                                    </th>
+                                    <th scope="col" class="px-5 py-3 text-right text-xs font-medium uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+                                        {{ __('dashboard.top_ticket_types.table_header_est_revenue') }}
+                                    </th>
                                 </tr>
                             </thead>
-                            <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                            <tbody class="divide-y divide-zinc-200 dark:divide-zinc-800">
                                 @foreach($ticketTypePerformance as $type)
-                                <tr>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">{{ $type->name }}</td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">{{ number_format($type->total_quantity_sold) }}</td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">{{ number_format($type->total_revenue, 2) }}</td>
-                                </tr>
+                                    <tr class="transition-colors hover:bg-zinc-50/60 dark:hover:bg-zinc-900/40">
+                                        <td class="px-5 py-3.5 whitespace-nowrap text-sm font-medium text-zinc-900 dark:text-zinc-100">
+                                            {{ $type->name }}
+                                        </td>
+                                        <td class="px-5 py-3.5 whitespace-nowrap text-right text-sm tabular-nums text-zinc-700 dark:text-zinc-300">
+                                            {{ number_format($type->total_quantity_sold) }}
+                                        </td>
+                                        <td class="px-5 py-3.5 whitespace-nowrap text-right text-sm tabular-nums font-medium text-zinc-900 dark:text-zinc-100">
+                                            {{ number_format($type->total_revenue, 2) }}
+                                        </td>
+                                    </tr>
                                 @endforeach
                             </tbody>
                         </table>
                     </div>
                 @endif
-            </section>
+            </div>
 
-            <section class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg">
-                <h2 class="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-4">{{ __('dashboard.user_ticket_stats.heading') }}</h2>
-                <div class="space-y-3">
-                    @foreach($userCountsByRole as $role => $count)
-                    <div class="flex justify-between text-sm">
-                        {{-- You might want specific keys per role if `ucfirst($role)` isn't always desired or if role names need translation --}}
-                        {{-- Option 1: Specific keys per role (e.g., __('dashboard.user_ticket_stats.role_admin')) --}}
-                        {{-- Option 2: Translate role then append generic suffix --}}
-                        <span class="text-gray-600 dark:text-gray-400">{{ ucfirst($role) }}{{ __('dashboard.user_ticket_stats.role_count_suffix') }}</span>
-                        <span class="font-semibold text-gray-800 dark:text-white">{{ $count }}</span>
-                    </div>
-                    @endforeach
-                    <hr class="dark:border-gray-700">
-                    <div class="flex justify-between text-sm">
-                        <span class="text-gray-600 dark:text-gray-400">{{ __('dashboard.user_ticket_stats.active_tickets') }}</span>
-                        <span class="font-semibold text-green-600">{{ $activeTicketsCount }}</span>
-                    </div>
-                    <div class="flex justify-between text-sm">
-                        <span class="text-gray-600 dark:text-gray-400">{{ __('dashboard.user_ticket_stats.inactive_tickets') }}</span>
-                        <span class="font-semibold text-red-600">{{ $inactiveTicketsCount }}</span>
-                    </div>
-                </div>
+            {{-- Right column: User & Ticket Stats + Order Statuses --}}
+            <div class="flex flex-col gap-6">
 
-                 <h2 class="text-xl font-semibold text-gray-700 dark:text-gray-300 mt-6 mb-4">{{ __('dashboard.order_statuses.heading') }}</h2>
-                 <div class="space-y-2">
-                    @foreach($orderStatusCounts as $status => $count)
-                        <div class="flex justify-between items-center text-sm">
-                            {{-- If status slugs (e.g., 'pending', 'completed') need translation, use something like __('statuses.' . $status) --}}
-                            <span class="text-gray-600 dark:text-gray-400">{{ ucfirst($status) }}:</span>
-                            <span class="px-2 py-0.5 inline-flex text-xs leading-5 font-semibold rounded-full {{ $statusColors[$status] ?? 'bg-gray-100 text-gray-800' }}">
-                                {{ $count }}
+                {{-- User & Ticket Stats --}}
+                <div class="overflow-hidden rounded-xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900/60">
+                    <div class="border-b border-zinc-200 px-5 py-4 dark:border-zinc-800">
+                        <h2 class="text-base font-semibold text-zinc-900 dark:text-zinc-100">
+                            {{ __('dashboard.user_ticket_stats.heading') }}
+                        </h2>
+                    </div>
+                    <div class="space-y-3 p-5">
+                        @forelse($userCountsByRole as $role => $count)
+                            <div class="flex items-center justify-between text-sm">
+                                <span class="text-zinc-600 dark:text-zinc-400">
+                                    {{ ucfirst($role) }}{{ __('dashboard.user_ticket_stats.role_count_suffix') }}
+                                </span>
+                                <span class="font-semibold tabular-nums text-zinc-900 dark:text-zinc-100">
+                                    {{ $count }}
+                                </span>
+                            </div>
+                        @empty
+                            <p class="text-sm text-zinc-500 dark:text-zinc-400">
+                                {{ __('dashboard.no_data_short') }}
+                            </p>
+                        @endforelse
+
+                        @if($userCountsByRole->isNotEmpty())
+                            <hr class="border-zinc-200 dark:border-zinc-800">
+                        @endif
+
+                        <div class="flex items-center justify-between text-sm">
+                            <span class="text-zinc-600 dark:text-zinc-400">
+                                {{ __('dashboard.user_ticket_stats.active_tickets') }}
+                            </span>
+                            <span class="inline-flex items-center gap-1.5 font-semibold tabular-nums text-emerald-700 dark:text-emerald-400">
+                                <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
+                                {{ $activeTicketsCount }}
                             </span>
                         </div>
-                    @endforeach
+                        <div class="flex items-center justify-between text-sm">
+                            <span class="text-zinc-600 dark:text-zinc-400">
+                                {{ __('dashboard.user_ticket_stats.inactive_tickets') }}
+                            </span>
+                            <span class="inline-flex items-center gap-1.5 font-semibold tabular-nums text-rose-700 dark:text-rose-400">
+                                <span class="h-1.5 w-1.5 rounded-full bg-rose-500"></span>
+                                {{ $inactiveTicketsCount }}
+                            </span>
+                        </div>
+                    </div>
                 </div>
-            </section>
-        </div>
 
-        <section class="mb-8 bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg">
-            <h2 class="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-4">{{ __('dashboard.top_promoter_performance.heading') }}</h2>
+                {{-- Order Statuses --}}
+                <div class="overflow-hidden rounded-xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900/60">
+                    <div class="border-b border-zinc-200 px-5 py-4 dark:border-zinc-800">
+                        <h2 class="text-base font-semibold text-zinc-900 dark:text-zinc-100">
+                            {{ __('dashboard.order_statuses.heading') }}
+                        </h2>
+                    </div>
+                    <div class="space-y-2.5 p-5">
+                        @forelse($orderStatusCounts as $status => $count)
+                            <div class="flex items-center justify-between text-sm">
+                                <span class="text-zinc-600 dark:text-zinc-400">
+                                    {{ ucfirst($status) }}
+                                </span>
+                                <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium tabular-nums ring-1 ring-inset {{ $statusColors[$status] ?? 'bg-zinc-100 text-zinc-700 ring-zinc-700/10 dark:bg-zinc-500/10 dark:text-zinc-300 dark:ring-zinc-500/20' }}">
+                                    {{ $count }}
+                                </span>
+                            </div>
+                        @empty
+                            <p class="text-sm text-zinc-500 dark:text-zinc-400">
+                                {{ __('dashboard.no_data_short') }}
+                            </p>
+                        @endforelse
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        {{-- ============================================================
+             TOP PROMOTER PERFORMANCE
+        ============================================================ --}}
+        <section class="overflow-hidden rounded-xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900/60">
+            <div class="flex items-center justify-between gap-3 border-b border-zinc-200 px-5 py-4 dark:border-zinc-800">
+                <div class="min-w-0">
+                    <h2 class="text-base font-semibold text-zinc-900 dark:text-zinc-100">
+                        {{ __('dashboard.top_promoter_performance.heading') }}
+                    </h2>
+                </div>
+                <span class="hidden shrink-0 text-xs text-zinc-500 dark:text-zinc-400 sm:inline">
+                    {{ __('dashboard.top_5_label') }}
+                </span>
+            </div>
+
             @if($promoterPerformance->isEmpty() || $promoterPerformance->every(fn($p) => $p->total_orders_generated == 0))
-                <p class="text-gray-600 dark:text-gray-400">{{ __('dashboard.top_promoter_performance.no_data') }}</p>
+                <div class="flex flex-col items-center justify-center px-5 py-14 text-center">
+                    <flux:icon.user-group class="h-8 w-8 text-zinc-300 dark:text-zinc-600" />
+                    <p class="mt-3 text-sm text-zinc-500 dark:text-zinc-400">
+                        {{ __('dashboard.top_promoter_performance.no_data') }}
+                    </p>
+                </div>
             @else
                 <div class="overflow-x-auto">
-                    <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                        <thead class="bg-gray-50 dark:bg-gray-700">
-                            <tr>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">{{ __('dashboard.top_promoter_performance.table_header_promoter') }}</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">{{ __('dashboard.top_promoter_performance.table_header_email') }}</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">{{ __('dashboard.top_promoter_performance.table_header_orders_generated') }}</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">{{ __('dashboard.top_promoter_performance.table_header_revenue_generated') }}</th>
+                    <table class="min-w-full divide-y divide-zinc-200 dark:divide-zinc-800">
+                        <thead>
+                            <tr class="bg-zinc-50/60 dark:bg-zinc-900/30">
+                                <th scope="col" class="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+                                    {{ __('dashboard.top_promoter_performance.table_header_promoter') }}
+                                </th>
+                                <th scope="col" class="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+                                    {{ __('dashboard.top_promoter_performance.table_header_email') }}
+                                </th>
+                                <th scope="col" class="px-5 py-3 text-right text-xs font-medium uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+                                    {{ __('dashboard.top_promoter_performance.table_header_orders_generated') }}
+                                </th>
+                                <th scope="col" class="px-5 py-3 text-right text-xs font-medium uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+                                    {{ __('dashboard.top_promoter_performance.table_header_revenue_generated') }}
+                                </th>
                             </tr>
                         </thead>
-                        <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                        <tbody class="divide-y divide-zinc-200 dark:divide-zinc-800">
                             @foreach($promoterPerformance as $promoter)
-                                @if($promoter->total_orders_generated > 0) {{-- Only show promoters with activity --}}
-                                <tr>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">{{ $promoter->name }}</td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">{{ $promoter->email }}</td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">{{ number_format($promoter->total_orders_generated) }}</td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">{{ number_format($promoter->total_revenue_generated, 2) }}</td>
-                                </tr>
+                                @if($promoter->total_orders_generated > 0)
+                                    <tr class="transition-colors hover:bg-zinc-50/60 dark:hover:bg-zinc-900/40">
+                                        <td class="px-5 py-3.5 whitespace-nowrap">
+                                            <div class="flex items-center gap-3">
+                                                <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-violet-600 text-xs font-semibold text-white shadow-sm">
+                                                    {{ strtoupper(mb_substr($promoter->name, 0, 1)) }}
+                                                </span>
+                                                <span class="text-sm font-medium text-zinc-900 dark:text-zinc-100">
+                                                    {{ $promoter->name }}
+                                                </span>
+                                            </div>
+                                        </td>
+                                        <td class="px-5 py-3.5 whitespace-nowrap text-sm text-zinc-500 dark:text-zinc-400">
+                                            {{ $promoter->email }}
+                                        </td>
+                                        <td class="px-5 py-3.5 whitespace-nowrap text-right text-sm tabular-nums text-zinc-700 dark:text-zinc-300">
+                                            {{ number_format($promoter->total_orders_generated) }}
+                                        </td>
+                                        <td class="px-5 py-3.5 whitespace-nowrap text-right text-sm tabular-nums font-medium text-zinc-900 dark:text-zinc-100">
+                                            {{ number_format($promoter->total_revenue_generated, 2) }}
+                                        </td>
+                                    </tr>
                                 @endif
                             @endforeach
                         </tbody>
@@ -123,48 +335,90 @@
             @endif
         </section>
 
-        <section class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg">
-            <h2 class="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-4">{{ __('dashboard.recent_orders.heading') }}</h2>
+        {{-- ============================================================
+             RECENT ORDERS
+        ============================================================ --}}
+        <section class="overflow-hidden rounded-xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900/60">
+            <div class="flex items-center justify-between gap-3 border-b border-zinc-200 px-5 py-4 dark:border-zinc-800">
+                <div class="min-w-0">
+                    <h2 class="text-base font-semibold text-zinc-900 dark:text-zinc-100">
+                        {{ __('dashboard.recent_orders.heading') }}
+                    </h2>
+                </div>
+                <span class="hidden shrink-0 text-xs text-zinc-500 dark:text-zinc-400 sm:inline">
+                    {{ $recentOrders->count() }}
+                    {{ __('dashboard.entries_label') }}
+                </span>
+            </div>
+
             @if($recentOrders->isEmpty())
-                 <p class="text-gray-600 dark:text-gray-400">{{ __('dashboard.recent_orders.no_data') }}</p>
+                <div class="flex flex-col items-center justify-center px-5 py-14 text-center">
+                    <flux:icon.shopping-bag class="h-8 w-8 text-zinc-300 dark:text-zinc-600" />
+                    <p class="mt-3 text-sm text-zinc-500 dark:text-zinc-400">
+                        {{ __('dashboard.recent_orders.no_data') }}
+                    </p>
+                </div>
             @else
                 <div class="overflow-x-auto">
-                    <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                        <thead class="bg-gray-50 dark:bg-gray-700">
-                            <tr>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">{{ __('dashboard.recent_orders.table_header_order_id') }}</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">{{ __('dashboard.recent_orders.table_header_customer_email') }}</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">{{ __('dashboard.recent_orders.table_header_promoter') }}</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">{{ __('dashboard.recent_orders.table_header_items') }}</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">{{ __('dashboard.recent_orders.table_header_total') }}</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">{{ __('dashboard.recent_orders.table_header_status') }}</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">{{ __('dashboard.recent_orders.table_header_date') }}</th>
+                    <table class="min-w-full divide-y divide-zinc-200 dark:divide-zinc-800">
+                        <thead>
+                            <tr class="bg-zinc-50/60 dark:bg-zinc-900/30">
+                                <th scope="col" class="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+                                    {{ __('dashboard.recent_orders.table_header_order_id') }}
+                                </th>
+                                <th scope="col" class="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+                                    {{ __('dashboard.recent_orders.table_header_customer_email') }}
+                                </th>
+                                <th scope="col" class="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+                                    {{ __('dashboard.recent_orders.table_header_promoter') }}
+                                </th>
+                                <th scope="col" class="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+                                    {{ __('dashboard.recent_orders.table_header_items') }}
+                                </th>
+                                <th scope="col" class="px-5 py-3 text-right text-xs font-medium uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+                                    {{ __('dashboard.recent_orders.table_header_total') }}
+                                </th>
+                                <th scope="col" class="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+                                    {{ __('dashboard.recent_orders.table_header_status') }}
+                                </th>
+                                <th scope="col" class="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+                                    {{ __('dashboard.recent_orders.table_header_date') }}
+                                </th>
                             </tr>
                         </thead>
-                        <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                        <tbody class="divide-y divide-zinc-200 dark:divide-zinc-800">
                             @foreach($recentOrders as $order)
-                            <tr>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
-                                    <a href="{{-- route('admin.orders.show', $order->id) --}}" class="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400">
-                                        #{{ $order->id }}
-                                    </a>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">{{ $order->email }}</td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">{{ $order->requestedBy->name ?? 'N/A' }}</td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
-                                    @foreach($order->items as $item)
-                                        {{ $item->quantity }}x {{ $item->ticketType->name }} <br>
-                                    @endforeach
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">{{ number_format($order->total, 2) }}</td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm">
-                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full {{ $statusColors[$order->job_status] ?? 'bg-gray-100 text-gray-800' }}">
-                                        {{-- If status slugs need translation, use e.g. __('statuses.' . $order->job_status) --}}
-                                        {{ ucfirst($order->job_status) }}
-                                    </span>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">{{ $order->created_at->format('M d, Y H:i') }}</td>
-                            </tr>
+                                <tr class="transition-colors hover:bg-zinc-50/60 dark:hover:bg-zinc-900/40">
+                                    <td class="px-5 py-3.5 whitespace-nowrap">
+                                        <a href="{{-- route('admin.orders.show', $order->id) --}}" class="font-mono text-sm font-medium text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300">
+                                            #{{ $order->id }}
+                                        </a>
+                                    </td>
+                                    <td class="px-5 py-3.5 whitespace-nowrap text-sm text-zinc-600 dark:text-zinc-400">
+                                        {{ $order->email }}
+                                    </td>
+                                    <td class="px-5 py-3.5 whitespace-nowrap text-sm text-zinc-700 dark:text-zinc-300">
+                                        {{ $order->requestedBy->name ?? 'N/A' }}
+                                    </td>
+                                    <td class="px-5 py-3.5 text-sm text-zinc-600 dark:text-zinc-400">
+                                        <div class="flex flex-col gap-0.5">
+                                            @foreach($order->items as $item)
+                                                <span class="whitespace-nowrap">{{ $item->quantity }}× {{ $item->ticketType->name }}</span>
+                                            @endforeach
+                                        </div>
+                                    </td>
+                                    <td class="px-5 py-3.5 whitespace-nowrap text-right text-sm tabular-nums font-medium text-zinc-900 dark:text-zinc-100">
+                                        {{ number_format($order->total, 2) }}
+                                    </td>
+                                    <td class="px-5 py-3.5 whitespace-nowrap">
+                                        <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ring-inset {{ $statusColors[$order->job_status] ?? 'bg-zinc-100 text-zinc-700 ring-zinc-700/10 dark:bg-zinc-500/10 dark:text-zinc-300 dark:ring-zinc-500/20' }}">
+                                            {{ ucfirst($order->job_status) }}
+                                        </span>
+                                    </td>
+                                    <td class="px-5 py-3.5 whitespace-nowrap text-sm tabular-nums text-zinc-500 dark:text-zinc-400">
+                                        <time datetime="{{ $order->created_at->toIso8601String() }}">{{ $order->created_at->format('M d, Y H:i') }}</time>
+                                    </td>
+                                </tr>
                             @endforeach
                         </tbody>
                     </table>

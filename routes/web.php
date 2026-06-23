@@ -2,7 +2,9 @@
 
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AdminOrderController;
+use App\Http\Controllers\EmailSettingsController;
 use App\Http\Controllers\PromoterController;
+use App\Http\Controllers\PromoterManagerController;
 use App\Http\Controllers\TicketController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\SubPromoterController;
@@ -41,6 +43,14 @@ Route::middleware('auth')->group(function () {
 
         Route::delete('/promoter/{id}', [AdminController::class, 'deletePromoter'])->name('admin.promoters.destroy');
 
+        // Promoter-manager CRUD
+        Route::get('/promoter-managers', [PromoterManagerController::class, 'index'])->name('admin.promoter_managers.index');
+        Route::get('/promoter-manager/create', [PromoterManagerController::class, 'create'])->name('admin.promoter_managers.create');
+        Route::post('/promoter-managers', [PromoterManagerController::class, 'store'])->name('admin.promoter_managers.store');
+        Route::get('/promoter-manager/edit/{id}', [PromoterManagerController::class, 'edit'])->name('admin.promoter_managers.edit');
+        Route::put('/promoter-manager/edit/{id}', [PromoterManagerController::class, 'update'])->name('admin.promoter_managers.update');
+        Route::delete('/promoter-manager/{id}', [PromoterManagerController::class, 'destroy'])->name('admin.promoter_managers.destroy');
+
         Route::get('/orders', [AdminOrderController::class, 'index'])->name('admin.orders.index');
         /* Route::get('/orders/{id}', [AdminOrderController::class, 'show'])->name('admin.orders.show'); */
 
@@ -61,28 +71,67 @@ Route::middleware('auth')->group(function () {
         Route::put('/ticket-types/{id}/qr', [TicketController::class, 'setQrCoordinates']);
         Route::put('/ticket-types/{id}/price', [TicketController::class, 'setPrice']);
         Route::put('/commissions', [AdminController::class, 'setCommission']);
+
+        // Email settings (admin only): see current config + manage email templates.
+        Route::get('/email-settings', [EmailSettingsController::class, 'index'])
+            ->name('admin.email-settings.index');
+        Route::get('/email-settings/default-source', [EmailSettingsController::class, 'viewDefaultSource'])
+            ->name('admin.email-settings.default-source');
+        Route::post('/email-settings/import-default', [EmailSettingsController::class, 'seedFromDefault'])
+            ->name('admin.email-settings.import-default');
+        Route::post('/email-settings/templates', [EmailSettingsController::class, 'storeTemplate'])
+            ->name('admin.email-settings.templates.store');
+        Route::get('/email-settings/templates/{emailTemplate}/edit', [EmailSettingsController::class, 'edit'])
+            ->name('admin.email-settings.templates.edit');
+        Route::put('/email-settings/templates/{emailTemplate}/source', [EmailSettingsController::class, 'updateTemplateSource'])
+            ->name('admin.email-settings.templates.source.update');
+        Route::post('/email-settings/templates/{emailTemplate}/duplicate', [EmailSettingsController::class, 'duplicateTemplate'])
+            ->name('admin.email-settings.templates.duplicate');
+        Route::patch('/email-settings/templates/{emailTemplate}/activate', [EmailSettingsController::class, 'activateTemplate'])
+            ->name('admin.email-settings.templates.activate');
+        Route::put('/email-settings/templates/{emailTemplate}', [EmailSettingsController::class, 'updateTemplate'])
+            ->name('admin.email-settings.templates.update');
+        Route::delete('/email-settings/templates/{emailTemplate}', [EmailSettingsController::class, 'destroyTemplate'])
+            ->name('admin.email-settings.templates.destroy');
     });
     Route::middleware('role:superadmin')->prefix('superadmin')->group(function () {
     });
 
     /**
-     * Promoter Routes
+     * Promoter Routes (regular promoter + promoter-manager + superadmin share these)
+     *
+     * A promoter-manager has the same commission logic as a promoter, but
+     * additionally manages his own sub-promoters via the /promoter-manager
+     * routes below. The shared order endpoints accept any seller role.
      */
-    Route::middleware('role:promoter|superadmin')->prefix('promoter')->group(function () {
+    Route::middleware('role:promoter|promoter_manager|superadmin')->prefix('promoter')->group(function () {
         Route::get('/dashboard', [PromoterController::class, 'dashboard'])->name('promoter.dashboard');
         Route::get('/help', [PromoterController::class, 'help'])->name('promoter.help');
         Route::get('/orders', [OrderController::class, 'index'])->name('promoter.orders.index');
         Route::get('/orders/{id}', [OrderController::class, 'show'])->name('promoter.orders.show');
+    });
 
-        Route::post('/sub-promoters', [PromoterController::class, 'createSubPromoter']);
+    /**
+     * Promoter-manager specific routes - sub-promoter management.
+     */
+    Route::middleware('role:promoter_manager|superadmin')->prefix('promoter-manager')->group(function () {
+        Route::get('/dashboard', [PromoterManagerController::class, 'dashboard'])->name('promoter_manager.dashboard');
+
+        Route::get('/sub-promoters', [PromoterManagerController::class, 'subPromotersIndex'])->name('promoter_manager.sub_promoters.index');
+        Route::get('/sub-promoter/create', [PromoterManagerController::class, 'subPromoterCreate'])->name('promoter_manager.sub_promoters.create');
+        Route::post('/sub-promoters', [PromoterManagerController::class, 'subPromoterStore'])->name('promoter_manager.sub_promoters.store');
+        Route::get('/sub-promoter/edit/{id}', [PromoterManagerController::class, 'subPromoterEdit'])->name('promoter_manager.sub_promoters.edit');
+        Route::put('/sub-promoter/edit/{id}', [PromoterManagerController::class, 'subPromoterUpdate'])->name('promoter_manager.sub_promoters.update');
+        Route::delete('/sub-promoter/{id}', [PromoterManagerController::class, 'subPromoterDestroy'])->name('promoter_manager.sub_promoters.destroy');
     });
 
     /**
      * Sub-Promoter Routes
      */
     Route::middleware('role:sub_promoter')->prefix('sub-promoter')->group(function () {
-        Route::get('/dashboard', [SubPromoterController::class, 'dashboard']);
-        Route::post('/orders', [SubPromoterController::class, 'placeOrder']);
+        Route::get('/dashboard', [SubPromoterController::class, 'dashboard'])->name('sub_promoter.dashboard');
+        Route::get('/order/create', [SubPromoterController::class, 'create'])->name('sub_promoter.orders.create');
+        Route::post('/orders', [SubPromoterController::class, 'placeOrder'])->name('sub_promoter.orders.store');
     });
 });
 Route::middleware(['auth'])->group(function () {

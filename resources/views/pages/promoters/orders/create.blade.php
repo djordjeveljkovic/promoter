@@ -3,15 +3,49 @@
         <div class="max-w-3xl mx-auto w-full rounded-lg bg-white p-6 shadow-sm dark:bg-zinc-800">
             <div class="mb-6 flex items-center justify-between">
                 <h1 class="text-2xl font-semibold text-gray-900 dark:text-white">{{ __('orders.create_main_heading') }}</h1>
-               @if(Auth::user()->role == 'promoter')
- <a href="{{ route('promoter.orders.index') }}" class="text-sm text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300">{!! __('orders.create_back_to_orders_link') !!}</a> 
+               @if(Auth::user()->isAdmin())
+ <a href="{{ route('admin.orders.index') }}" class="text-sm text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300">{!! __('orders.create_back_to_orders_link') !!}</a>
 @else
- <a href="{{ route('admin.orders.index') }}" class="text-sm text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300">{!! __('orders.create_back_to_orders_link') !!}</a> 
+ <a href="{{ route('promoter.orders.index') }}" class="text-sm text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300">{!! __('orders.create_back_to_orders_link') !!}</a>
 @endif
             </div>
 
             <form method="POST" action="{{ route('promoter.orders.store') }}" id="createOrderForm" class="space-y-6">
                 @csrf
+
+                @auth
+                    @if(Auth::user()->role === 'sub_promoter')
+                        @php
+                            $manager = Auth::user()->promoterManager();
+                            $bannerOverrides = [];
+                            if ($manager) {
+                                $bannerOverrides = \App\Models\PromoterCommissionOverride::where('promoter_manager_id', $manager->id)
+                                    ->where('sub_promoter_id', Auth::id())
+                                    ->pluck('commission_percentage', 'ticket_type_id')
+                                    ->map(fn ($v) => (float) $v)
+                                    ->all();
+                            }
+                        @endphp
+                        <div class="rounded-md border border-indigo-200 dark:border-indigo-700 bg-indigo-50 dark:bg-indigo-900/30 p-4 text-sm text-indigo-900 dark:text-indigo-200">
+                            <p class="font-semibold mb-1">{{ __('orders.commission_split_notice_title') }}</p>
+                            @if($manager)
+                                <p class="mb-2">{{ __('orders.commission_split_notice_managed_by', ['name' => $manager->name]) }}</p>
+                                @if(!empty($bannerOverrides))
+                                    <ul class="list-disc pl-5 space-y-0.5">
+                                        @foreach($bannerOverrides as $typeId => $pct)
+                                            @php $type = \App\Models\TicketType::find($typeId); @endphp
+                                            <li>{{ $type?->name }}: {{ number_format($pct, 2) }}%</li>
+                                        @endforeach
+                                    </ul>
+                                @else
+                                    <p>{{ __('orders.commission_split_notice_default') }}</p>
+                                @endif
+                            @else
+                                <p>{{ __('orders.commission_split_notice_no_manager') }}</p>
+                            @endif
+                        </div>
+                    @endif
+                @endauth
 
                 {{-- Customer Email --}}
                 <div>
@@ -130,13 +164,13 @@
 
                 {{-- Submit Button --}}
                 <div class="flex items-center justify-end space-x-3 pt-6">
-               @if(Auth::user()->role == 'promoter')
-                     <a href="{{ route('promoter.orders.index') }}"
+               @if(Auth::user()->isAdmin())
+                     <a href="{{ route('admin.orders.index') }}"
                            class="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:border-gray-500 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600 dark:focus:ring-offset-gray-800">
                         {{ __('orders.create_cancel_button') }}
                     </a>
 @else
-                     <a href="{{ route('admin.orders.index') }}"
+                     <a href="{{ route('promoter.orders.index') }}"
                            class="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:border-gray-500 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600 dark:focus:ring-offset-gray-800">
                         {{ __('orders.create_cancel_button') }}
                     </a>
