@@ -51,6 +51,8 @@ return [
         'qr_size_placeholder'   => 'e.g., 100',
 
         'commissions_fieldset_legend'   => 'Ticket Commission Tiers',
+        'commissions_card_helper'      => 'Add multiple tiers to grant different commission amounts based on tickets sold. Scroll to see all tiers.',
+        'commissions_tier_label'       => 'Tier #:index',
         'commissions_min_sold_label'    => 'Min Sold',
         'commissions_min_sold_placeholder'=> 'e.g., 1',
         'commissions_max_sold_label'    => 'Max Sold',
@@ -80,6 +82,8 @@ return [
         'qr_size_label' => 'QR Size (px)',
         'qr_size_placeholder' => 'e.g., 100',
         'commissions_fieldset_legend' => 'Ticket Commission Tiers',
+        'commissions_card_helper'      => 'Add multiple tiers to grant different commission amounts based on tickets sold. Scroll to see all tiers.',
+        'commissions_tier_label'       => 'Tier #:index',
         'commissions_min_sold_label' => 'Min Sold',
         'commissions_min_sold_placeholder'=> 'e.g., 1',
         'commissions_max_sold_label' => 'Max Sold',
@@ -89,14 +93,6 @@ return [
         'commissions_remove_button' => 'Remove',
         'commissions_add_tier_button' => 'Add Commission Tier',
         'cancel_button' => 'Cancel',
-    ],
-
-    'create_form' => [
-        'page_title' => 'Create New Ticket Type',
-        'main_heading' => 'Create New Ticket Type',
-        'back_to_list_link' => '&larr; Back to List',
-        'create_button' => 'Create Ticket Type',
-        // Specific help texts or placeholders for create if different can go here
     ],
 
     // Keys for Edit Ticket Type page
@@ -116,6 +112,8 @@ return [
         'current_photo_label'=> 'Current Image:',
         'no_current_photo'  => 'No current image uploaded.',
         'photo_help_text_edit' => 'Optional. Upload a new image to replace the current one. Max file size: 2MB. Allowed types: JPG, PNG, WEBP, GIF, SVG.',
+        'new_photo_label'   => 'New photo preview:',
+        'remove_preview'    => 'Remove preview',
 
         'qr_fieldset_legend'    => 'QR Code Coordinates (on Ticket Image)',
         'qr_help_text'          => 'Define X, Y coordinates (in pixels from top-left) and size (in pixels) for placing the QR code.',
@@ -127,6 +125,8 @@ return [
         'qr_size_placeholder'   => 'e.g., 100',
 
         'commissions_fieldset_legend'   => 'Ticket Commission Tiers',
+        'commissions_card_helper'      => 'Add multiple tiers to grant different commission amounts based on tickets sold. Scroll to see all tiers.',
+        'commissions_tier_label'       => 'Tier #:index',
         'commissions_min_sold_label'    => 'Min Sold',
         'commissions_min_sold_placeholder'=> 'e.g., 1',
         'commissions_max_sold_label'    => 'Max Sold',
@@ -138,5 +138,6 @@ return [
 
         'cancel_button'     => 'Cancel',
         'update_button'     => 'Update Ticket Type',
+        'errors_title'      => 'Please fix the following errors',
     ],
 ];

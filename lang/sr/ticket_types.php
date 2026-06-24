@@ -42,6 +42,8 @@ return [
         'qr_size_placeholder' => 'npr., 100',
         'commissions_fieldset_legend' => 'Nivoi Provizije za Ulaznice',
         'commissions_min_sold_label' => 'Min Prodato',
+        'commissions_card_helper'      => 'Dodajte više nivoa za različite provizije zasnovane na broju prodatih ulaznica. Skrolujte da vidite sve nivoe.',
+        'commissions_tier_label'       => 'Nivo #:index',
         'commissions_min_sold_placeholder' => 'npr., 1',
         'commissions_max_sold_label' => 'Max Prodato',
         'commissions_max_sold_placeholder' => 'npr., 10 (prazno za bez ograničenja)',
@@ -57,6 +59,7 @@ return [
         'main_heading' => 'Kreiraj Novi Tip Ulaznice',
         'back_to_list_link' => '&larr; Nazad na Listu',
         'create_button' => 'Kreiraj Tip Ulaznice',
+        'errors_title'   => 'Molimo ispravite sledeće greške',
         'name_label' => 'Naziv',
         'name_placeholder' => 'npr., Regularna Ulaznica, VIP Propusnica',
         'price_label' => 'Cena',
@@ -73,6 +76,8 @@ return [
         'qr_size_placeholder' => 'npr., 100',
         'commissions_fieldset_legend' => 'Nivoi Provizije za Ulaznice',
         'commissions_min_sold_label' => 'Min Prodato',
+        'commissions_card_helper'      => 'Dodajte više nivoa za različite provizije zasnovane na broju prodatih ulaznica. Skrolujte da vidite sve nivoe.',
+        'commissions_tier_label'       => 'Nivo #:index',
         'commissions_min_sold_placeholder' => 'npr., 1',
         'commissions_max_sold_label' => 'Max Prodato',
         'commissions_max_sold_placeholder' => 'npr., 10 (prazno za bez ograničenja)',
@@ -112,7 +117,9 @@ return [
         'qr_size_placeholder'   => 'npr., 100',
 
         'commissions_fieldset_legend'   => 'Nivoi Provizije za Ulaznice',
-        'commissions_min_sold_label'    => 'Min Prodato',
+        'commissions_min_sold_label' => 'Min Prodato',
+        'commissions_card_helper'      => 'Dodajte više nivoa za različite provizije zasnovane na broju prodatih ulaznica. Skrolujte da vidite sve nivoe.',
+        'commissions_tier_label'       => 'Nivo #:index',
         'commissions_min_sold_placeholder' => 'npr., 1',
         'commissions_max_sold_label'    => 'Max Prodato',
         'commissions_max_sold_placeholder' => 'npr., 10 (prazno za bez ograničenja)',
@@ -123,6 +130,7 @@ return [
 
         'cancel_button'     => 'Otkaži',
         'update_button'     => 'Ažuriraj Tip Ulaznice',
+        'errors_title'      => 'Molimo ispravite sledeće greške',
     ],
     'currency_symbol'   => 'RSD', // Simbol valute
 ];

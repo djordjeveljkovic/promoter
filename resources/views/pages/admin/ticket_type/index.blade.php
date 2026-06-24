@@ -1,86 +1,94 @@
 <x-layouts.app :title="__('ticket_types.page_title')">
-    <div class="flex h-full w-full flex-1 flex-col gap-4 rounded-xl">
-        <div class="max-w-full rounded-lg bg-white p-6 shadow-sm dark:bg-zinc-800">
-            <div class="mb-6 flex items-center justify-between">
-                <h1 class="text-2xl font-semibold text-gray-900 dark:text-white">{{ __('ticket_types.main_heading') }}</h1>
-                <a href="{{ route('ticket_type.create') }}"
-                   class="inline-flex items-center justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800">
-                    <svg class="w-5 h-5 mr-2 -ml-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                        <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
-                    </svg>
+    <div class="space-y-6">
+        <x-ui.page-header :title="__('ticket_types.main_heading')">
+            <x-slot:actions>
+                <x-ui.button variant="primary" :href="route('ticket_type.create')" icon="plus">
                     {{ __('ticket_types.create_button') }}
-                </a>
-            </div>
+                </x-ui.button>
+            </x-slot:actions>
+        </x-ui.page-header>
 
-            <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                    <thead class="bg-gray-50 dark:bg-gray-700">
-                        <tr>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300">{{ __('ticket_types.table.header_name') }}</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300">{{ __('ticket_types.table.header_price') }}</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300">{{ __('ticket_types.table.header_photo') }}</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300">{{ __('ticket_types.table.header_status') }}</th>
-                            <th scope="col" class="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300">{{ __('ticket_types.table.header_actions') }}</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-800">
-                        @forelse ($ticketTypes as $ticketType)
-                            {{-- Dim the row when deactivated so it's obvious at a glance. --}}
-                            <tr class="{{ $ticketType->is_active ? '' : 'opacity-50' }}">
-                                <td class="whitespace-nowrap px-6 py-4 text-sm font-medium text-gray-900 dark:text-white">{{ $ticketType->name }}</td>
-                                <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-500 dark:text-gray-300">{{ number_format($ticketType->price, 2) }} {{ __('ticket_types.currency_symbol') }}</td>
-                                <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-500 dark:text-gray-300">
-                                    @if ($ticketType->photo_path)
-                                        {{-- Assuming photo_path is relative to public directory if using asset directly --}}
-                                        {{-- If using storage symlink, it might be asset('storage/' . $ticketType->photo_path) --}}
-                                        <img src="{{ asset($ticketType->photo_path) }}" alt="{{ $ticketType->name }}" class="h-10 w-10 rounded-md object-cover">
-                                    @else
-                                        <span class="text-xs italic">{{ __('ticket_types.table.no_photo') }}</span>
-                                    @endif
-                                </td>
-                                <td class="whitespace-nowrap px-6 py-4 text-sm">
-                                    @if ($ticketType->is_active)
-                                        <span class="inline-flex items-center rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800 dark:bg-green-900 dark:text-green-200">
-                                            {{ __('ticket_types.table.status_active') }}
-                                        </span>
-                                    @else
-                                        <span class="inline-flex items-center rounded-full bg-gray-200 px-2 py-0.5 text-xs font-medium text-gray-700 dark:bg-gray-600 dark:text-gray-200">
-                                            {{ __('ticket_types.table.status_inactive') }}
-                                        </span>
-                                    @endif
-                                </td>
-                                <td class="whitespace-nowrap px-6 py-4 text-right text-sm font-medium space-x-2">
-                                    <a href="{{ route('ticket_type.edit', $ticketType) }}" class="text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300">{{ __('ticket_types.table.action_edit') }}</a>
+        <x-ui.card :padding="false">
+            <x-ui.table>
+                <x-ui.table-header>
+                    <x-ui.table-row>
+                        <x-ui.table-cell header>{{ __('ticket_types.table.header_name') }}</x-ui.table-cell>
+                        <x-ui.table-cell header>{{ __('ticket_types.table.header_price') }}</x-ui.table-cell>
+                        <x-ui.table-cell header>{{ __('ticket_types.table.header_photo') }}</x-ui.table-cell>
+                        <x-ui.table-cell header>{{ __('ticket_types.table.header_status') }}</x-ui.table-cell>
+                        <x-ui.table-cell header align="right">{{ __('ticket_types.table.header_actions') }}</x-ui.table-cell>
+                    </x-ui.table-row>
+                </x-ui.table-header>
+                <x-ui.table-body>
+                    @forelse ($ticketTypes as $ticketType)
+                        {{-- Dim the row when deactivated so it's obvious at a glance. --}}
+                        <x-ui.table-row @class(['opacity-50' => ! $ticketType->is_active])>
+                            <x-ui.table-cell nowrap>
+                                <span class="font-medium text-zinc-900 dark:text-zinc-100">{{ $ticketType->name }}</span>
+                            </x-ui.table-cell>
+                            <x-ui.table-cell nowrap numeric>
+                                {{ number_format($ticketType->price, 2) }} {{ __('ticket_types.currency_symbol') }}
+                            </x-ui.table-cell>
+                            <x-ui.table-cell nowrap>
+                                @if ($ticketType->photo_path)
+                                    <img src="{{ asset($ticketType->photo_path) }}" alt="{{ $ticketType->name }}"
+                                         class="h-10 w-10 rounded-md object-cover ring-1 ring-zinc-200 dark:ring-zinc-700">
+                                @else
+                                    <span class="text-xs italic text-zinc-500 dark:text-zinc-400">{{ __('ticket_types.table.no_photo') }}</span>
+                                @endif
+                            </x-ui.table-cell>
+                            <x-ui.table-cell>
+                                @if ($ticketType->is_active)
+                                    <x-ui.badge variant="success">{{ __('ticket_types.table.status_active') }}</x-ui.badge>
+                                @else
+                                    <x-ui.badge variant="neutral">{{ __('ticket_types.table.status_inactive') }}</x-ui.badge>
+                                @endif
+                            </x-ui.table-cell>
+                            <x-ui.table-cell align="right">
+                                <div class="inline-flex items-center gap-2">
+                                    <x-ui.link :href="route('ticket_type.edit', $ticketType)" icon="pencil-square">
+                                        {{ __('ticket_types.table.action_edit') }}
+                                    </x-ui.link>
                                     {{-- Single toggle form. Button label flips based on current state,
                                          and the confirm message is also picked from the lang file
                                          so it matches the action. --}}
-                                    <form action="{{ route('ticket_type.toggle_active', $ticketType) }}" method="POST" class="inline-block"
+                                    <form action="{{ route('ticket_type.toggle_active', $ticketType) }}" method="POST" class="inline"
                                           onsubmit="return confirm('{{ $ticketType->is_active ? __('ticket_types.table.deactivate_confirm_message') : __('ticket_types.table.activate_confirm_message') }}');">
                                         @csrf
                                         @method('PATCH')
                                         @if ($ticketType->is_active)
-                                            <button type="submit" class="text-amber-600 hover:text-amber-900 dark:text-amber-400 dark:hover:text-amber-300">{{ __('ticket_types.table.action_deactivate') }}</button>
+                                            <button type="submit"
+                                                    class="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-xs font-medium text-amber-700 hover:bg-amber-50 hover:text-amber-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 dark:text-amber-400 dark:hover:bg-amber-500/10 dark:hover:text-amber-300">
+                                                {{ __('ticket_types.table.action_deactivate') }}
+                                            </button>
                                         @else
-                                            <button type="submit" class="text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300">{{ __('ticket_types.table.action_activate') }}</button>
+                                            <button type="submit"
+                                                    class="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-xs font-medium text-emerald-600 hover:bg-emerald-50 hover:text-emerald-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 dark:text-emerald-400 dark:hover:bg-emerald-500/10 dark:hover:text-emerald-300">
+                                                {{ __('ticket_types.table.action_activate') }}
+                                            </button>
                                         @endif
                                     </form>
-                                </td>
-                            </tr>
-                        @empty
-                            <tr>
-                                <td colspan="5" class="px-6 py-4 whitespace-nowrap text-sm text-center text-gray-500 dark:text-gray-400">
-                                    {{ __('ticket_types.table.no_data_message') }}
-                                </td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                </table>
+                                </div>
+                            </x-ui.table-cell>
+                        </x-ui.table-row>
+                    @empty
+                        <x-ui.table-row :hover="false">
+                            <x-ui.table-cell colspan="5">
+                                <x-ui.empty-state
+                                    icon="ticket"
+                                    :title="__('ticket_types.table.no_data_message')"
+                                />
+                            </x-ui.table-cell>
+                        </x-ui.table-row>
+                    @endforelse
+                </x-ui.table-body>
+            </x-ui.table>
+        </x-ui.card>
+
+        @if ($ticketTypes->hasPages())
+            <div>
+                {{ $ticketTypes->links() }}
             </div>
-            @if ($ticketTypes->hasPages())
-                <div class="mt-6">
-                    {{ $ticketTypes->links() }}
-                </div>
-            @endif
-        </div>
+        @endif
     </div>
 </x-layouts.app>
