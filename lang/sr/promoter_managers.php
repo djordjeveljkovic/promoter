@@ -128,6 +128,17 @@ return [
             ],
         ],
 
+        /* ------------------ Brze statistike (hero na stranici sub-promotera) ------------------ */
+        'quick_stats' => [
+            'team_owed_to_me' => 'Tim mi duguje',
+            'subs_count'      => 'Aktivni promoteri',
+        ],
+
+        /* ------------------ Pregled dugovanja tima (sub-promoteri index) ------------------ */
+        'team_debts' => [
+            'sub_heading' => 'Pregled koliko vam svaki promoter trenutno duguje.',
+        ],
+
         /* ------------------ "Moja zarada" detaljna analiza ------------------ */
         'earnings_section' => [
             'heading'              => 'Moja zarada',
@@ -181,6 +192,11 @@ return [
             'owe_negative'             => 'Preplatio za',
             'record_payment'           => 'Evidentiraj uplatu',
             'amount_placeholder'       => 'Iznos',
+        ],
+
+        /* ------------------ "Moji subovi" (sub-promoteri index po kartici) ------------------ */
+        'my_subs' => [
+            'orders_unit' => 'porudžbina',
         ],
 
         /* ------------------ "Lista promotera" (sortirana po ulaznicama) ------------------ */

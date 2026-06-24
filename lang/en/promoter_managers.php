@@ -128,6 +128,17 @@ return [
             ],
         ],
 
+        /* ------------------ Quick stats cards (sub-promoters index hero) ------------------ */
+        'quick_stats' => [
+            'team_owed_to_me' => 'Team owes me',
+            'subs_count'      => 'Active promoters',
+        ],
+
+        /* ------------------ Team debts overview (sub-promoters index) ------------------ */
+        'team_debts' => [
+            'sub_heading' => 'Snapshot of how much each promoter currently owes you.',
+        ],
+
         /* ------------------ "My earnings" detailed breakdown ------------------ */
         'earnings_section' => [
             'heading'              => 'My earnings',
@@ -181,6 +192,11 @@ return [
             'owe_negative'             => 'Overpaid by',
             'record_payment'           => 'Record payment',
             'amount_placeholder'       => 'Amount',
+        ],
+
+        /* ------------------ "My subs" (sub-promoters index per-card) ------------------ */
+        'my_subs' => [
+            'orders_unit' => 'orders',
         ],
 
         /* ------------------ "Sub-promoter list" (sorted by tickets) ------------------ */
