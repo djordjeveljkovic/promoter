@@ -1,5 +1,5 @@
 @props([
-    'cols' => 4, // 2 | 3 | 4 | 5
+    'cols' => 4, // 2 | 3 | 4 | 5 | 6 | 7
 ])
 
 @php
@@ -7,6 +7,8 @@
         2 => 'sm:grid-cols-2',
         3 => 'sm:grid-cols-2 lg:grid-cols-3',
         5 => 'sm:grid-cols-2 lg:grid-cols-5',
+        6 => 'sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6',
+        7 => 'sm:grid-cols-2 md:grid-cols-4 xl:grid-cols-7',
         default => 'sm:grid-cols-2 lg:grid-cols-4',
     };
 @endphp

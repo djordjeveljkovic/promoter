@@ -30,7 +30,7 @@
 | --- | --- |
 | **Components created** | ✅ All 24 `<x-ui.*>` components + `Status` class |
 | **Existing files modified** | ✅ Steps 1–10 complete |
-| **Last completed step** | **Step 10** — `admin/email_settings/index.blade.php` |
+| **Last completed step** | **Step 37** — controllers cleanup (`AdminOrderController`, `OrderController`, `PromoterController`, `SubPromoterController`). `OrderController1.php` is dead code (no route references); deletion is blocked by harness — left in place, `$jobStatusColors` left intact for safety. |
 
 ### User decisions (locked in, do not re-question)
 
@@ -752,8 +752,8 @@ Status colour map (in `App\Support\Status::VARIANTS`):
 | 8 — `admin/orders/create` | ✅ | | |
 | 9 — `livewire/admin/order-details` | ✅ | | |
 | 10 — `admin/email_settings/index` | ✅ | | |
-| 11 — `admin/email_settings/create` | ⬜ | | |
-| 12 — `admin/email_settings/edit` | ⬜ | | |
+| 11 — `admin/email_settings/create` | ✅ | | |
+| 12 — `admin/email_settings/edit` | ✅ | | |
 | 13 — `supremeadmin/overview` | ⬜ | | |
 | 14 — `subpromoters/{dashboard,orders}` | ⬜ | | |
 | 15 — `promoter_managers/dashboard` | ⬜ | | |

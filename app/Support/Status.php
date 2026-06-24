@@ -9,8 +9,8 @@ namespace App\Support;
  * defined in:
  *   - app/Http/Controllers/AdminOrderController.php
  *   - app/Http/Controllers/OrderController.php
- *   - app/Http/Controllers/OrderController1.php
  *   - app/Http/Controllers/SubPromoterController.php
+ *   - app/Http/Controllers/OrderController1.php (dead code; see plan §3)
  *
  * Views can use <x-ui.status-pill :status="$order->job_status" />
  * and don't need any controller plumbing.

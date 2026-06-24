@@ -1,28 +1,31 @@
 <section class="w-full">
-    {{-- Assuming partials.settings-heading contains its own translatable strings if needed --}}
     @include('partials.settings-heading')
 
     <x-settings.layout :heading="__('profile.page_heading')" :subheading="__('profile.page_subheading')">
         <form wire:submit="updateProfileInformation" class="my-6 w-full space-y-6">
-            <flux:input wire:model="name" :label="__('profile.name_label')" type="text" required autofocus autocomplete="name" />
+            <x-ui.field :label="__('profile.name_label')" for="name" required>
+                <x-ui.input id="name" wire:model="name" type="text" required autofocus autocomplete="name" />
+            </x-ui.field>
 
             <div>
-                <flux:input wire:model="email" :label="__('profile.email_label')" type="email" required autocomplete="email" />
+                <x-ui.field :label="__('profile.email_label')" for="email" required>
+                    <x-ui.input id="email" wire:model="email" type="email" required autocomplete="email" />
+                </x-ui.field>
 
-                @if (auth()->user() instanceof \Illuminate\Contracts\Auth\MustVerifyEmail &&! auth()->user()->hasVerifiedEmail())
-                    <div>
-                        <flux:text class="mt-4">
+                @if (auth()->user() instanceof \Illuminate\Contracts\Auth\MustVerifyEmail && ! auth()->user()->hasVerifiedEmail())
+                    <div class="mt-4">
+                        <p class="text-sm text-zinc-700 dark:text-zinc-300">
                             {{ __('profile.verification.unverified_notice') }}
 
-                            <flux:link class="text-sm cursor-pointer" wire:click.prevent="resendVerificationNotification">
+                            <button type="button" class="text-sm text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300 cursor-pointer" wire:click.prevent="resendVerificationNotification">
                                 {{ __('profile.verification.resend_link') }}
-                            </flux:link>
-                        </flux:text>
+                            </button>
+                        </p>
 
                         @if (session('status') === 'verification-link-sent')
-                            <flux:text class="mt-2 font-medium !dark:text-green-400 !text-green-600">
+                            <x-ui.alert variant="success" class="mt-2">
                                 {{ __('profile.verification.link_sent_message') }}
-                            </flux:text>
+                            </x-ui.alert>
                         @endif
                     </div>
                 @endif
@@ -30,7 +33,9 @@
 
             <div class="flex items-center gap-4">
                 <div class="flex items-center justify-end">
-                    <flux:button variant="primary" type="submit" class="w-full">{{ __('profile.save_button') }}</flux:button>
+                    <x-ui.button variant="primary" type="submit" class="w-full">
+                        {{ __('profile.save_button') }}
+                    </x-ui.button>
                 </div>
 
                 <x-action-message class="me-3" on="profile-updated">
@@ -39,7 +44,8 @@
             </div>
         </form>
 
-        {{-- Assuming livewire:settings.delete-user-form handles its own translations if any --}}
         <!-- <livewire:settings.delete-user-form /> -->
     </x-settings.layout>
 </section>
+</content>
+</invoke>

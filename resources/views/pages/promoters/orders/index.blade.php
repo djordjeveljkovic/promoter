@@ -1,188 +1,184 @@
 <x-layouts.app :title="__('orders.page_title')">
-    <div class="flex h-full w-full flex-1 flex-col gap-4 rounded-xl">
-        <div class="max-w-full rounded-lg bg-white p-6 shadow-sm dark:bg-zinc-800">
-            <div class="mb-6 flex items-center justify-between">
-                <div>
-                    <h1 class="text-2xl font-semibold text-gray-900 dark:text-white">{{ __('orders.main_heading') }}</h1>
-                    @if(auth()->user()?->isSupreme())
-                        <p class="mt-1 inline-flex items-center gap-1.5 rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-medium text-amber-800 dark:bg-amber-900/40 dark:text-amber-300">
-                            <svg class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                                <path fill-rule="evenodd" d="M10 1a4.5 4.5 0 00-4.5 4.5V9H5a2 2 0 00-2 2v6a2 2 0 002 2h10a2 2 0 002-2v-6a2 2 0 00-2-2h-.5V5.5A4.5 4.5 0 0010 1zm3 8V5.5a3 3 0 10-6 0V9h6z" clip-rule="evenodd" />
-                            </svg>
-                            {{ __('orders.private_banner') }}
-                        </p>
-                    @endif
-                </div>
-                <a href="{{ route('promoter.orders.create') }}"
-                   class="inline-flex items-center justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800">
-                    <svg class="w-5 h-5 mr-2 -ml-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                        <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
-                    </svg>
+    <div class="space-y-6">
+
+        <x-ui.page-header :title="__('orders.main_heading')">
+            @if(auth()->user()?->isSupreme())
+                <x-slot:eyebrow>
+                    <span class="inline-flex items-center gap-1.5">
+                        <svg class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                            <path fill-rule="evenodd" d="M10 1a4.5 4.5 0 00-4.5 4.5V9H5a2 2 0 00-2 2v6a2 2 0 002 2h10a2 2 0 002-2v-6a2 2 0 00-2-2h-.5V5.5A4.5 4.5 0 0010 1zm3 8V5.5a3 3 0 10-6 0V9h6z" clip-rule="evenodd" />
+                        </svg>
+                        {{ __('orders.private_banner') }}
+                    </span>
+                </x-slot:eyebrow>
+            @endif
+            <x-slot:actions>
+                <x-ui.button variant="primary" :href="route('promoter.orders.create')" icon="plus">
                     {{ __('orders.create_new_order_button') }}
-                </a>
-            </div>
+                </x-ui.button>
+            </x-slot:actions>
+        </x-ui.page-header>
 
-            {{-- Flash Messages for success/error/info --}}
-            {{-- Content of flash messages should be translated in the controller when setting them --}}
-            @if (session('success'))
-                <div class="mb-4 rounded-md bg-green-50 p-4 text-sm text-green-700 dark:bg-green-700 dark:text-green-100">
-                    {{ session('success') }}
-                </div>
-            @endif
-            @if (session('error'))
-                <div class="mb-4 rounded-md bg-red-50 p-4 text-sm text-red-700 dark:bg-red-700 dark:text-red-100">
-                    {{ session('error') }}
-                </div>
-            @endif
-             @if (session('info'))
-                <div class="mb-4 rounded-md bg-blue-50 p-4 text-sm text-blue-700 dark:bg-blue-700 dark:text-blue-100">
-                    {{ session('info') }}
-                </div>
-            @endif
+        {{-- Flash Messages --}}
+        @if (session('success'))
+            <x-ui.alert variant="success">{{ session('success') }}</x-ui.alert>
+        @endif
+        @if (session('error'))
+            <x-ui.alert variant="danger">{{ session('error') }}</x-ui.alert>
+        @endif
+        @if (session('info'))
+            <x-ui.alert variant="info">{{ session('info') }}</x-ui.alert>
+        @endif
 
-
-            <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                    <thead class="bg-gray-50 dark:bg-gray-700">
-                        <tr>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300">{{ __('orders.table.header_order_id') }}</th>
+        <x-ui.card :padding="false">
+            <x-ui.table>
+                <x-ui.table-header>
+                    <x-ui.table-row>
+                        <x-ui.table-cell header>{{ __('orders.table.header_order_id') }}</x-ui.table-cell>
+                        @if(!empty($subIds))
+                            <x-ui.table-cell header>{{ __('orders.table.header_seller') }}</x-ui.table-cell>
+                        @endif
+                        <x-ui.table-cell header>{{ __('orders.table.header_customer_email') }}</x-ui.table-cell>
+                        <x-ui.table-cell header>{{ __('orders.table.header_order_date') }}</x-ui.table-cell>
+                        <x-ui.table-cell header>{{ __('orders.table.header_items') }}</x-ui.table-cell>
+                        <x-ui.table-cell header align="right" numeric>{{ __('orders.table.header_total_price') }}</x-ui.table-cell>
+                        <x-ui.table-cell header align="right" numeric>{{ __('orders.table.header_commission_earned') }}</x-ui.table-cell>
+                        <x-ui.table-cell header>{{ __('orders.table.header_job_status') }}</x-ui.table-cell>
+                        <x-ui.table-cell header align="center">{{ __('orders.table.header_actions') }}</x-ui.table-cell>
+                    </x-ui.table-row>
+                </x-ui.table-header>
+                <x-ui.table-body>
+                    @forelse ($orders as $order)
+                        @php
+                            $isJobFailed = $order->job_status === 'failed';
+                            $statusKey = $order->job_status ?? 'unknown';
+                            $hasFailureReason = $isJobFailed && !empty($order->job_failure_reason);
+                            $myCommission = $viewerCommissionByOrder[$order->id] ?? null;
+                        @endphp
+                        <x-ui.table-row>
+                            <x-ui.table-cell nowrap>
+                                <span class="font-medium text-zinc-900 dark:text-white">#{{ $order->order_number }}</span>
+                            </x-ui.table-cell>
                             @if(!empty($subIds))
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300">{{ __('orders.table.header_seller') }}</th>
+                                @php $sellerInfo = $sellerLabelsByOrder[$order->id] ?? null; @endphp
+                                <x-ui.table-cell nowrap>
+                                    @if($sellerInfo && $sellerInfo['is_self'])
+                                        <x-ui.badge variant="indigo" size="sm">
+                                            {{ __('orders.seller_self_badge') }}
+                                        </x-ui.badge>
+                                    @else
+                                        <span class="text-zinc-500 dark:text-zinc-300">{{ $sellerInfo['name'] ?? __('orders.seller_unknown') }}</span>
+                                    @endif
+                                </x-ui.table-cell>
                             @endif
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300">{{ __('orders.table.header_customer_email') }}</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300">{{ __('orders.table.header_order_date') }}</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300">{{ __('orders.table.header_items') }}</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300">{{ __('orders.table.header_total_price') }}</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300">{{ __('orders.table.header_commission_earned') }}</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300">{{ __('orders.table.header_job_status') }}</th>
-                            <th scope="col" class="px-6 py-3 text-center text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300">{{ __('orders.table.header_actions') }}</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-800">
-                        @forelse ($orders as $order)
-                            @php
-                                $isJobFailed = $order->job_status === 'failed';
-                                // Translate status text
-                                $statusKey = $order->job_status ?? 'unknown';
-                                $statusText = __('orders.statuses.' . $statusKey, [], App::getLocale());
-                                // Fallback if specific status key doesn't exist, then use ucfirst
-                                if ($statusText === 'orders.statuses.' . $statusKey) {
-                                    $statusText = Illuminate\Support\Str::ucfirst($order->job_status ?? __('orders.statuses.unknown'));
-                                }
-
-                                $statusClass = $jobStatusColors[$order->job_status] ?? 'bg-gray-100 text-gray-800 dark:bg-gray-600 dark:text-gray-100';
-                                if ($isJobFailed && !empty($order->job_failure_reason)) {
-                                    $statusClass .= ' job-status-trigger cursor-pointer';
-                                }
-                            @endphp
-                            <tr>
-                                <td class="whitespace-nowrap px-6 py-4 text-sm font-medium text-gray-900 dark:text-white">#{{ $order->order_number }}</td>
-                                @if(!empty($subIds))
-                                    @php $sellerInfo = $sellerLabelsByOrder[$order->id] ?? null; @endphp
-                                    <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-500 dark:text-gray-300">
-                                        @if($sellerInfo && $sellerInfo['is_self'])
-                                            <span class="inline-flex items-center rounded-md bg-indigo-50 px-2 py-0.5 text-xs font-medium text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300">
-                                                {{ __('orders.seller_self_badge') }}
-                                            </span>
-                                        @else
-                                            {{ $sellerInfo['name'] ?? __('orders.seller_unknown') }}
-                                        @endif
-                                    </td>
-                                @endif
-                                <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-500 dark:text-gray-300">{{ $order->email }}</td>
-                                <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-500 dark:text-gray-300">{{ $order->created_at->format('M d, Y H:i') }}</td>
-                                <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-500 dark:text-gray-300">
+                            <x-ui.table-cell nowrap>
+                                <span class="text-zinc-500 dark:text-zinc-300">{{ $order->email }}</span>
+                            </x-ui.table-cell>
+                            <x-ui.table-cell nowrap>
+                                <span class="text-zinc-500 dark:text-zinc-300">{{ $order->created_at->format('M d, Y H:i') }}</span>
+                            </x-ui.table-cell>
+                            <x-ui.table-cell>
+                                <span class="text-zinc-500 dark:text-zinc-300">
                                     @foreach($order->items as $item)
                                         {{ $item->quantity }}x {{ $item->ticketType->name }}<br>
                                     @endforeach
-                                </td>
-                                <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-500 dark:text-gray-300">{{ number_format($order->total, 2) }} RSD</td>
-                                <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-500 dark:text-gray-300">
-                                    @php
-                                        $myCommission = $viewerCommissionByOrder[$order->id] ?? null;
-                                    @endphp
-                                    @if (in_array($order->job_status, ['completed', 'sent']) && $myCommission !== null)
-                                        <span class="font-semibold text-emerald-700 dark:text-emerald-400">{{ number_format($myCommission, 2) }} RSD</span>
-                                    @else
-                                        <span class="text-gray-400 dark:text-gray-500">{{ __('orders.table.commission_not_calculated') }}</span>
+                                </span>
+                            </x-ui.table-cell>
+                            <x-ui.table-cell align="right" numeric>{{ number_format($order->total, 2) }} RSD</x-ui.table-cell>
+                            <x-ui.table-cell align="right" numeric>
+                                @if (in_array($order->job_status, ['completed', 'sent']) && $myCommission !== null)
+                                    <span class="font-semibold text-emerald-700 dark:text-emerald-400">{{ number_format($myCommission, 2) }} RSD</span>
+                                @else
+                                    <span class="text-zinc-400 dark:text-zinc-500">{{ __('orders.table.commission_not_calculated') }}</span>
+                                @endif
+                            </x-ui.table-cell>
+                            <x-ui.table-cell>
+                                <span @class([
+                                    'inline-flex items-center gap-1',
+                                    'job-status-trigger cursor-pointer' => $hasFailureReason,
+                                ])
+                                    @if($hasFailureReason)
+                                        data-target-row="error-row-{{ $order->id }}"
+                                        title="{{ __('orders.table.status_error_tooltip_prefix') }} {{ Str::limit($order->job_failure_reason, 100) }}"
                                     @endif
-                                </td>
-                                <td class="whitespace-nowrap px-6 py-4 text-sm">
-                                    <span
-                                        @if($isJobFailed && !empty($order->job_failure_reason))
-                                            data-target-row="error-row-{{ $order->id }}"
-                                            title="{{ __('orders.table.status_error_tooltip_prefix') }} {{ Str::limit($order->job_failure_reason, 100) }}"
-                                        @endif
-                                        class="px-2 inline-flex lowercase items-center text-xs leading-5 font-semibold rounded-full {{ $statusClass }}">
-                                        {{ $statusText }}
-                                        @if($isJobFailed && !empty($order->job_failure_reason))
-                                            <svg class="ml-1 w-3 h-3 transform transition-transform duration-150 status-icon" fill="currentColor" viewBox="0 0 20 20">
-                                                <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
-                                            </svg>
-                                        @endif
-                                    </span>
-                                </td>
-                                <td class="whitespace-nowrap px-6 py-4 flex flex-col text-center text-sm font-medium space-x-1"> {{-- Consider items-center for alignment --}}
-                                    <a href="{{ route('promoter.orders.show', $order->id) }}"
-                                       class="inline-flex items-center justify-center mb-1 px-2 py-1 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-400 rounded-md transition-colors"
-                                       title="{{ __('orders.table.actions_view_tooltip') }}">
+                                >
+                                    <x-ui.status-pill :status="$statusKey" />
+                                    @if($hasFailureReason)
+                                        <svg class="ml-0.5 w-3 h-3 transform transition-transform duration-150 status-icon" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                                        </svg>
+                                    @endif
+                                </span>
+                            </x-ui.table-cell>
+                            <x-ui.table-cell align="center">
+                                <div class="flex flex-col items-center gap-1">
+                                    <x-ui.link variant="primary" size="sm" :href="route('promoter.orders.show', $order->id)">
                                         {{ __('orders.table.actions_view_button') }}
-                                    </a>
+                                    </x-ui.link>
                                     @if ($order->job_status === 'failed')
-                                        <form action="{{ route('orders.rerunImageJob', $order->id) }}" method="POST" class="inline-block mb-1 sm:mb-0 sm:mr-1">
+                                        <form action="{{ route('orders.rerunImageJob', $order->id) }}" method="POST">
                                             @csrf
-                                            <button type="submit" class="text-yellow-600 hover:text-yellow-800 dark:text-yellow-400 dark:hover:text-yellow-200 px-2 py-1 text-xs" title="{{ __('orders.table.actions_retry_images_tooltip_prefix') }} {{ Str::limit($order->job_failure_reason, 100) }}">
+                                            <button type="submit"
+                                                    class="text-xs text-amber-600 hover:text-amber-800 dark:text-amber-400 dark:hover:text-amber-200"
+                                                    title="{{ __('orders.table.actions_retry_images_tooltip_prefix') }} {{ Str::limit($order->job_failure_reason, 100) }}">
                                                 {{ __('orders.table.actions_retry_images_button') }}
                                             </button>
                                         </form>
-                                        <form action="{{ route('orders.rerunEmailJob', $order->id) }}" method="POST" class="inline-block">
+                                        <form action="{{ route('orders.rerunEmailJob', $order->id) }}" method="POST">
                                             @csrf
-                                            <button type="submit" class="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-200 px-2 py-1 text-xs" title="{{ __('orders.table.actions_retry_email_tooltip_prefix') }} {{ Str::limit($order->job_failure_reason, 100) }}">
+                                            <button type="submit"
+                                                    class="text-xs text-sky-600 hover:text-sky-800 dark:text-sky-400 dark:hover:text-sky-200"
+                                                    title="{{ __('orders.table.actions_retry_email_tooltip_prefix') }} {{ Str::limit($order->job_failure_reason, 100) }}">
                                                 {{ __('orders.table.actions_retry_email_button') }}
                                             </button>
                                         </form>
                                     @elseif (in_array($order->job_status, ['completed', 'sent']))
-                                        <form action="{{ route('orders.rerunEmailJob', $order->id) }}" method="POST" class="inline-block">
+                                        <form action="{{ route('orders.rerunEmailJob', $order->id) }}" method="POST">
                                             @csrf
-                                            <button type="submit" class="text-green-600 hover:text-green-800 dark:text-green-400 dark:hover:text-green-200 px-2 py-1 text-xs" title="{{ __('orders.table.actions_resend_email_tooltip') }}">
+                                            <button type="submit"
+                                                    class="text-xs text-emerald-600 hover:text-emerald-800 dark:text-emerald-400 dark:hover:text-emerald-200"
+                                                    title="{{ __('orders.table.actions_resend_email_tooltip') }}">
                                                 {{ __('orders.table.actions_resend_email_button') }}
                                             </button>
                                         </form>
                                     @endif
-                                    {{-- Add a view details button/link if needed --}}
-                                    {{-- <a href="{{ route('promoter.orders.show', $order->id) }}" class="text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-200 px-2 py-1 text-xs">View</a> --}}
-                                </td>
-                            </tr>
-                            {{-- Row for displaying the error message --}}
-                            @if($isJobFailed && !empty($order->job_failure_reason))
-                            <tr id="error-row-{{ $order->id }}" class="error-message-row bg-red-50 dark:bg-red-800 dark:bg-opacity-20" style="display: none;">
-                                <td colspan="{{ !empty($subIds) ? 9 : 8 }}" class="px-6 py-3">
-                                    <div class="text-sm text-red-700 dark:text-red-200">
+                                </div>
+                            </x-ui.table-cell>
+                        </x-ui.table-row>
+
+                        {{-- Row for displaying the error message --}}
+                        @if($hasFailureReason)
+                            <x-ui.table-row :hover="false" id="error-row-{{ $order->id }}" class="error-message-row bg-rose-50 dark:bg-rose-900/20" style="display: none;">
+                                <x-ui.table-cell colspan="{{ !empty($subIds) ? 9 : 8 }}" class="!px-6 !py-3">
+                                    <div class="text-sm text-rose-700 dark:text-rose-200">
                                         <strong class="font-semibold block mb-1">{{ __('orders.table.job_failure_reason_label') }}</strong>
-                                        <pre class="whitespace-pre-wrap text-xs font-mono p-2 bg-red-100 dark:bg-red-700 dark:text-red-100 rounded border border-red-200 dark:border-red-600">{{ $order->job_failure_reason }}</pre>
+                                        <pre class="whitespace-pre-wrap text-xs font-mono p-2 bg-rose-100 dark:bg-rose-700 dark:text-rose-100 rounded border border-rose-200 dark:border-rose-600">{{ $order->job_failure_reason }}</pre>
                                     </div>
-                                </td>
-                            </tr>
-                            @endif
-                        @empty
-                            <tr>
-                                <td colspan="{{ !empty($subIds) ? 9 : 8 }}" class="px-6 py-4 whitespace-nowrap text-sm text-center text-gray-500 dark:text-gray-400">
-                                    {{ __('orders.table.no_orders_message') }}
-                                </td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
+                                </x-ui.table-cell>
+                            </x-ui.table-row>
+                        @endif
+                    @empty
+                        <x-ui.table-row :hover="false">
+                            <x-ui.table-cell colspan="{{ !empty($subIds) ? 9 : 8 }}">
+                                <x-ui.empty-state
+                                    icon="shopping-bag"
+                                    :title="__('orders.table.no_orders_message')"
+                                />
+                            </x-ui.table-cell>
+                        </x-ui.table-row>
+                    @endforelse
+                </x-ui.table-body>
+            </x-ui.table>
+
             @if ($orders->hasPages())
-                <div class="mt-6">
+                <div class="mt-6 px-4 sm:px-6 pb-4">
                     {{ $orders->links() }}
                 </div>
             @endif
-        </div>
+        </x-ui.card>
     </div>
 
-    {{-- Pure JavaScript for toggling error messages (ensure this is loaded) --}}
+    {{-- Pure JavaScript for toggling error messages --}}
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             const statusTriggers = document.querySelectorAll('.job-status-trigger');
@@ -204,3 +200,5 @@
         });
     </script>
 </x-layouts.app>
+</content>
+</invoke>

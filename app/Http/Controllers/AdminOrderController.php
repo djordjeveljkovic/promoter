@@ -108,18 +108,7 @@ class AdminOrderController extends Controller
 	}
 
 
-        $jobStatusColors = [
-            'pending'    => 'bg-yellow-100 text-yellow-800 dark:bg-yellow-700 dark:text-yellow-200',
-            'processing' => 'bg-blue-100 text-blue-800 dark:bg-blue-700 dark:text-blue-200',
-            'failed'     => 'bg-red-100 text-red-800 dark:bg-red-700 dark:text-red-200',
-            'failed_clickable' => 'bg-red-100 text-red-800 dark:bg-red-700 dark:text-red-200 hover:bg-red-200 dark:hover:bg-red-600 cursor-pointer',
-            'blocked'    => 'bg-gray-300 text-gray-700 dark:bg-gray-600 dark:text-gray-100',
-            'completed'  => 'bg-green-100 text-green-800 dark:bg-green-700 dark:text-green-200',
-            'sent'       => 'bg-teal-100 text-teal-800 dark:text-teal-200',
-            'N/A'        => 'bg-gray-100 text-gray-800 dark:bg-gray-500 dark:text-gray-300',
-        ];
-
-        return view('pages.admin.orders.index', compact('orders', 'jobStatusColors', 'filterableUsers', 'role'));
+        return view('pages.admin.orders.index', compact('orders', 'filterableUsers', 'role'));
     }
 
     /**

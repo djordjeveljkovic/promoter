@@ -4,38 +4,30 @@
     <x-auth-session-status class="text-center" :status="session('status')" />
 
     <form wire:submit="login" class="flex flex-col gap-6">
-        <flux:input
-            wire:model="email"
-            :label="__('login.email_label')"
-            type="email"
-            required
-            autofocus
-            autocomplete="email"
-            placeholder="email@example.com" {{-- Example format, usually not translated --}}
-        />
+        <x-ui.field :label="__('login.email_label')" for="email" required>
+            <x-ui.input id="email" wire:model="email" type="email" required autofocus autocomplete="email" placeholder="email@example.com" />
+        </x-ui.field>
 
         <div class="relative">
-            <flux:input
-                wire:model="password"
-                :label="__('login.password_label')"
-                type="password"
-                required
-                autocomplete="current-password"
-                :placeholder="__('login.password_placeholder')"
-                viewable
-            />
+            <x-ui.field :label="__('login.password_label')" for="password" required>
+                <x-ui.input id="password" wire:model="password" type="password" required autocomplete="current-password" :placeholder="__('login.password_placeholder')" />
+            </x-ui.field>
 
             @if (Route::has('password.request'))
-                <flux:link class="absolute end-0 top-0 text-sm" :href="route('password.request')" wire:navigate>
+                <x-ui.link class="absolute end-0 top-0 text-sm" variant="primary" :href="route('password.request')">
                     {{ __('login.forgot_password_link') }}
-                </flux:link>
+                </x-ui.link>
             @endif
         </div>
 
-        <flux:checkbox wire:model="remember" :label="__('login.remember_me_label')" />
+        <x-ui.checkbox wire:model="remember" :label="__('login.remember_me_label')" />
 
         <div class="flex items-center justify-end">
-            <flux:button variant="primary" type="submit" class="w-full">{{ __('login.submit_button') }}</flux:button>
+            <x-ui.button variant="primary" type="submit" class="w-full">
+                {{ __('login.submit_button') }}
+            </x-ui.button>
         </div>
     </form>
 </div>
+</content>
+</invoke>

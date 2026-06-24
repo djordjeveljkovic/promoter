@@ -1,147 +1,126 @@
 <x-layouts.app :title="__('email_settings.create.page_title')">
-    <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-8 max-w-3xl">
+    <div class="space-y-6 max-w-3xl" x-data="{ sourceType: @js(old('source_type', 'view')) }">
 
-        <div class="mb-6">
-            <a href="{{ route('admin.email-settings.index', ['tab' => 'templates']) }}"
-               class="inline-flex items-center text-sm text-indigo-600 dark:text-indigo-400 hover:underline">
-                <flux:icon.arrow-left class="w-4 h-4 mr-1" />
-                {{ __('email_settings.create.back_to_list') }}
-            </a>
-        </div>
-
-        <h1 class="text-2xl sm:text-3xl font-bold text-gray-800 dark:text-white mb-2">
-            {{ __('email_settings.create.heading') }}
-        </h1>
-        <p class="text-sm text-gray-500 dark:text-gray-400 mb-6">
-            {{ __('email_settings.create.help_text') }}
-        </p>
+        <x-ui.page-header
+            :title="__('email_settings.create.heading')"
+            :subtitle="__('email_settings.create.help_text')"
+        >
+            <x-slot:actions>
+                <x-ui.link variant="secondary" :href="route('admin.email-settings.index', ['tab' => 'templates'])" icon="arrow-left">
+                    {{ __('email_settings.create.back_to_list') }}
+                </x-ui.link>
+            </x-slot:actions>
+        </x-ui.page-header>
 
         @if ($errors->any())
-            <div class="mb-6 rounded-md bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-700 p-4 text-sm text-red-800 dark:text-red-200">
-                <ul class="list-disc list-inside space-y-1">
+            <x-ui.alert variant="danger">
+                <ul class="list-disc list-inside space-y-0.5">
                     @foreach ($errors->all() as $error)
                         <li>{{ $error }}</li>
                     @endforeach
                 </ul>
-            </div>
+            </x-ui.alert>
         @endif
 
-        <form action="{{ route('admin.email-settings.templates.store') }}" method="POST"
-              class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 space-y-5"
-              x-data="{ sourceType: @js(old('source_type', 'view')) }">
-            @csrf
+        <x-ui.card>
+            <form action="{{ route('admin.email-settings.templates.store') }}" method="POST" class="space-y-5 p-6">
+                @csrf
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                <div>
-                    <label for="name" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                        {{ __('email_settings.create.name_label') }}
-                    </label>
-                    <input type="text" name="name" id="name" required maxlength="255"
-                           value="{{ old('name') }}"
-                           placeholder="{{ __('email_settings.create.name_placeholder') }}"
-                           class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-900 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <x-ui.field :label="__('email_settings.create.name_label')" for="name" required>
+                        <x-ui.input id="name" name="name" type="text" required maxlength="255"
+                                    :value="old('name')"
+                                    :placeholder="__('email_settings.create.name_placeholder')" />
+                    </x-ui.field>
+
+                    <x-ui.field :label="__('email_settings.create.subject_label')" for="subject" required>
+                        <x-ui.input id="subject" name="subject" type="text" required maxlength="255"
+                                    :value="old('subject')"
+                                    :placeholder="__('email_settings.create.subject_placeholder')" />
+                    </x-ui.field>
                 </div>
-                <div>
-                    <label for="subject" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                        {{ __('email_settings.create.subject_label') }}
-                    </label>
-                    <input type="text" name="subject" id="subject" required maxlength="255"
-                           value="{{ old('subject') }}"
-                           placeholder="{{ __('email_settings.create.subject_placeholder') }}"
-                           class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-900 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+
+                <x-ui.field :label="__('email_settings.create.description_label')" for="description">
+                    <x-ui.input id="description" name="description" type="text" maxlength="500"
+                                :value="old('description')"
+                                :placeholder="__('email_settings.create.description_placeholder')" />
+                </x-ui.field>
+
+                {{-- Source type radio --}}
+                <fieldset>
+                    <legend class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
+                        {{ __('email_settings.create.source_type_label') }}
+                    </legend>
+                    <div class="space-y-2">
+                        <label class="flex items-start gap-3 p-3 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-900/40 cursor-pointer hover:bg-zinc-100 dark:hover:bg-zinc-900/60">
+                            <input type="radio" name="source_type" value="view" x-model="sourceType"
+                                   class="mt-0.5 border-zinc-300 dark:border-zinc-600 text-indigo-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 focus:ring-offset-0 dark:bg-zinc-900">
+                            <span class="text-sm text-zinc-700 dark:text-zinc-300">
+                                {{ __('email_settings.create.source_type_view') }}
+                            </span>
+                        </label>
+                        <label class="flex items-start gap-3 p-3 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-900/40 cursor-pointer hover:bg-zinc-100 dark:hover:bg-zinc-900/60">
+                            <input type="radio" name="source_type" value="html" x-model="sourceType"
+                                   class="mt-0.5 border-zinc-300 dark:border-zinc-600 text-indigo-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 focus:ring-offset-0 dark:bg-zinc-900">
+                            <span class="text-sm text-zinc-700 dark:text-zinc-300">
+                                {{ __('email_settings.create.source_type_html') }}
+                            </span>
+                        </label>
+                    </div>
+                </fieldset>
+
+                {{-- Blade view path (visible when source_type=view) --}}
+                <div x-show="sourceType === 'view'" x-cloak>
+                    <x-ui.field :label="__('email_settings.create.view_name_label')" for="view_name">
+                        <x-ui.input id="view_name" name="view_name" type="text" maxlength="255"
+                                    list="available-views"
+                                    :value="old('view_name')"
+                                    :placeholder="__('email_settings.create.view_name_placeholder')"
+                                    autocomplete="off"
+                                    class="font-mono text-sm" />
+                        {{-- Datalist of all Blade views that already exist under
+                             resources/views/emails/. Picking one "links" the file
+                             as-is (no copy). Leave empty to auto-create a new file
+                             from the default template. --}}
+                        <datalist id="available-views">
+                            @foreach (($availableViews ?? []) as $existingView)
+                                <option value="{{ $existingView }}"></option>
+                            @endforeach
+                        </datalist>
+                    </x-ui.field>
+                    <p class="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+                        {!! __('email_settings.create.view_name_help', ['default' => $defaultView]) !!}
+                    </p>
                 </div>
-            </div>
 
-            <div>
-                <label for="description" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                    {{ __('email_settings.create.description_label') }}
-                </label>
-                <input type="text" name="description" id="description" maxlength="500"
-                       value="{{ old('description') }}"
-                       placeholder="{{ __('email_settings.create.description_placeholder') }}"
-                       class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-900 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-            </div>
-
-            {{-- Source type radio --}}
-            <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    {{ __('email_settings.create.source_type_label') }}
-                </label>
-                <div class="space-y-2">
-                    <label class="flex items-start gap-3 p-3 rounded-md border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/40 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-900/60">
-                        <input type="radio" name="source_type" value="view" x-model="sourceType"
-                               class="mt-0.5 border-gray-300 dark:border-gray-600 text-indigo-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                        <span class="text-sm text-gray-700 dark:text-gray-300">
-                            {{ __('email_settings.create.source_type_view') }}
-                        </span>
-                    </label>
-                    <label class="flex items-start gap-3 p-3 rounded-md border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/40 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-900/60">
-                        <input type="radio" name="source_type" value="html" x-model="sourceType"
-                               class="mt-0.5 border-gray-300 dark:border-gray-600 text-indigo-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                        <span class="text-sm text-gray-700 dark:text-gray-300">
-                            {{ __('email_settings.create.source_type_html') }}
-                        </span>
-                    </label>
+                {{-- HTML content (visible when source_type=html) --}}
+                <div x-show="sourceType === 'html'" x-cloak>
+                    <x-ui.field :label="__('email_settings.create.html_content_label')" for="html_content">
+                        <x-ui.textarea id="html_content" name="html_content" rows="8"
+                                       :placeholder="__('email_settings.create.html_content_placeholder')"
+                                       class="font-mono text-sm">{{ old('html_content') }}</x-ui.textarea>
+                    </x-ui.field>
                 </div>
-            </div>
 
-            {{-- Blade view path (visible when source_type=view) --}}
-            <div x-show="sourceType === 'view'" x-cloak>
-                <label for="view_name" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                    {{ __('email_settings.create.view_name_label') }}
-                </label>
-                <input type="text" name="view_name" id="view_name" maxlength="255"
-                       list="available-views"
-                       value="{{ old('view_name') }}"
-                       placeholder="{{ __('email_settings.create.view_name_placeholder') }}"
-                       autocomplete="off"
-                       class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-900 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 font-mono text-sm">
-                {{-- Datalist of all Blade views that already exist under
-                     resources/views/emails/. Picking one "links" the file
-                     as-is (no copy). Leave empty to auto-create a new file
-                     from the default template. --}}
-                <datalist id="available-views">
-                    @foreach (($availableViews ?? []) as $existingView)
-                        <option value="{{ $existingView }}"></option>
-                    @endforeach
-                </datalist>
-                <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                    {!! __('email_settings.create.view_name_help', ['default' => $defaultView]) !!}
-                </p>
-            </div>
+                <div class="p-3 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-900/40">
+                    <input type="hidden" name="is_active" value="0">
+                    <x-ui.checkbox name="is_active" value="1" :label="__('email_settings.create.make_default_label')" />
+                </div>
 
-            {{-- HTML content (visible when source_type=html) --}}
-            <div x-show="sourceType === 'html'" x-cloak>
-                <label for="html_content" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                    {{ __('email_settings.create.html_content_label') }}
-                </label>
-                <textarea name="html_content" id="html_content" rows="8"
-                          placeholder="{{ __('email_settings.create.html_content_placeholder') }}"
-                          class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-900 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 font-mono text-sm">{{ old('html_content') }}</textarea>
-            </div>
-
-            <label class="flex items-start gap-3 p-3 rounded-md border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/40 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-900/60">
-                <input type="hidden" name="is_active" value="0">
-                <input type="checkbox" name="is_active" value="1"
-                       class="mt-0.5 rounded border-gray-300 dark:border-gray-600 text-indigo-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                       {{ old('is_active') ? 'checked' : '' }}>
-                <span class="text-sm text-gray-700 dark:text-gray-300">
-                    {{ __('email_settings.create.make_default_label') }}
-                </span>
-            </label>
-
-            <div class="flex justify-end gap-2 pt-2">
-                <a href="{{ route('admin.email-settings.index', ['tab' => 'templates']) }}"
-                   class="inline-flex items-center justify-center rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 shadow-sm">
-                    {{ __('email_settings.create.cancel_button') }}
-                </a>
-                <button type="submit"
-                        class="inline-flex items-center justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800">
-                    {{ __('email_settings.create.submit_button') }}
-                </button>
-            </div>
-        </form>
+                <div class="flex justify-end gap-2 pt-2">
+                    <x-ui.button variant="secondary" :href="route('admin.email-settings.index', ['tab' => 'templates'])">
+                        {{ __('email_settings.create.cancel_button') }}
+                    </x-ui.button>
+                    <x-ui.button variant="primary" type="submit">
+                        {{ __('email_settings.create.submit_button') }}
+                    </x-ui.button>
+                </div>
+            </form>
+        </x-ui.card>
     </div>
 
+    {{-- Make sure Alpine x-cloak hides elements until Alpine is ready. --}}
     <style>[x-cloak] { display: none !important; }</style>
 </x-layouts.app>
+</content>
+</invoke>

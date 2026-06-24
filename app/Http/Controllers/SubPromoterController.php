@@ -130,15 +130,6 @@ class SubPromoterController extends Controller
         // ---- Recent payment history involving the sub-promoter ----
         $recentPayments = $debt->recentPaymentsForUser($sub, 8);
 
-        $jobStatusColors = [
-            'pending'    => 'bg-yellow-100 text-yellow-800 dark:bg-yellow-600 dark:text-yellow-100',
-            'processing' => 'bg-blue-100 text-blue-800 dark:bg-blue-600 dark:text-blue-100',
-            'failed'     => 'bg-red-100 text-red-800 dark:bg-red-600 dark:text-red-100',
-            'blocked'    => 'bg-gray-200 text-gray-700 dark:bg-gray-500 dark:text-gray-200',
-            'completed'  => 'bg-green-100 text-green-800 dark:bg-green-600 dark:text-green-100',
-            'sent'       => 'bg-teal-100 text-teal-800 dark:text-teal-600 dark:text-teal-100',
-        ];
-
         return view('pages.subpromoters.dashboard', compact(
             'sub',
             'debtSummary',
@@ -157,8 +148,7 @@ class SubPromoterController extends Controller
             'recentOrders',
             'manager',
             'overrides',
-            'recentPayments',
-            'jobStatusColors'
+            'recentPayments'
         ));
     }
 
@@ -233,20 +223,10 @@ class SubPromoterController extends Controller
             ->map(fn ($v) => (float) $v)
             ->all();
 
-        $jobStatusColors = [
-            'pending'    => 'bg-yellow-100 text-yellow-800 dark:bg-yellow-600 dark:text-yellow-100',
-            'processing' => 'bg-blue-100 text-blue-800 dark:bg-blue-600 dark:text-blue-100',
-            'failed'     => 'bg-red-100 text-red-800 dark:bg-red-600 dark:text-red-100',
-            'blocked'    => 'bg-gray-200 text-gray-700 dark:bg-gray-500 dark:text-gray-200',
-            'completed'  => 'bg-green-100 text-green-800 dark:bg-green-600 dark:text-green-100',
-            'sent'       => 'bg-teal-100 text-teal-800 dark:bg-teal-600 dark:text-teal-100',
-        ];
-
         return view('pages.subpromoters.orders', compact(
             'sub',
             'orders',
-            'commissionsByOrder',
-            'jobStatusColors'
+            'commissionsByOrder'
         ));
     }
 }

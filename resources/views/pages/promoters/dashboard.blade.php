@@ -1,101 +1,115 @@
-<x-layouts.app :title="__('promoter_dashboard.page_title')"> {{-- Or use a general 'dashboard' key if preferred for all dashboards --}}
-    <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <h1 class="text-3xl font-bold text-gray-800 dark:text-white mb-8">{{ __('promoter_dashboard.main_heading') }}</h1>
+<x-layouts.app :title="__('promoter_dashboard.page_title')">
+    <div class="space-y-6">
 
-        <section class="mb-8">
-            <h2 class="text-2xl font-semibold text-gray-700 dark:text-gray-300 mb-4">{{ __('promoter_dashboard.financial_overview.heading') }}</h2>
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {{-- Card for Total Earned Commission --}}
-                <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg">
-                    <h3 class="text-gray-500 dark:text-gray-400 text-sm font-medium uppercase">{{ __('promoter_dashboard.financial_overview.total_earnings_commission') }}</h3>
-                    <p class="text-3xl font-bold text-green-600 dark:text-green-400 mt-1">{{ number_format($promoterTotalEarnedCommissionAllTime, 2) }}</p>
-                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">{{ __('promoter_dashboard.financial_overview.all_time_label') }}</p>
-                </div>
+        <x-ui.page-header :title="__('promoter_dashboard.main_heading')" />
 
-                {{-- Card for Gross Sales Value --}}
-                <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg">
-                    <h3 class="text-gray-500 dark:text-gray-400 text-sm font-medium uppercase">{{ __('promoter_dashboard.financial_overview.gross_sales_value') }}</h3>
-                    <p class="text-3xl font-bold text-gray-800 dark:text-white mt-1">{{ number_format($promoterGrossSalesAllTime, 2) }}</p>
-                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">{{ __('promoter_dashboard.financial_overview.gross_sales_subtext') }}</p>
-                </div>
-
-                {{-- Card for Amount Owed to Organizers --}}
-                <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg">
-                    <h3 class="text-gray-500 dark:text-gray-400 text-sm font-medium uppercase">{{ __('promoter_dashboard.financial_overview.amount_owed_to_organizers') }}</h3>
-                    @if($amountOwedToOrganizersByPromoter >= 0)
-                        <p class="text-3xl font-bold text-red-600 dark:text-red-400 mt-1">{{ number_format($amountOwedToOrganizersByPromoter, 2) }}</p>
-                    @else
-                        <p class="text-3xl font-bold text-green-600 dark:text-green-400 mt-1">-{{ number_format(abs($amountOwedToOrganizersByPromoter), 2) }}</p>
-                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">{{ __('promoter_dashboard.financial_overview.organizer_owes_credit_subtext') }}</p>
-                    @endif
-                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">{{ __('promoter_dashboard.financial_overview.amount_owed_calculation_subtext') }}</p>
-                </div>
-
-                {{-- Optional: Card for Amount Already Paid to Organizers --}}
-                <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg">
-                    <h3 class="text-gray-500 dark:text-gray-400 text-sm font-medium uppercase">{{ __('promoter_dashboard.financial_overview.amount_paid_to_organizers') }}</h3>
-                    <p class="text-3xl font-bold text-gray-800 dark:text-white mt-1">{{ number_format($amountAlreadyPaidByPromoter, 2) }}</p>
-                </div>
-
-                 {{-- Card for Commission Earned Last 30 Days --}}
-                <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg">
-                    <h3 class="text-gray-500 dark:text-gray-400 text-sm font-medium uppercase">{{ __('promoter_dashboard.financial_overview.earnings_last_30_days') }}</h3>
-                    <p class="text-3xl font-bold text-green-500 dark:text-green-300 mt-1">{{ number_format($promoterTotalEarnedCommissionLast30Days, 2) }}</p>
-                </div>
-            </div>
-        </section>
-
-        <section class="mb-8">
-            <h2 class="text-2xl font-semibold text-gray-700 dark:text-gray-300 mb-4">{{ __('promoter_dashboard.general_performance.heading') }}</h2>
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg">
-                    <h3 class="text-gray-500 dark:text-gray-400 text-sm font-medium uppercase">{{ __('promoter_dashboard.general_performance.total_orders_all_time') }}</h3>
-                    <p class="text-3xl font-bold text-gray-800 dark:text-white mt-1">{{ number_format($promoterTotalOrdersAllTime) }}</p>
-                </div>
-                <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg">
-                    <h3 class="text-gray-500 dark:text-gray-400 text-sm font-medium uppercase">{{ __('promoter_dashboard.general_performance.tickets_sold_all_time') }}</h3>
-                    <p class="text-3xl font-bold text-gray-800 dark:text-white mt-1">{{ number_format($promoterTotalTicketsSoldAllTime) }}</p>
-                </div>
-                 <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg">
-                    <h3 class="text-gray-500 dark:text-gray-400 text-sm font-medium uppercase">{{ __('promoter_dashboard.general_performance.orders_last_30_days') }}</h3>
-                    <p class="text-3xl font-bold text-gray-800 dark:text-white mt-1">{{ number_format($promoterTotalOrdersLast30Days) }}</p>
-                </div>
-                <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg">
-                    <h3 class="text-gray-500 dark:text-gray-400 text-sm font-medium uppercase">{{ __('promoter_dashboard.general_performance.tickets_sold_last_30_days') }}</h3>
-                    <p class="text-3xl font-bold text-gray-800 dark:text-white mt-1">{{ number_format($promoterTotalTicketsSoldLast30Days) }}</p>
-                </div>
-            </div>
-        </section>
-
-        <div class="grid grid-cols-1 gap-8 mb-8">
-            <section class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg">
-                <h2 class="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-4">{{ __('promoter_dashboard.top_ticket_sales_by_type.heading') }}</h2>
-                @if($promoterTicketTypePerformance->isEmpty())
-                    <p class="text-gray-600 dark:text-gray-400">{{ __('promoter_dashboard.top_ticket_sales_by_type.no_data') }}</p>
+        <section>
+            <h2 class="mb-4 text-lg font-semibold text-zinc-700 dark:text-zinc-300">
+                {{ __('promoter_dashboard.financial_overview.heading') }}
+            </h2>
+            <x-ui.kpi-strip :cols="3">
+                <x-ui.stat-card
+                    :label="__('promoter_dashboard.financial_overview.total_earnings_commission')"
+                    :value="number_format($promoterTotalEarnedCommissionAllTime, 2)"
+                    :subtext="__('promoter_dashboard.financial_overview.all_time_label')"
+                    tone="success"
+                    icon="banknotes"
+                />
+                <x-ui.stat-card
+                    :label="__('promoter_dashboard.financial_overview.gross_sales_value')"
+                    :value="number_format($promoterGrossSalesAllTime, 2)"
+                    :subtext="__('promoter_dashboard.financial_overview.gross_sales_subtext')"
+                    icon="chart-bar"
+                />
+                @if($amountOwedToOrganizersByPromoter >= 0)
+                    <x-ui.stat-card
+                        :label="__('promoter_dashboard.financial_overview.amount_owed_to_organizers')"
+                        :value="number_format($amountOwedToOrganizersByPromoter, 2)"
+                        :subtext="__('promoter_dashboard.financial_overview.amount_owed_calculation_subtext')"
+                        tone="danger"
+                        icon="currency-dollar"
+                    />
                 @else
-                    <div class="overflow-x-auto">
-                        <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                            <thead class="bg-gray-50 dark:bg-gray-700">
-                                <tr>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">{{ __('promoter_dashboard.top_ticket_sales_by_type.table_header_ticket_type') }}</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">{{ __('promoter_dashboard.top_ticket_sales_by_type.table_header_quantity_sold') }}</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">{{ __('promoter_dashboard.top_ticket_sales_by_type.table_header_gross_revenue') }}</th>
-                                </tr>
-                            </thead>
-                            <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                                @foreach($promoterTicketTypePerformance as $type)
-                                <tr>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">{{ $type->name }}</td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">{{ number_format($type->total_quantity_sold) }}</td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">{{ number_format($type->total_revenue_generated, 2) }}</td>
-                                </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
-                    </div>
+                    <x-ui.stat-card
+                        :label="__('promoter_dashboard.financial_overview.amount_owed_to_organizers')"
+                        :value="'-' . number_format(abs($amountOwedToOrganizersByPromoter), 2)"
+                        :subtext="__('promoter_dashboard.financial_overview.organizer_owes_credit_subtext')"
+                        tone="success"
+                        icon="currency-dollar"
+                    />
                 @endif
-            </section>
+            </x-ui.kpi-strip>
+            <div class="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <x-ui.stat-card
+                    :label="__('promoter_dashboard.financial_overview.amount_paid_to_organizers')"
+                    :value="number_format($amountAlreadyPaidByPromoter, 2)"
+                />
+                <x-ui.stat-card
+                    :label="__('promoter_dashboard.financial_overview.earnings_last_30_days')"
+                    :value="number_format($promoterTotalEarnedCommissionLast30Days, 2)"
+                    tone="success"
+                    icon="arrow-trending-up"
+                />
+            </div>
+        </section>
 
-        </div>
+        <section>
+            <h2 class="mb-4 text-lg font-semibold text-zinc-700 dark:text-zinc-300">
+                {{ __('promoter_dashboard.general_performance.heading') }}
+            </h2>
+            <x-ui.kpi-strip :cols="4">
+                <x-ui.stat-card
+                    :label="__('promoter_dashboard.general_performance.total_orders_all_time')"
+                    :value="number_format($promoterTotalOrdersAllTime)"
+                    icon="shopping-bag"
+                />
+                <x-ui.stat-card
+                    :label="__('promoter_dashboard.general_performance.tickets_sold_all_time')"
+                    :value="number_format($promoterTotalTicketsSoldAllTime)"
+                    icon="ticket"
+                />
+                <x-ui.stat-card
+                    :label="__('promoter_dashboard.general_performance.orders_last_30_days')"
+                    :value="number_format($promoterTotalOrdersLast30Days)"
+                />
+                <x-ui.stat-card
+                    :label="__('promoter_dashboard.general_performance.tickets_sold_last_30_days')"
+                    :value="number_format($promoterTotalTicketsSoldLast30Days)"
+                />
+            </x-ui.kpi-strip>
+        </section>
+
+        <x-ui.card>
+            <x-ui.card.header :title="__('promoter_dashboard.top_ticket_sales_by_type.heading')" />
+            @if($promoterTicketTypePerformance->isEmpty())
+                <x-ui.empty-state
+                    icon="ticket"
+                    :title="__('promoter_dashboard.top_ticket_sales_by_type.no_data')"
+                />
+            @else
+                <x-ui.table>
+                    <x-ui.table-header>
+                        <x-ui.table-row>
+                            <x-ui.table-cell header>{{ __('promoter_dashboard.top_ticket_sales_by_type.table_header_ticket_type') }}</x-ui.table-cell>
+                            <x-ui.table-cell header align="right" numeric>{{ __('promoter_dashboard.top_ticket_sales_by_type.table_header_quantity_sold') }}</x-ui.table-cell>
+                            <x-ui.table-cell header align="right" numeric>{{ __('promoter_dashboard.top_ticket_sales_by_type.table_header_gross_revenue') }}</x-ui.table-cell>
+                        </x-ui.table-row>
+                    </x-ui.table-header>
+                    <x-ui.table-body>
+                        @foreach($promoterTicketTypePerformance as $type)
+                            <x-ui.table-row>
+                                <x-ui.table-cell nowrap>
+                                    <span class="font-medium text-zinc-900 dark:text-white">{{ $type->name }}</span>
+                                </x-ui.table-cell>
+                                <x-ui.table-cell align="right" numeric>{{ number_format($type->total_quantity_sold) }}</x-ui.table-cell>
+                                <x-ui.table-cell align="right" numeric>{{ number_format($type->total_revenue_generated, 2) }}</x-ui.table-cell>
+                            </x-ui.table-row>
+                        @endforeach
+                    </x-ui.table-body>
+                </x-ui.table>
+            @endif
+        </x-ui.card>
     </div>
 </x-layouts.app>
+</content>
+</invoke>
