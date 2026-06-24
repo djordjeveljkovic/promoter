@@ -36,10 +36,18 @@
 
     @if($value || $slot->isNotEmpty())
         <div class="flex items-baseline gap-2">
-            <span class="text-2xl font-bold tracking-tight tabular-nums text-zinc-900 dark:text-zinc-50 sm:text-3xl">
-                @if($value){!! $value !!}@else{{ $slot }}@endif
-            </span>
-            {{ $slot->when(!$value, fn ($s) => $s) }}
+            @if($value)
+                <span class="text-lg font-bold tracking-tight tabular-nums text-zinc-900 dark:text-zinc-50 sm:text-xl">
+                    {!! $value !!}
+                </span>
+                @if($slot->isNotEmpty())
+                    {{ $slot }}
+                @endif
+            @else
+                <span class="text-lg font-bold tracking-tight tabular-nums text-zinc-900 dark:text-zinc-50 sm:text-xl">
+                    {{ $slot }}
+                </span>
+            @endif
         </div>
     @endif
 
