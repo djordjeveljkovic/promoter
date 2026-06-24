@@ -64,4 +64,37 @@ return [
         'header_owed'          => 'Duguje',
         'manager_self_label'   => 'Direktno (menadžer)',
     ],
+
+    'users' => [
+        'page_title'           => 'Upravljanje korisnicima',
+        'main_heading'         => 'Svi korisnici',
+        'sub_heading'          => 'Pregledaj, pretraži i obriši bilo koji nalog u sistemu. Samo supreme admin može pristupiti ovoj stranici.',
+        'search_placeholder'   => 'Pretraga po imenu ili email-u…',
+        'search_button'        => 'Pretraži',
+        'clear_button'         => 'Obriši',
+        'all_roles_option'     => 'Sve uloge',
+        'empty_results'        => 'Nema korisnika koji odgovaraju trenutnim filterima.',
+        'empty_results_hint'   => 'Pokušaj da obrišeš pretragu ili izabereš drugu ulogu.',
+
+        'role_supreme'         => 'Supreme',
+        'role_superadmin'      => 'Superadmin',
+        'role_admin'           => 'Admin',
+        'role_promoter'        => 'Promoter',
+        'role_promoter_manager'=> 'Promoter menadžer',
+        'role_sub_promoter'    => 'Sub-promoter',
+
+        'table' => [
+            'header_name'         => 'Ime',
+            'header_role'         => 'Uloga',
+            'header_parent'       => 'Menadžer',
+            'header_orders'       => 'Narudžbine',
+            'header_subs'         => 'Sub-promoteri',
+            'header_joined_date'  => 'Pridružen',
+            'header_actions'      => 'Akcije',
+        ],
+
+        'action_delete'        => 'Obriši',
+        'action_locked'        => 'Zaključano',
+        'delete_confirm_message' => 'Trajno obrisati :name? Ovo se ne može opozvati.',
+    ],
 ];

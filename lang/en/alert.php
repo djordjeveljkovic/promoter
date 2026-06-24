@@ -11,6 +11,11 @@ return [
     'ticket_type_deleted_success' => 'Ticket Type deleted successfully!',
     'ticket_type_delete_failed'   => 'Failed to delete Ticket Type. Error: :error',
 
+    // User management (super-admin only)
+    'user_deleted_success'        => 'User ":name" was permanently deleted.',
+    'user_cannot_delete_self'     => 'You cannot delete your own account.',
+    'user_cannot_delete_supreme'  => 'Supreme admin accounts cannot be deleted by another admin.',
+
     'failed_to_create_directory' => 'Failed to create directory: :error',
     'failed_to_move_photo'       => 'Failed to move uploaded photo: :error',
     'update_failed_create_directory' => 'Update failed: Could not create directory: :error',

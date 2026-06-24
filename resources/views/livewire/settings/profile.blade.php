@@ -44,7 +44,8 @@
             </div>
         </form>
 
-        <!-- <livewire:settings.delete-user-form /> -->
+        {{-- Account deletion is intentionally NOT exposed here.
+             Only a supreme admin can remove accounts, via /superadmin/users. --}}
     </x-settings.layout>
 </section>
 </content>

@@ -5,6 +5,7 @@ use App\Http\Controllers\AdminOrderController;
 use App\Http\Controllers\EmailSettingsController;
 use App\Http\Controllers\PromoterController;
 use App\Http\Controllers\PromoterManagerController;
+use App\Http\Controllers\SuperAdminUserController;
 use App\Http\Controllers\SupremeAdminController;
 use App\Http\Controllers\TicketController;
 use App\Http\Controllers\OrderController;
@@ -145,6 +146,14 @@ Route::middleware('auth')->group(function () {
         // they created, with filters for commission earned, paid and owed.
         Route::get('/overview', [SupremeAdminController::class, 'overview'])
             ->name('supremeadmin.overview');
+
+        // User management. Only the supreme admin tier can browse every
+        // user and delete accounts. Self-service account deletion was
+        // intentionally removed from /settings/profile.
+        Route::get('/users', [SuperAdminUserController::class, 'index'])
+            ->name('superadmin.users.index');
+        Route::delete('/users/{user}', [SuperAdminUserController::class, 'destroy'])
+            ->name('superadmin.users.destroy');
     });
 
     /**

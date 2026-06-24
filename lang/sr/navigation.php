@@ -6,6 +6,7 @@ return [
         'promoters' => 'Promoteri',
         'promoter_managers' => 'Promoter Menadžeri',
         'supremeadmin_overview' => 'Supreme Pregled',
+        'supremeadmin_users'    => 'Korisnici',
         'ticket_types' => 'Karte', // Or 'Tipovi Karata'
         'admin_sold_tickets' => 'Prodate ulaznice',
         'email_settings' => 'Podešavanja emaila',

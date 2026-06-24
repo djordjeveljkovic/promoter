@@ -29,6 +29,11 @@ class UserFactory extends Factory
             'email_verified_at' => now(),
             'password' => static::$password ??= Hash::make('password'),
             'remember_token' => Str::random(10),
+            // Default to a plain promoter so test cases that don't care about
+            // role (e.g. settings/profile tests) still satisfy the NOT NULL
+            // constraint on users.role. Tests that need a specific role should
+            // pass it explicitly via ->state([...]).
+            'role' => 'promoter',
         ];
     }
 

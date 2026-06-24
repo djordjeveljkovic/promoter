@@ -7,6 +7,7 @@ return [
         'promoters' => 'Promoters',
         'promoter_managers' => 'Promoter Managers',
         'supremeadmin_overview' => 'Supreme Overview',
+        'supremeadmin_users'    => 'Users',
         'ticket_types' => 'Ticket Types',
         'admin_sold_tickets' => 'Sold Tickets',
         'email_settings' => 'Email Settings',

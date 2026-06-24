@@ -64,4 +64,37 @@ return [
         'header_owed'          => 'Owed',
         'manager_self_label'   => 'Manager direct',
     ],
+
+    'users' => [
+        'page_title'           => 'User Management',
+        'main_heading'         => 'All users',
+        'sub_heading'          => 'Browse, search and delete any account in the system. Only supreme admins can reach this page.',
+        'search_placeholder'   => 'Search by name or email…',
+        'search_button'        => 'Search',
+        'clear_button'         => 'Clear',
+        'all_roles_option'     => 'All roles',
+        'empty_results'        => 'No users match the current filters.',
+        'empty_results_hint'   => 'Try clearing the search box or pick a different role.',
+
+        'role_supreme'         => 'Supreme',
+        'role_superadmin'      => 'Superadmin',
+        'role_admin'           => 'Admin',
+        'role_promoter'        => 'Promoter',
+        'role_promoter_manager'=> 'Promoter Manager',
+        'role_sub_promoter'    => 'Sub-promoter',
+
+        'table' => [
+            'header_name'         => 'Name',
+            'header_role'         => 'Role',
+            'header_parent'       => 'Manager',
+            'header_orders'       => 'Orders',
+            'header_subs'         => 'Sub-promoters',
+            'header_joined_date'  => 'Joined',
+            'header_actions'      => 'Actions',
+        ],
+
+        'action_delete'        => 'Delete',
+        'action_locked'        => 'Locked',
+        'delete_confirm_message' => 'Permanently delete :name? This cannot be undone.',
+    ],
 ];

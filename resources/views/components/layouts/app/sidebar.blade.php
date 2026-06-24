@@ -29,7 +29,8 @@
                         <flux:navlist.item icon="user" :href="route('admin.promoters.index')" :current="request()->routeIs('admin.promoters.*')" wire:navigate>{{ __('navigation.sidebar.promoters') }}</flux:navlist.item>
                         <flux:navlist.item icon="users" :href="route('admin.promoter_managers.index')" :current="request()->routeIs('admin.promoter_managers.*')" wire:navigate>{{ __('navigation.sidebar.promoter_managers') }}</flux:navlist.item>
                         @if(in_array($user->role, ['supreme', 'superadmin'], true))
-                            <flux:navlist.item icon="chart-bar" :href="route('supremeadmin.overview')" :current="request()->routeIs('supremeadmin.*')" wire:navigate>{{ __('navigation.sidebar.supremeadmin_overview') }}</flux:navlist.item>
+                            <flux:navlist.item icon="chart-bar" :href="route('supremeadmin.overview')" :current="request()->routeIs('supremeadmin.overview')" wire:navigate>{{ __('navigation.sidebar.supremeadmin_overview') }}</flux:navlist.item>
+                            <flux:navlist.item icon="users" :href="route('superadmin.users.index')" :current="request()->routeIs('superadmin.users.*')" wire:navigate>{{ __('navigation.sidebar.supremeadmin_users') }}</flux:navlist.item>
                         @endif
                         <flux:navlist.item icon="ticket" :href="route('ticket_type.index')" :current="request()->routeIs('ticket_type.*')" wire:navigate>{{ __('navigation.sidebar.ticket_types') }}</flux:navlist.item>
                         <flux:navlist.item icon="ticket" :href="route('admin.orders.index')" :current="request()->routeIs('admin.orders.*')" wire:navigate>{{ __('navigation.sidebar.admin_sold_tickets') }}</flux:navlist.item>

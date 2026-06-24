@@ -11,6 +11,11 @@ return [
     'ticket_type_deleted_success' => 'Tip ulaznice je uspešno obrisan!',
     'ticket_type_delete_failed'   => 'Brisanje tipa ulaznice nije uspelo. Greška: :error',
 
+    // Upravljanje korisnicima (samo super admin)
+    'user_deleted_success'        => 'Korisnik „:name" je trajno obrisan.',
+    'user_cannot_delete_self'     => 'Ne možeš obrisati sopstveni nalog.',
+    'user_cannot_delete_supreme'  => 'Supreme admin naloge nije moguće obrisati.',
+
     'failed_to_create_directory' => 'Kreiranje direktorijuma nije uspelo: :error',
     'failed_to_move_photo'       => 'Premeštanje otpremljene fotografije nije uspelo: :error',
     'update_failed_create_directory' => 'Ažuriranje nije uspelo: Kreiranje direktorijuma nije moguće: :error',
