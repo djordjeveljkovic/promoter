@@ -32,7 +32,7 @@ return [
 
     'create_page_title' => 'Create New Ticket Order',
     'create_main_heading' => 'Create New Ticket Order',
-    'create_back_to_orders_link' => '&larr; Back to Orders',
+    'create_back_to_orders_link' => 'Back to Orders',
     'create_customer_email_label' => 'Customer Email', // The asterisk is part of the HTML structure
 
     'create_order_items_heading' => 'Order Items',
@@ -80,7 +80,7 @@ return [
         'eyebrow'                       => 'Order details',
         'main_heading'                  => 'Order #:orderNumber',
         'sub_heading'                   => 'Full order details with the commission you personally earned and the QR codes for every ticket sold.',
-        'back_to_orders'                => '&larr; Back to orders',
+        'back_to_orders'                => 'Back to orders',
         'summary' => [
             'customer_label'          => 'Customer',
             'placed_on_label'         => 'Placed on',
@@ -109,6 +109,8 @@ return [
             'status_inactive'      => 'Inactive',
             'qr_not_available'     => 'QR not generated yet',
             'download_all_button'  => 'Download all QR codes',
+            'restricted_notice_title'   => 'QR codes are restricted',
+            'restricted_notice_body'    => 'QR codes for this order are not visible to your role (sub-promoter / promoter-manager).',
         ],
     ],
 ];

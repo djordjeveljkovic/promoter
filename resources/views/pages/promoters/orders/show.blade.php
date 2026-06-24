@@ -8,11 +8,23 @@
             :subtitle="__('orders.show.sub_heading')"
         >
             <x-slot:actions>
-                <x-ui.button variant="secondary" :href="route('promoter.orders.index')">
+                <x-ui.button variant="secondary" :href="route('promoter.orders.index')" icon="arrow-left">
                     {{ __('orders.show.back_to_orders') }}
                 </x-ui.button>
             </x-slot:actions>
         </x-ui.page-header>
+
+        @php
+            // QR codes are sensitive — only the seller (regular promoter /
+            // admin / supreme / superadmin) is allowed to view or download
+            // them. Sub-promoters and promoter-managers can see the order
+            // details (status, items, commission split, etc.) but the
+            // ticket / QR section is hidden from them.
+            $viewer = Auth::user();
+            $canSeeQRCodes = $viewer
+                && !$viewer->isSubPromoter()
+                && !$viewer->isPromoterManager();
+        @endphp
 
         {{-- Flash messages --}}
         @if (session('success'))
@@ -136,7 +148,7 @@
                         {{ __('orders.show.tickets.sub_heading', ['count' => $order->tickets->count()]) }}
                     </p>
                 </div>
-                @if($order->tickets->isNotEmpty())
+                @if($canSeeQRCodes && $order->tickets->isNotEmpty())
                     <form method="POST" action="{{ route('promoter.orders.downloadQRCodes', ['order' => $order->id]) }}" class="inline">
                         @csrf
                         <x-ui.button type="submit" variant="secondary">
@@ -146,7 +158,25 @@
                 @endif
             </div>
 
-            @if($order->tickets->isEmpty())
+            @if(!$canSeeQRCodes)
+                {{--
+                    Sub-promoters and promoter-managers are intentionally
+                    blocked from seeing the QR codes of any order — even
+                    ones they placed themselves. Show a notice in place of
+                    the ticket grid so the page doesn't suddenly become
+                    shorter / look broken.
+                --}}
+                <x-ui.card>
+                    <x-ui.empty-state
+                        icon="ticket"
+                        :title="__('orders.show.tickets.restricted_notice_title')"
+                    >
+                        <p class="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
+                            {{ __('orders.show.tickets.restricted_notice_body') }}
+                        </p>
+                    </x-ui.empty-state>
+                </x-ui.card>
+            @elseif($order->tickets->isEmpty())
                 <x-ui.card>
                     <x-ui.empty-state
                         icon="ticket"

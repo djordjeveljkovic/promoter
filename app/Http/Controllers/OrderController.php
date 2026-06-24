@@ -374,10 +374,15 @@ class OrderController extends Controller
     /**
      * Download all QR codes attached to an order as a single .zip archive.
      *
-     * Authorization mirrors show():
+     * Authorization:
      *   - the seller (requested_by == auth()->id()) can always download;
-     *   - a promoter-manager can additionally download for orders placed
-     *     by one of his sub-promoters;
+     *   - sub-promoters and promoter-managers are NEVER allowed to
+     *     download QR codes, regardless of who placed the order. The QR
+     *     image is treated as sensitive material - sub-promoters place
+     *     orders on behalf of customers, but the actual ticket delivery
+     *     goes straight to the customer's inbox; promoter-managers get
+     *     visibility into the order details (status, items, commission
+     *     split) but not the QR artefacts themselves;
      *   - private (supreme-admin) sales are visible ONLY to the seller.
      *
      * If the request includes a `selected_codes` array we filter the
@@ -388,6 +393,13 @@ class OrderController extends Controller
     {
         $user = Auth::user();
         if (!$user) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        // Sub-promoters and promoter-managers are NEVER allowed to
+        // download QR codes. Block early so the rest of the authorization
+        // logic stays focused on who CAN download.
+        if ($user->isSubPromoter() || $user->isPromoterManager()) {
             abort(403, 'Unauthorized action.');
         }
 

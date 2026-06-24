@@ -32,7 +32,7 @@ return [
 
     'create_page_title' => 'Kreiraj Novu Porudžbinu',
     'create_main_heading' => 'Kreiraj Novu Porudžbinu',
-    'create_back_to_orders_link' => '&larr; Nazad na Porudžbine',
+    'create_back_to_orders_link' => 'Nazad na Porudžbine',
     'create_customer_email_label' => 'Email Kupca',
 
     'create_order_items_heading' => 'Stavke Porudžbine',
@@ -80,7 +80,7 @@ return [
         'eyebrow'                       => 'Detalji porudžbine',
         'main_heading'                  => 'Porudžbina #:orderNumber',
         'sub_heading'                   => 'Potpuni detalji porudžbine sa provizijom koju ste VI lično zaradili i QR kodovima za svaku prodate ulaznicu.',
-        'back_to_orders'                => '&larr; Nazad na porudžbine',
+        'back_to_orders'                => 'Nazad na porudžbine',
         'summary' => [
             'customer_label'          => 'Kupac',
             'placed_on_label'         => 'Datum',
@@ -109,6 +109,8 @@ return [
             'status_inactive'      => 'Neaktivna',
             'qr_not_available'     => 'QR kod još nije generisan',
             'download_all_button'  => 'Preuzmi sve QR kodove',
+            'restricted_notice_title'   => 'QR kodovi su ograničeni',
+            'restricted_notice_body'    => 'QR kodovi za ovu porudžbinu nisu vidljivi za vašu ulogu (sub-promoter / promoter menadžer).',
         ],
     ],
 ];
