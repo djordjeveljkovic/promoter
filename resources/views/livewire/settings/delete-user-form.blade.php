@@ -1,5 +1,6 @@
 <section class="mt-10 space-y-6"
-         x-data="{ open: false }">
+         x-data="{ open: false }"
+         x-init="open = false">
     <div class="relative mb-5">
         <h3 class="text-base font-semibold text-zinc-900 dark:text-white">{{ __('profile.delete_account_section_heading') }}</h3>
         <p class="mt-1 text-sm text-zinc-500 dark:text-zinc-400">{{ __('profile.delete_account_section_subheading') }}</p>
@@ -38,8 +39,6 @@
             </form>
         </div>
     </div>
-
-    <style>[x-cloak] { display: none !important; }</style>
 </section>
 </content>
 </invoke>
