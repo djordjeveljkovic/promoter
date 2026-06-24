@@ -29,8 +29,8 @@
 | | |
 | --- | --- |
 | **Components created** | ✅ All 24 `<x-ui.*>` components + `Status` class |
-| **Existing files modified** | ❌ None yet |
-| **Last completed step** | _none yet — start with **Step 1** below_ |
+| **Existing files modified** | ✅ Steps 1–7 complete |
+| **Last completed step** | **Step 7** — `admin/orders/index.blade.php` |
 
 ### User decisions (locked in, do not re-question)
 
@@ -748,7 +748,7 @@ Status colour map (in `App\Support\Status::VARIANTS`):
 | 4 — `admin/promoter_managers/{create,edit}` | ⬜ | | |
 | 5 — `admin/ticket_type/index` | ⬜ | | |
 | 6 — `admin/ticket_type/{create,edit}` | ⬜ | | |
-| 7 — `admin/orders/index` | ⬜ | | |
+| 7 — `admin/orders/index` | ✅ | | |
 | 8 — `admin/orders/create` | ⬜ | | |
 | 9 — `livewire/admin/order-details` | ⬜ | | |
 | 10 — `admin/email_settings/index` | ⬜ | | |
