@@ -80,16 +80,29 @@ return [
     ],
 
     'dashboard' => [
-        'page_title'   => 'Kontrolna tabla menadžera',
-        'main_heading' => 'Moja Kontrolna Tabla',
-        'eyebrow'      => 'Promoter Menadžer',
-        'sub_heading'  => 'Vaša zarada, dugovanja i dugovanja tima — sve na jednom mestu.',
-        'new_order_button' => 'Nova porudžbina',
+        'page_title'        => 'Kontrolna tabla menadžera',
+        'main_heading'      => 'Moja Kontrolna Tabla',
+        'eyebrow'           => 'Promoter Menadžer',
+        'new_order_button'  => 'Nova porudžbina',
+        'manage_subs_button'=> 'Upravljaj promoterima',
 
-        /* ------------------ Obaveštenje "Plati organizatorima" ------------------ */
-        'pay_organizers_notice' => [
-            'heading'           => 'Evidentiranje Uplata Organizatorima',
-            'body'              => 'Ne možete sami evidentirati svoje uplate organizatorima — admin beleži svaki prenos za vas. Stanje iznad odražava ukupan iznos evidentiranih uplata, a lista „Uplate Uplaćene Organizatorima" na dnu ove stranice prikazuje svaku stavku sa adminom koji ju je uneo.',
+        /* ------------------ Overview blok ------------------ */
+        'overview' => [
+            'heading_part1'     => 'Pregled stanja',
+            'heading_part2'     => 'Prodaja po tipu ulaznice',
+            'my_sales'          => 'Lična prodaja',
+            'my_sales_count'    => 'Moje porudžbine',
+            'my_sales_tickets'  => 'Prodate ulaznice',
+            'my_sales_earnings' => 'Moja zarada od lične prodaje',
+            'subs_sales'        => 'Prodaja promotera',
+            'subs_sales_count'  => 'Porudžbine promotera',
+            'subs_sales_tickets'=> 'Prodate ulaznice',
+            'subs_sales_earnings'=> 'Moja zarada od prodaje promotera',
+            'no_sales'          => 'Nema prodaje',
+            'no_subs_sales'     => 'Promoteri još nisu ništa prodali',
+            'ticket_type_column'=> 'Tip ulaznice',
+            'quantity_column'   => 'Količina',
+            'gross_column'      => 'Bruto',
         ],
 
         /* ------------------ 4 KPI kartice na vrhu ------------------ */
@@ -97,7 +110,6 @@ return [
             'my_earnings' => [
                 'label'        => 'Moja zarada',
                 'help'         => 'Ukupna provizija koju sam zaradio (lična prodaja + udeo od tima).',
-                'scroll_hint'  => 'Kliknite za detaljnu analizu',
             ],
             'cash_in_hand' => [
                 'label'        => 'Novac kod mene',
@@ -110,9 +122,8 @@ return [
                 'open_link'    => 'Otvori stranicu promotera',
             ],
             'debt_to_organizers' => [
-                'label'        => 'Dug organizatorima',
+                'label'        => 'Dug prema org',
                 'help'         => 'Neto iznos koji još dugujem organizatorima nakon svih provizija u timu.',
-                'scroll_hint'  => 'Kliknite za pregled dugovanja',
                 'zero_label'   => 'Sve izmireno',
             ],
         ],
@@ -170,6 +181,54 @@ return [
             'owe_negative'             => 'Preplatio za',
             'record_payment'           => 'Evidentiraj uplatu',
             'amount_placeholder'       => 'Iznos',
+        ],
+
+        /* ------------------ "Lista promotera" (sortirana po ulaznicama) ------------------ */
+        'subs_list' => [
+            'heading'             => 'Lista promotera',
+            'empty'               => 'Još nemate promotera.',
+            'open_detail'         => 'Otvori izmenu',
+            'header_name'         => 'Promoter',
+            'header_tickets'      => 'Prodate ulaznice',
+            'header_per_type'     => 'Prodaja po tipu ulaznice',
+            'header_sub_earnings' => 'Njegova zarada',
+            'header_manager_earn' => 'Moja zarada od njega',
+            'header_paid'         => 'Dao meni',
+            'header_owed'         => 'Duguje meni',
+            'ticket_type_label'   => 'Tip',
+            'quantity_label'      => 'Kom',
+            'gross_label'         => 'Bruto',
+            'no_sales'            => 'Nema prodaje',
+        ],
+
+        /* ------------------ "Istorija transakcija" ------------------ */
+        'transactions' => [
+            'heading'             => 'Istorija transakcija',
+            'from_sub'            => 'Promoter mi je dao',
+            'to_org'              => 'Isplata organizatorima',
+            'date'                => 'Datum',
+            'amount'              => 'Iznos',
+            'from'                => 'Od',
+            'to'                  => 'Ka',
+            'recorded_by'         => 'Evidentirao',
+            'note'                => 'Napomena',
+            'empty'               => 'Još nema evidentiranih transakcija.',
+            'analytics_cash'      => 'Novac kod mene',
+            'analytics_earnings'  => 'Moja zarada',
+            'analytics_debt'      => 'Dug prema org',
+        ],
+
+        /* ------------------ "Istorija prodatih ulaznica" ------------------ */
+        'ticket_history' => [
+            'heading'           => 'Istorija prodatih ulaznica',
+            'empty'             => 'Još nema prodatih ulaznica.',
+            'header_seller'     => 'Prodao',
+            'header_date'       => 'Datum',
+            'header_order'      => 'Porudžbina',
+            'header_email'      => 'Mejl',
+            'header_items'      => 'Ulaznice u porudžbini',
+            'header_manager'    => 'Moja zarada',
+            'quantity_label'    => 'kom',
         ],
 
         /* ------------------ Evidencija uplata ------------------ */

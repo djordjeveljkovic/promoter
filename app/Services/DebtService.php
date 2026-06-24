@@ -537,6 +537,274 @@ class DebtService
             ->get();
     }
 
+    /**
+     * Per-ticket-type sales breakdown for one or more ticket-order authors.
+     *
+     * Aggregates TicketOrderItem rows joined with their ticket types and
+     * the parent ticket_orders so we can render "Personal sales" and
+     * "Sub-promoter sales" cards on the manager dashboard without
+     * pulling every order into memory.
+     *
+     * @param  \Illuminate\Support\Collection<int, int>|array<int, int>  $userIds
+     *         Authors to include (the manager himself for "personal
+     *         sales", or the manager's sub-promoter ids for "team sales").
+     * @return array{
+     *     rows: list<array{
+     *         ticket_type_id: int,
+     *         name: string,
+     *         quantity: int,
+     *         gross: float,
+     *         orders: int,
+     *     }>,
+     *     total_quantity: int,
+     *     total_gross: float,
+     *     total_orders: int,
+     * }
+     */
+    public function ticketTypeBreakdown($userIds): array
+    {
+        $userIds = collect($userIds)->map(fn ($id) => (int) $id)->unique()->values();
+        if ($userIds->isEmpty()) {
+            return [
+                'rows'          => [],
+                'total_quantity'=> 0,
+                'total_gross'   => 0.0,
+                'total_orders'  => 0,
+            ];
+        }
+
+        $byType = TicketOrderItem::query()
+            ->selectRaw('ticket_order_items.ticket_type_id,
+                         COALESCE(SUM(ticket_order_items.quantity), 0) AS quantity,
+                         COALESCE(SUM(ticket_order_items.quantity * ticket_types.price), 0) AS gross')
+            ->join('ticket_orders', 'ticket_orders.id', '=', 'ticket_order_items.ticket_order_id')
+            ->join('ticket_types', 'ticket_types.id', '=', 'ticket_order_items.ticket_type_id')
+            ->whereIn('ticket_orders.requested_by', $userIds)
+            ->whereIn('ticket_orders.job_status', self::SUCCESS_STATUSES)
+            ->where('ticket_orders.is_private', false)
+            ->groupBy('ticket_order_items.ticket_type_id')
+            ->get();
+
+        $orderCountByType = TicketOrder::query()
+            ->selectRaw('ticket_order_items.ticket_type_id,
+                         COUNT(DISTINCT ticket_orders.id) AS orders')
+            ->join('ticket_order_items', 'ticket_order_items.ticket_order_id', '=', 'ticket_orders.id')
+            ->whereIn('ticket_orders.requested_by', $userIds)
+            ->whereIn('ticket_orders.job_status', self::SUCCESS_STATUSES)
+            ->where('ticket_orders.is_private', false)
+            ->groupBy('ticket_order_items.ticket_type_id')
+            ->pluck('orders', 'ticket_type_id');
+
+        // Look up the ticket-type names in one go so we render without
+        // an N+1 query.
+        $typeIds = $byType->pluck('ticket_type_id')->all();
+        $namesByType = \App\Models\TicketType::whereIn('id', $typeIds)
+            ->pluck('name', 'id');
+
+        // Re-compute the per-type gross using the actual order totals,
+        // split among line items by quantity share. ticket_orders.total
+        // is the authoritative revenue figure (it includes any taxes,
+        // fees, or rounding) — falling back to quantity * ticket_type
+        // .price only when the order total is missing.
+        $grossByOrderType = DB::table('ticket_order_items')
+            ->selectRaw('ticket_order_items.ticket_type_id,
+                         ticket_order_items.ticket_order_id,
+                         ticket_order_items.quantity,
+                         COALESCE(ticket_orders.total, 0) AS order_total')
+            ->join('ticket_orders', 'ticket_orders.id', '=', 'ticket_order_items.ticket_order_id')
+            ->whereIn('ticket_orders.requested_by', $userIds)
+            ->whereIn('ticket_orders.job_status', self::SUCCESS_STATUSES)
+            ->where('ticket_orders.is_private', false)
+            ->get();
+
+        $orderTotalById = [];
+        $orderItemCountById = [];
+        foreach ($grossByOrderType as $r) {
+            $orderId = (int) $r->ticket_order_id;
+            $orderTotalById[$orderId] = (float) $r->order_total;
+            $orderItemCountById[$orderId] = ($orderItemCountById[$orderId] ?? 0) + (int) $r->quantity;
+        }
+
+        $grossByType = [];
+        foreach ($grossByOrderType as $r) {
+            $orderId = (int) $r->ticket_order_id;
+            $orderTotal = $orderTotalById[$orderId] ?? 0.0;
+            $orderItemCount = $orderItemCountById[$orderId] ?: 1;
+            $share = ((int) $r->quantity) / $orderItemCount;
+            $grossByType[(int) $r->ticket_type_id] = ($grossByType[(int) $r->ticket_type_id] ?? 0.0) + ($orderTotal * $share);
+        }
+
+        $rows = $byType->map(function ($r) use ($namesByType, $orderCountByType, $grossByType) {
+            $id = (int) $r->ticket_type_id;
+            return [
+                'ticket_type_id' => $id,
+                'name'           => $namesByType[$id] ?? '—',
+                'quantity'       => (int) $r->quantity,
+                'gross'          => round((float) ($grossByType[$id] ?? 0), 2),
+                'orders'         => (int) ($orderCountByType[$id] ?? 0),
+            ];
+        })
+        ->sortByDesc('gross')
+        ->values()
+        ->all();
+
+        return [
+            'rows'           => $rows,
+            'total_quantity' => array_sum(array_column($rows, 'quantity')),
+            'total_gross'    => round(array_sum(array_column($rows, 'gross')), 2),
+            'total_orders'   => array_sum(array_column($rows, 'orders')),
+        ];
+    }
+
+    /**
+     * Per-sub-promoter ticket-type breakdown. One entry per sub, each
+     * entry containing the same shape as ticketTypeBreakdown() but
+     * scoped to that sub's own successful orders. Used by the
+     * "Lista promotera" section of the dashboard.
+     *
+     * @return array<int, array{
+     *     user: User,
+     *     rows: list<array{name: string, quantity: int, gross: float}>,
+     *     total_quantity: int,
+     *     total_gross: float,
+     *     total_orders: int,
+     *     tickets_sold: int,
+     * }>
+     */
+    public function ticketTypeBreakdownPerSub(User $manager): array
+    {
+        $manager = $this->resolveManager($manager);
+        $subs = $manager->subPromoters()->orderBy('name')->get();
+        if ($subs->isEmpty()) {
+            return [];
+        }
+
+        // Pre-compute tickets_sold + orders_count for every sub in one
+        // pass so the table can sort and render the "Tickets sold"
+        // column correctly even when the manager has more subs than
+        // the leaderboard's top-N window.
+        $subIds = $subs->pluck('id');
+        $ticketsBySub = DB::table('ticket_order_items')
+            ->selectRaw('ticket_orders.requested_by AS sub_id, COALESCE(SUM(ticket_order_items.quantity), 0) AS tickets')
+            ->join('ticket_orders', 'ticket_orders.id', '=', 'ticket_order_items.ticket_order_id')
+            ->whereIn('ticket_orders.requested_by', $subIds)
+            ->whereIn('ticket_orders.job_status', self::SUCCESS_STATUSES)
+            ->where('ticket_orders.is_private', false)
+            ->groupBy('ticket_orders.requested_by')
+            ->pluck('tickets', 'sub_id');
+        $ordersBySub = DB::table('ticket_orders')
+            ->selectRaw('requested_by, COUNT(*) AS orders_count')
+            ->whereIn('requested_by', $subIds)
+            ->whereIn('job_status', self::SUCCESS_STATUSES)
+            ->where('is_private', false)
+            ->groupBy('requested_by')
+            ->pluck('orders_count', 'requested_by');
+
+        $out = [];
+        foreach ($subs as $sub) {
+            $breakdown = $this->ticketTypeBreakdown([$sub->id]);
+            $out[] = [
+                'user'           => $sub,
+                'rows'           => $breakdown['rows'],
+                'total_quantity' => $breakdown['total_quantity'],
+                'total_gross'    => $breakdown['total_gross'],
+                'total_orders'   => $breakdown['total_orders'],
+                'tickets_sold'   => (int) ($ticketsBySub[$sub->id] ?? 0),
+                'orders_count'   => (int) ($ordersBySub[$sub->id]   ?? 0),
+            ];
+        }
+        return $out;
+    }
+
+    /**
+     * Combined chronological ledger of every payment that flowed
+     * THROUGH this promoter-manager (in either direction):
+     *
+     *   + sub_to_manager         → cash the manager received from subs
+     *   − manager_to_organizers  → cash the manager forwarded to orgs
+     *
+     * Used by the "Istorija transakcija" section of the dashboard so
+     * the manager can see at a glance how today's cashInHand was
+     * arrived at. Each row exposes a signed amount (negative for
+     * outflows) plus a "direction" flag the view can switch on.
+     *
+     * @return Collection<int, object{
+     *     direction: 'in'|'out',
+     *     amount: float,
+     *     amount_signed: float,
+     *     paid_at: \Illuminate\Support\Carbon,
+     *     payer: User|null,
+     *     receiver: User|null,
+     *     recorder: User|null,
+     *     note: string|null,
+     *     type: string,
+     * }>
+     */
+    public function recentLedgerForManager(User $manager, int $limit = 25): Collection
+    {
+        $manager = $this->resolveManager($manager);
+
+        return SubPromoterPayment::with(['payer', 'receiver', 'recorder'])
+            ->where(function ($q) use ($manager) {
+                $q->where(function ($q2) use ($manager) {
+                    $q2->where('payment_type', SubPromoterPayment::TYPE_SUB_TO_MANAGER)
+                       ->where('receiver_id', $manager->id);
+                })->orWhere(function ($q2) use ($manager) {
+                    $q2->where('payment_type', SubPromoterPayment::TYPE_MANAGER_TO_ORGANIZERS)
+                       ->where('payer_id', $manager->id);
+                });
+            })
+            ->orderByDesc('paid_at')
+            ->orderByDesc('id')
+            ->limit($limit)
+            ->get()
+            ->map(function (SubPromoterPayment $p) {
+                $direction = $p->payment_type === SubPromoterPayment::TYPE_SUB_TO_MANAGER ? 'in' : 'out';
+                return (object) [
+                    'direction'     => $direction,
+                    'amount'        => (float) $p->amount,
+                    'amount_signed' => $direction === 'in' ? (float) $p->amount : -((float) $p->amount),
+                    'paid_at'       => $p->paid_at,
+                    'payer'         => $p->payer,
+                    'receiver'      => $p->receiver,
+                    'recorder'      => $p->recorder,
+                    'note'          => $p->note,
+                    'type'          => $p->payment_type,
+                ];
+            });
+    }
+
+    /**
+     * Last $limit successful ticket orders placed by the manager OR any
+     * of his sub-promoters. Eager-loads the line items with their ticket
+     * type names AND the per-beneficiary commission rows so the
+     * "Istorija prodatih ulaznica" section can render one order per row
+     * with: seller, when, ticket types + quantities, recipient email
+     * and the manager's commission share for that specific order.
+     *
+     * @return Collection<int, TicketOrder>
+     */
+    public function recentOrdersForManager(User $manager, int $limit = 25): Collection
+    {
+        $manager = $this->resolveManager($manager);
+
+        $subIds = $manager->subPromoters()->pluck('id')->all();
+        $authorIds = collect([$manager->id])->merge($subIds)->unique()->values();
+
+        return TicketOrder::with([
+                'requestedBy',
+                'items.ticketType',
+                'commissionBeneficiaries',
+            ])
+            ->whereIn('requested_by', $authorIds)
+            ->whereIn('job_status', self::SUCCESS_STATUSES)
+            ->where('is_private', false)
+            ->orderByDesc('created_at')
+            ->orderByDesc('id')
+            ->limit($limit)
+            ->get();
+    }
+
     /* ---------- helpers ---------- */
 
     private function resolveSub(User $sub): User

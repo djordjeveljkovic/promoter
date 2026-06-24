@@ -501,6 +501,28 @@ class PromoterManagerController extends Controller
         // scrolls down to.
         $earningsBreakdown = $debt->managerEarningsBreakdown($manager);
 
+        // --- Dashboard-only aggregates -----------------------------------
+        // Per-ticket-type breakdowns for the "Licna prodaja / Prodaja
+        // promotera" cards in the Overview section.
+        $personalTypeBreakdown = $debt->ticketTypeBreakdown([$manager->id]);
+        $subsTypeBreakdown     = $debt->ticketTypeBreakdown($manager->subPromoters()->pluck('id'));
+
+        // Same per-type breakdown but on a per-sub basis, used by the
+        // "Lista promotera" table so each row can show what each sub
+        // sold of every ticket type.
+        $subTypeBreakdowns = $debt->ticketTypeBreakdownPerSub($manager);
+
+        // Combined signed ledger (sub→manager inflows + manager→org
+        // outflows) for the "Istorija transakcija" section. Pre-pended
+        // with the current cash-in-hand snapshot so the user can see
+        // how today's balance was arrived at.
+        $ledgerEntries = $debt->recentLedgerForManager($manager, 30);
+
+        // Recent successful orders placed by the manager OR his subs,
+        // with line items + ticket type + commission rows eager-loaded.
+        // Drives the "Istorija prodatih ulaznica" section.
+        $recentOrders = $debt->recentOrdersForManager($manager, 25);
+
         return view('pages.promoter_managers.dashboard', compact(
             'manager',
             'debtSummary',
@@ -514,7 +536,12 @@ class PromoterManagerController extends Controller
             'recentPaymentsToOrganizers',
             'cashInHand',
             'topSubs',
-            'earningsBreakdown'
+            'earningsBreakdown',
+            'personalTypeBreakdown',
+            'subsTypeBreakdown',
+            'subTypeBreakdowns',
+            'ledgerEntries',
+            'recentOrders'
         ));
     }
 }

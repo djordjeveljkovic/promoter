@@ -80,16 +80,29 @@ return [
     ],
 
     'dashboard' => [
-        'page_title'   => 'Manager Dashboard',
-        'main_heading' => 'My Dashboard',
-        'eyebrow'      => 'Promoter Manager',
-        'sub_heading'  => 'Your earnings, what you owe, and what your team owes you — at a glance.',
-        'new_order_button' => 'New Order',
+        'page_title'        => 'Manager Dashboard',
+        'main_heading'      => 'My Dashboard',
+        'eyebrow'           => 'Promoter Manager',
+        'new_order_button'  => 'New Order',
+        'manage_subs_button'=> 'Manage promoters',
 
-        /* ------------------ "Pay to organizers" notice ------------------ */
-        'pay_organizers_notice' => [
-            'heading'           => 'Recording Your Payments to Organizers',
-            'body'              => 'You cannot record your own payments to the organizers — an admin logs every transfer on your behalf. The balance above reflects the live total of admin-recorded payments, and the "Payments Made to Organizers" list at the bottom of this page shows each entry with the admin who logged it.',
+        /* ------------------ Overview block ------------------ */
+        'overview' => [
+            'heading_part1'     => 'State overview',
+            'heading_part2'     => 'Sales by ticket type',
+            'my_sales'          => 'Personal sales',
+            'my_sales_count'    => 'My orders',
+            'my_sales_tickets'  => 'Tickets sold',
+            'my_sales_earnings' => 'My earnings from personal sales',
+            'subs_sales'        => 'Sub-promoter sales',
+            'subs_sales_count'  => 'Sub-promoter orders',
+            'subs_sales_tickets'=> 'Tickets sold',
+            'subs_sales_earnings'=> 'My earnings from sub-promoter sales',
+            'no_sales'          => 'No sales',
+            'no_subs_sales'     => 'Sub-promoters have not sold anything yet',
+            'ticket_type_column'=> 'Ticket type',
+            'quantity_column'   => 'Quantity',
+            'gross_column'      => 'Gross',
         ],
 
         /* ------------------ 4 KPI hero cards at the top ------------------ */
@@ -97,7 +110,6 @@ return [
             'my_earnings' => [
                 'label'        => 'My earnings',
                 'help'         => 'Total commission I have earned (personal sales + share from my team).',
-                'scroll_hint'  => 'Click for a detailed breakdown',
             ],
             'cash_in_hand' => [
                 'label'        => 'Cash in my hand',
@@ -112,7 +124,6 @@ return [
             'debt_to_organizers' => [
                 'label'        => 'Debt to organizers',
                 'help'         => 'Net amount I still owe the organizers after every commission in the team.',
-                'scroll_hint'  => 'Click for the debt overview',
                 'zero_label'   => 'Up to date',
             ],
         ],
@@ -170,6 +181,54 @@ return [
             'owe_negative'             => 'Overpaid by',
             'record_payment'           => 'Record payment',
             'amount_placeholder'       => 'Amount',
+        ],
+
+        /* ------------------ "Sub-promoter list" (sorted by tickets) ------------------ */
+        'subs_list' => [
+            'heading'             => 'Sub-promoter list',
+            'empty'               => 'You don\'t have any sub-promoters yet.',
+            'open_detail'         => 'Open edit page',
+            'header_name'         => 'Sub-promoter',
+            'header_tickets'      => 'Tickets sold',
+            'header_per_type'     => 'Sales per ticket type',
+            'header_sub_earnings' => 'Their earnings',
+            'header_manager_earn' => 'My earnings from them',
+            'header_paid'         => 'Paid to me',
+            'header_owed'         => 'Owes me',
+            'ticket_type_label'   => 'Type',
+            'quantity_label'      => 'Qty',
+            'gross_label'         => 'Gross',
+            'no_sales'            => 'No sales',
+        ],
+
+        /* ------------------ "Transaction history" ------------------ */
+        'transactions' => [
+            'heading'             => 'Transaction history',
+            'from_sub'            => 'Sub-promoter paid me',
+            'to_org'              => 'Payment to organizers',
+            'date'                => 'Date',
+            'amount'              => 'Amount',
+            'from'                => 'From',
+            'to'                  => 'To',
+            'recorded_by'         => 'Recorded by',
+            'note'                => 'Note',
+            'empty'               => 'No transactions recorded yet.',
+            'analytics_cash'      => 'Cash in hand',
+            'analytics_earnings'  => 'My earnings',
+            'analytics_debt'      => 'Debt to organizers',
+        ],
+
+        /* ------------------ "Ticket sale history" ------------------ */
+        'ticket_history' => [
+            'heading'           => 'Ticket sale history',
+            'empty'             => 'No tickets have been sold yet.',
+            'header_seller'     => 'Sold by',
+            'header_date'       => 'Date',
+            'header_order'      => 'Order',
+            'header_email'      => 'Email',
+            'header_items'      => 'Tickets in order',
+            'header_manager'    => 'My earnings',
+            'quantity_label'    => 'qty',
         ],
 
         /* ------------------ Evidence / payment ledgers ------------------ */
