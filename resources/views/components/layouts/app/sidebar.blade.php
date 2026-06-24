@@ -3,7 +3,8 @@
     <head>
         @include('partials.head')
     </head>
-    <body class="min-h-screen bg-zinc-50 dark:bg-zinc-900">
+    <body class="grid min-h-screen bg-zinc-50 dark:bg-zinc-900"
+      style="grid-template-rows: auto 1fr auto; grid-template-columns: min-content minmax(0, 1fr) min-content; grid-template-areas: 'header header header' 'sidebar main aside' 'sidebar footer aside';">
         <flux:sidebar sticky stashable class="border-e border-zinc-200 bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900">
             <flux:sidebar.toggle class="lg:hidden" icon="x-mark" />
 
