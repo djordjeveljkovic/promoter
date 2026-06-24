@@ -457,5 +457,23 @@ return [
             'payment_history_heading' => 'Istorija Uplata sa Ovim Promoterom',
             'payment_history_empty'   => 'Još nema evidentiranih uplata za ovog promotera.',
         ],
+
+        'edit_payment' => [
+            'page_title'         => 'Izmeni evidentiranu uplatu',
+            'main_heading'       => 'Izmeni evidentiranu uplatu',
+            'sub_heading'        => 'Prvobitno evidentirana :date za :amount RSD. Stanje duga promotera će se automatski preračunati nakon ove izmene.',
+            'back_button'        => 'Nazad na promotera',
+            'form_heading'       => 'Detalji uplate',
+            'cancel_button'      => 'Otkaži',
+            'save_button'        => 'Sačuvaj izmene',
+            'danger_heading'     => 'Obriši ovu uplatu',
+            'danger_help'        => 'Koristi samo za ispravku grešaka. Brisanje ne može da se opozove i odmah povećava dug promotera.',
+            'delete_button'      => 'Obriši uplatu',
+            'delete_confirm'     => 'Trajno obrisati ovu evidentiranu uplatu? Ovo ne može da se opozove.',
+            'row_delete_confirm' => 'Obrisati uplatu od :amount RSD? Ovo ne može da se opozove.',
+            'edit_action'        => 'Izmeni',
+            'delete_action'      => 'Obriši',
+            'table_actions'      => 'Akcije',
+        ],
     ],
 ];

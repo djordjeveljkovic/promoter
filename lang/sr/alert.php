@@ -58,6 +58,8 @@ return [
 
     // Poruke za evidentiranje uplata
     'payment_recorded_success'                   => 'Uplata od :amount RSD od :name je evidentirana.',
+    'payment_updated_success'                    => 'Uplata za :name je ažurirana na :amount RSD.',
+    'payment_deleted_success'                    => 'Uplata od :amount RSD je obrisana.',
     'payment_to_organizers_recorded_success'     => 'Uplata od :amount RSD organizatorima je evidentirana.',
     'payment_amount_invalid'                     => 'Iznos uplate mora biti veći od nule.',
     'admin_payment_from_sub_recorded_success'    => 'Evidentirana uplata od :amount RSD od :name (promoter kod :manager) ka menadžeru.',

@@ -57,6 +57,8 @@ return [
 
     // Debt / payment recording alerts
     'payment_recorded_success'                  => 'Payment of :amount RSD from :name recorded.',
+    'payment_updated_success'                   => 'Payment for :name updated to :amount RSD.',
+    'payment_deleted_success'                   => 'Payment of :amount RSD deleted.',
     'payment_to_organizers_recorded_success'    => 'Payment of :amount RSD to organizers recorded.',
     'payment_amount_invalid'                    => 'Payment amount must be greater than zero.',
     'admin_payment_from_sub_recorded_success'   => 'Recorded :amount RSD from :name (promoter of :manager) to the manager.',

@@ -195,6 +195,17 @@ Route::middleware('auth')->group(function () {
         // the admin side (admin.payments.from_manager.store).
         Route::post('/sub-promoter/{sub}/payments/from-sub', [PaymentController::class, 'recordFromSub'])
             ->name('promoter_manager.payments.from_sub.store');
+
+        // Edit / delete a previously recorded sub-to-manager payment.
+        // Authorization (manager owns the sub) is enforced inside the
+        // controller — the {payment} route-model lookup here just gives
+        // 404 on bogus IDs without leaking existence of other teams' rows.
+        Route::get('/payments/from-sub/{payment}/edit', [PaymentController::class, 'managerEditFromSub'])
+            ->name('promoter_manager.payments.from_sub.edit');
+        Route::put('/payments/from-sub/{payment}', [PaymentController::class, 'managerUpdateFromSub'])
+            ->name('promoter_manager.payments.from_sub.update');
+        Route::delete('/payments/from-sub/{payment}', [PaymentController::class, 'managerDestroyFromSub'])
+            ->name('promoter_manager.payments.from_sub.destroy');
     });
 
     /**

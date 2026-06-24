@@ -214,6 +214,7 @@
                             <x-ui.table-cell header>{{ __('promoter_managers.dashboard.payment_history.from_label') }}</x-ui.table-cell>
                             <x-ui.table-cell header align="right" numeric>{{ __('promoter_managers.dashboard.payment_history.amount') }}</x-ui.table-cell>
                             <x-ui.table-cell header>{{ __('promoter_managers.dashboard.payment_history.note') }}</x-ui.table-cell>
+                            <x-ui.table-cell header align="center">{{ __('promoter_managers.sub_promoters.edit_payment.table_actions') }}</x-ui.table-cell>
                         </x-ui.table-row>
                     </x-ui.table-header>
                     <x-ui.table-body>
@@ -232,6 +233,31 @@
                                 </x-ui.table-cell>
                                 <x-ui.table-cell>
                                     <span class="text-zinc-500 dark:text-zinc-400">{{ $payment->note ?? '—' }}</span>
+                                </x-ui.table-cell>
+                                <x-ui.table-cell align="center">
+                                    <div class="inline-flex items-center gap-2">
+                                        <x-ui.link
+                                            :href="route('promoter_manager.payments.from_sub.edit', $payment->id)"
+                                            icon="pencil-square"
+                                            size="sm"
+                                        >
+                                            {{ __('promoter_managers.sub_promoters.edit_payment.edit_action') }}
+                                        </x-ui.link>
+                                        <form
+                                            method="POST"
+                                            action="{{ route('promoter_manager.payments.from_sub.destroy', $payment->id) }}"
+                                            class="inline"
+                                            onsubmit="return confirm('{{ __('promoter_managers.sub_promoters.edit_payment.row_delete_confirm', ['amount' => number_format((float) $payment->amount, 2)]) }}')"
+                                        >
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit"
+                                                    class="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-xs font-medium text-rose-600 hover:bg-rose-50 hover:text-rose-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 dark:text-rose-400 dark:hover:bg-rose-500/10 dark:hover:text-rose-300">
+                                                <x-ui.icon name="trash" class="h-3.5 w-3.5" />
+                                                {{ __('promoter_managers.sub_promoters.edit_payment.delete_action') }}
+                                            </button>
+                                        </form>
+                                    </div>
                                 </x-ui.table-cell>
                             </x-ui.table-row>
                         @endforeach

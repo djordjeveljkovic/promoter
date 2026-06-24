@@ -457,5 +457,23 @@ return [
             'payment_history_heading' => 'Payment History with This Promoter',
             'payment_history_empty'   => 'No payments recorded yet for this promoter.',
         ],
+
+        'edit_payment' => [
+            'page_title'         => 'Edit Recorded Payment',
+            'main_heading'       => 'Edit recorded payment',
+            'sub_heading'        => 'Originally recorded on :date for :amount RSD. The promoter\'s debt figures will recompute automatically after this change.',
+            'back_button'        => 'Back to promoter',
+            'form_heading'       => 'Payment details',
+            'cancel_button'      => 'Cancel',
+            'save_button'        => 'Save changes',
+            'danger_heading'     => 'Delete this payment',
+            'danger_help'        => 'Use this only for mistake corrections. Deletion cannot be undone and immediately increases the promoter\'s outstanding debt.',
+            'delete_button'      => 'Delete payment',
+            'delete_confirm'     => 'Permanently delete this recorded payment? This cannot be undone.',
+            'row_delete_confirm' => 'Delete the :amount RSD payment? This cannot be undone.',
+            'edit_action'        => 'Edit',
+            'delete_action'      => 'Delete',
+            'table_actions'      => 'Actions',
+        ],
     ],
 ];

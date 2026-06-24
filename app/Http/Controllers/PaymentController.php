@@ -8,6 +8,7 @@ use App\Services\DebtService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\View\View as ViewResponse;
 
 /**
  * Controller for the payment-recording flows in the promoter hierarchy.
@@ -90,6 +91,106 @@ class PaymentController extends Controller
                 'name'   => $sub->name,
                 'amount' => number_format((float) $validated['amount'], 2),
             ]));
+    }
+
+    /* ============================================================== */
+    /*  PROMOTER-MANAGER ACTIONS — edit / delete existing payments    */
+    /* ============================================================== */
+
+    /**
+     * Show the edit form for a previously-recorded sub-to-manager payment.
+     *
+     * Authorization: the caller must be a promoter-manager, and the payment
+     * must be of type 'sub_to_manager' where the payer's parent is the caller.
+     */
+    public function managerEditFromSub(Request $request, int $paymentId): ViewResponse
+    {
+        $manager = Auth::user();
+        abort_unless($manager && $manager->isPromoterManager(), 403);
+
+        $payment = $this->findManagerSubPayment($manager, $paymentId);
+
+        $sub = User::findOrFail($payment->payer_id);
+
+        return view('pages.promoter_managers.sub_promoters.edit_payment', [
+            'payment' => $payment,
+            'sub'     => $sub,
+        ]);
+    }
+
+    /**
+     * Update an existing sub-to-manager payment (mistake correction by the
+     * promoter-manager). The debt figures are computed live from the ledger
+     * so adjusting amount/date/note here is reflected everywhere immediately.
+     */
+    public function managerUpdateFromSub(Request $request, int $paymentId)
+    {
+        $manager = Auth::user();
+        abort_unless($manager && $manager->isPromoterManager(), 403);
+
+        $payment = $this->findManagerSubPayment($manager, $paymentId);
+
+        $validated = $request->validate([
+            'amount'  => 'required|numeric|min:0.01|max:9999999.99',
+            'note'    => 'nullable|string|max:500',
+            'paid_at' => 'nullable|date',
+        ]);
+
+        $payment->amount  = (float) $validated['amount'];
+        $payment->note    = $validated['note'] ?? null;
+        $payment->paid_at = isset($validated['paid_at'])
+            ? \Carbon\Carbon::parse($validated['paid_at'])
+            : $payment->paid_at;
+        $payment->save();
+
+        return redirect()
+            ->route('promoter_manager.sub_promoters.edit', $payment->payer_id)
+            ->with('success', __('alert.payment_updated_success', [
+                'name'   => $payment->payer?->name ?? '',
+                'amount' => number_format((float) $payment->amount, 2),
+            ]));
+    }
+
+    /**
+     * Delete a previously-recorded sub-to-manager payment.
+     *
+     * No cached column needs to be reverted: sub_to_manager flows don't
+     * update users.paid. Deletion is wrapped in a transaction so we never
+     * half-delete a row.
+     */
+    public function managerDestroyFromSub(Request $request, int $paymentId)
+    {
+        $manager = Auth::user();
+        abort_unless($manager && $manager->isPromoterManager(), 403);
+
+        $payment = $this->findManagerSubPayment($manager, $paymentId);
+        $subId   = $payment->payer_id;
+        $amount  = (float) $payment->amount;
+
+        DB::transaction(function () use ($payment) {
+            $payment->delete();
+        });
+
+        return redirect()
+            ->route('promoter_manager.sub_promoters.edit', $subId)
+            ->with('success', __('alert.payment_deleted_success', [
+                'amount' => number_format($amount, 2),
+            ]));
+    }
+
+    /**
+     * Helper: locate a sub-to-manager payment that the given manager is
+     * authorized to mutate. Centralizes the three checks every manager
+     * action performs (role, payment type, ownership via parent_id).
+     */
+    private function findManagerSubPayment(User $manager, int $paymentId): SubPromoterPayment
+    {
+        return SubPromoterPayment::where('payment_type', SubPromoterPayment::TYPE_SUB_TO_MANAGER)
+            ->whereHas('payer', function ($q) use ($manager) {
+                // payer's parent must be the current manager
+                $q->where('role', 'sub_promoter')->where('parent_id', $manager->id);
+            })
+            ->findOrFail($paymentId);
     }
 
     /* ============================================================== */
