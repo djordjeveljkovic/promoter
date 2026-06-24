@@ -1,7 +1,4 @@
 <x-layouts.app :title="__('orders.show_page_title', ['orderNumber' => $order->order_number])">
-    @php
-        use App\Support\Status;
-    @endphp
     <div class="space-y-6">
 
         {{-- ===================== Page Header ===================== --}}
