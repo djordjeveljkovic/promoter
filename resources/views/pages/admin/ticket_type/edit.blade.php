@@ -1,5 +1,6 @@
 <x-layouts.app :title="__('ticket_types.edit_form.page_title')">
-    <div class="space-y-6 max-w-3xl">
+    <div class="space-y-6">
+        <div class="max-w-3xl">
         <x-ui.page-header :title="__('ticket_types.edit_form.main_heading', ['name' => $ticketType->name])">
             <x-slot:actions>
                 <x-ui.link variant="secondary" :href="route('ticket_type.index')" icon="arrow-left">
@@ -7,6 +8,7 @@
                 </x-ui.link>
             </x-slot:actions>
         </x-ui.page-header>
+        </div>
 
         @if ($errors->any())
             <x-ui.alert variant="danger" :title="__('ticket_types.edit_form.errors_title')">
@@ -24,9 +26,9 @@
                 @method('PUT')
 
                 {{-- Two-column layout on lg+, stacked on mobile --}}
-                <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
+                <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
                     {{-- LEFT COLUMN: Name + Price, Photo, QR Coordinates --}}
-                    <div class="space-y-6 lg:col-span-2">
+                    <div class="space-y-6 lg:col-span-1">
                         {{-- Name + Price side by side --}}
                         <div class="grid grid-cols-1 gap-x-4 gap-y-5 md:grid-cols-3">
                             <div class="md:col-span-2">
@@ -164,11 +166,11 @@
                     </div>
 
                     {{-- RIGHT COLUMN: Commission tiers in a sticky scrollable card --}}
-                    <div class="lg:col-span-1">
+                    <div>
                         <div class="lg:sticky lg:top-4 flex max-h-[80vh] flex-col overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-700 dark:bg-zinc-900/60">
                             {{-- Card header (always visible, "Add Tier" button inside) --}}
-                            <div class="flex items-start justify-between gap-2 border-b border-zinc-200 bg-zinc-50 px-4 py-3 dark:border-zinc-700 dark:bg-zinc-800/80">
-                                <div>
+                            <div class="flex flex-col gap-3 border-b border-zinc-200 bg-zinc-50 px-4 py-3 dark:border-zinc-700 dark:bg-zinc-800/80 sm:flex-row sm:items-center sm:justify-between">
+                                <div class="min-w-0">
                                     <h3 class="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
                                         {{ __('ticket_types.edit_form.commissions_fieldset_legend') }} <span class="text-rose-500">*</span>
                                     </h3>
@@ -177,11 +179,11 @@
                                     </p>
                                 </div>
                                 <button type="button" id="add-commission-tier-btn"
-                                        class="inline-flex shrink-0 items-center rounded-md border border-dashed border-zinc-400 dark:border-zinc-500 bg-white dark:bg-zinc-900 px-2.5 py-1.5 text-xs font-medium text-zinc-700 dark:text-zinc-300 shadow-sm hover:bg-zinc-50 dark:hover:bg-zinc-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-zinc-900">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        class="inline-flex w-full shrink-0 items-center justify-center rounded-md border border-dashed border-zinc-400 dark:border-zinc-500 bg-white dark:bg-zinc-900 px-3 py-1.5 text-xs font-medium text-zinc-700 dark:text-zinc-300 shadow-sm hover:bg-zinc-50 dark:hover:bg-zinc-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-zinc-900 sm:w-auto">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                                     </svg>
-                                    {{ __('ticket_types.edit_form.commissions_add_tier_button') }}
+                                    <span class="whitespace-nowrap">{{ __('ticket_types.edit_form.commissions_add_tier_button') }}</span>
                                 </button>
                             </div>
 
@@ -211,7 +213,7 @@
                                                 </button>
                                             @endif
                                         </div>
-                                        <div class="grid grid-cols-2 gap-3">
+                                        <div class="grid grid-cols-1 gap-3 sm:grid-cols-3">
                                             <x-ui.field label="{{ __('ticket_types.edit_form.commissions_min_sold_label') }}" for="commissions_{{ $index }}_min_sold" :error="$errors->first($minErr)" required>
                                                 <x-ui.input type="number" name="commissions[{{ $index }}][min_sold]" id="commissions_{{ $index }}_min_sold"
                                                             :value="$commission['min_sold'] ?? ''"
@@ -224,8 +226,6 @@
                                                             placeholder="{{ __('ticket_types.edit_form.commissions_max_sold_placeholder') }}"
                                                             min="0" />
                                             </x-ui.field>
-                                        </div>
-                                        <div class="mt-3">
                                             <x-ui.field label="{{ __('ticket_types.edit_form.commissions_amount_label') }}" for="commissions_{{ $index }}_commission_amount" :error="$errors->first($amtErr)" required>
                                                 <x-ui.input type="number" name="commissions[{{ $index }}][commission_amount]" id="commissions_{{ $index }}_commission_amount"
                                                             :value="$commission['commission_amount'] ?? ''"
@@ -243,11 +243,11 @@
                     </div>
                 </div>
 
-                <div class="flex items-center justify-end gap-3 pt-4 border-t border-zinc-200 dark:border-zinc-700">
-                    <x-ui.button variant="secondary" :href="route('ticket_type.index')">
+                <div class="flex flex-col gap-3 pt-4 border-t border-zinc-200 sm:flex-row sm:items-center sm:justify-end dark:border-zinc-700">
+                    <x-ui.button variant="secondary" :href="route('ticket_type.index')" class="w-full sm:w-auto">
                         {{ __('ticket_types.edit_form.cancel_button') }}
                     </x-ui.button>
-                    <x-ui.button variant="primary" type="submit">
+                    <x-ui.button variant="primary" type="submit" class="w-full sm:w-auto">
                         {{ __('ticket_types.edit_form.update_button') }}
                     </x-ui.button>
                 </div>
@@ -343,7 +343,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                     </button>
                 </div>
-                <div class="grid grid-cols-2 gap-3">
+                <div class="grid grid-cols-1 gap-3 sm:grid-cols-3">
                     <div>
                         <label for="commissions_${index}_min_sold" class="block text-xs font-medium text-zinc-700 dark:text-zinc-300">${translatedCommissionStrings.minSoldLabel} <span class="text-rose-500">*</span></label>
                         <input type="number" name="commissions[${index}][min_sold]" id="commissions_${index}_min_sold" class="mt-1 block w-full rounded-lg border border-zinc-300 bg-white px-2.5 py-1.5 text-sm text-zinc-900 placeholder-zinc-400 shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-0 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100" placeholder="${translatedCommissionStrings.minSoldPlaceholder}" min="0" required>
@@ -352,10 +352,10 @@ document.addEventListener('DOMContentLoaded', function () {
                         <label for="commissions_${index}_max_sold" class="block text-xs font-medium text-zinc-700 dark:text-zinc-300">${translatedCommissionStrings.maxSoldLabel}</label>
                         <input type="number" name="commissions[${index}][max_sold]" id="commissions_${index}_max_sold" class="mt-1 block w-full rounded-lg border border-zinc-300 bg-white px-2.5 py-1.5 text-sm text-zinc-900 placeholder-zinc-400 shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-0 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100" placeholder="${translatedCommissionStrings.maxSoldPlaceholder}" min="0">
                     </div>
-                </div>
-                <div class="mt-3">
-                    <label for="commissions_${index}_commission_amount" class="block text-xs font-medium text-zinc-700 dark:text-zinc-300">${translatedCommissionStrings.commissionAmountLabel} <span class="text-rose-500">*</span></label>
-                    <input type="number" name="commissions[${index}][commission_amount]" id="commissions_${index}_commission_amount" class="mt-1 block w-full rounded-lg border border-zinc-300 bg-white px-2.5 py-1.5 text-sm text-zinc-900 placeholder-zinc-400 shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-0 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100" placeholder="${translatedCommissionStrings.commissionAmountPlaceholder}" step="0.01" min="0" required>
+                    <div>
+                        <label for="commissions_${index}_commission_amount" class="block text-xs font-medium text-zinc-700 dark:text-zinc-300">${translatedCommissionStrings.commissionAmountLabel} <span class="text-rose-500">*</span></label>
+                        <input type="number" name="commissions[${index}][commission_amount]" id="commissions_${index}_commission_amount" class="mt-1 block w-full rounded-lg border border-zinc-300 bg-white px-2.5 py-1.5 text-sm text-zinc-900 placeholder-zinc-400 shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-0 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100" placeholder="${translatedCommissionStrings.commissionAmountPlaceholder}" step="0.01" min="0" required>
+                    </div>
                 </div>
             </div>
         `;
@@ -371,6 +371,11 @@ document.addEventListener('DOMContentLoaded', function () {
                  }
             });
         }
+        // Scroll the new tier into view inside the (possibly scrollable) container
+        // and focus the first input so the user can immediately type a value.
+        newRow.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        const firstInput = newRow.querySelector('input[type="number"]');
+        if (firstInput) firstInput.focus();
     }
 });
 </script>
