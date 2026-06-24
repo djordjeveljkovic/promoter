@@ -1,8 +1,4 @@
 <x-layouts.app :title="__('sub_promoter_dashboard.page_title')">
-    @php
-        use App\Support\Status;
-    @endphp
-
     <div class="space-y-6">
 
         {{-- ===================== Flash messages ===================== --}}
