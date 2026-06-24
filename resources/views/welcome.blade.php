@@ -9,8 +9,19 @@
             <main class="flex max-w-[335px] w-full flex-col-reverse lg:max-w-4xl lg:flex-row">
 
                 @auth
+                    @php
+                        // Send each logged-in user to the dashboard they can
+                        // actually see, instead of always forcing the admin
+                        // one (which 403s for non-admin roles).
+                        $dashboardRoute = match (auth()->user()->role) {
+                            'sub_promoter'     => 'sub_promoter.dashboard',
+                            'promoter_manager' => 'promoter_manager.dashboard',
+                            'promoter'         => 'promoter.dashboard',
+                            default            => 'dashboard', // admin, superadmin, supreme
+                        };
+                    @endphp
                     {{-- Redirect immediately if logged in --}}
-                    <script>window.location.href = '{{ route('dashboard') }}';</script>
+                    <script>window.location.href = '{{ route($dashboardRoute) }}';</script>
                 @else
                     {{-- Guest: Show login --}}
                     <a href="{{ route('login') }}" class="flex flex-col w-full text-2xl text-white items-center justify-center opacity-100 transition-opacity duration-750 lg:grow starting:opacity-0">

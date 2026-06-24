@@ -1,8 +1,8 @@
 <?php
 
 return [
-    'page_title' => 'Kontrolna tabla sub-promotera',
-    'eyebrow'    => 'Sub-Promoter',
+    'page_title' => 'Kontrolna tabla promotera',
+    'eyebrow'    => 'Promoter',
     'main_heading' => 'Moja Kontrolna Tabla',
     'managed_by_prefix' => 'Upravlja:',
     'no_manager_notice' => 'Još uvek niste dodeljeni promoter menadžeru. Zarađivaćete punu proviziju od svoje prodaje.',
@@ -98,7 +98,7 @@ return [
     'orders' => [
         'page_title'        => 'Moje Porudžbine',
         'main_heading'      => 'Moje Porudžbine',
-        'sub_heading'       => 'Svaka porudžbina koju ste izvršili, sa provizijom koju ste VI zaradili na njoj. Porudžbine drugih sub-promotera se ne prikazuju ovde.',
+        'sub_heading'       => 'Svaka porudžbina koju ste izvršili, sa provizijom koju ste VI zaradili na njoj. Porudžbine drugih promotera se ne prikazuju ovde.',
         'back_to_dashboard' => '&larr; Nazad na kontrolnu tablu',
         'new_order_button'  => 'Nova Porudžbina',
         'table' => [

@@ -1,9 +1,9 @@
 <?php
 
 return [
-    'page_title' => 'Sub-Promoter Dashboard',
-    'eyebrow'    => 'Sub-Promoter',
-    'main_heading' => 'My Sub-Promoter Dashboard',
+    'page_title' => 'Promoter Dashboard',
+    'eyebrow'    => 'Promoter',
+    'main_heading' => 'My Promoter Dashboard',
     'managed_by_prefix' => 'Managed by:',
     'no_manager_notice' => 'You are not assigned to a promoter-manager yet. You will earn the full commission from your sales.',
 
@@ -98,7 +98,7 @@ return [
     'orders' => [
         'page_title'        => 'My Orders',
         'main_heading'      => 'My Orders',
-        'sub_heading'       => 'Every order you placed, with the commission YOU earned on it. Orders placed by other sub-promoters are not shown here.',
+        'sub_heading'       => 'Every order you placed, with the commission YOU earned on it. Orders placed by other promoters are not shown here.',
         'back_to_dashboard' => '&larr; Back to dashboard',
         'new_order_button'  => 'New Order',
         'table' => [

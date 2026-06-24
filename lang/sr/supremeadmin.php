@@ -3,7 +3,7 @@
 return [
     'page_title'         => 'Pregled za Supreme Admina',
     'main_heading'       => 'Pregled za Supreme Admina',
-    'sub_heading'        => 'Pregled svih promoter menadžera, njihovih sub-promotera i koliko je ko zaradio ili duguje festivalu.',
+    'sub_heading'        => 'Pregled svih promoter menadžera, njihovih promotera i koliko je ko zaradio ili duguje festivalu.',
     'search_placeholder' => 'Pretraga po imenu ili email-u…',
     'search_button'      => 'Pretraži',
     'clear_button'       => 'Obriši',
@@ -11,7 +11,7 @@ return [
 
     'kpi' => [
         'managers'    => 'Menadžeri',
-        'subs'        => 'Sub-promoteri',
+        'subs'        => 'Promoteri',
         'tickets'     => 'Prodate karte',
         'gross_sales' => 'Bruto prodaja',
         'commission'  => 'Zarada (provizija)',
@@ -54,8 +54,8 @@ return [
     ],
 
     'sub' => [
-        'empty'                => 'Ovaj menadžer nema sub-promotera.',
-        'header_name'          => 'Sub-promoter',
+        'empty'                => 'Ovaj menadžer nema promotera.',
+        'header_name'          => 'Promoter',
         'header_orders'        => 'Narudžbine',
         'header_tickets'       => 'Karte',
         'header_gross_sales'   => 'Bruto prodaja',
@@ -81,14 +81,14 @@ return [
         'role_admin'           => 'Admin',
         'role_promoter'        => 'Promoter',
         'role_promoter_manager'=> 'Promoter menadžer',
-        'role_sub_promoter'    => 'Sub-promoter',
+        'role_sub_promoter'    => 'Promoter',
 
         'table' => [
             'header_name'         => 'Ime',
             'header_role'         => 'Uloga',
             'header_parent'       => 'Menadžer',
             'header_orders'       => 'Narudžbine',
-            'header_subs'         => 'Sub-promoteri',
+            'header_subs'         => 'Promoteri',
             'header_joined_date'  => 'Pridružen',
             'header_actions'      => 'Akcije',
         ],

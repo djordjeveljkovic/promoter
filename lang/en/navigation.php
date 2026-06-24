@@ -14,7 +14,7 @@ return [
         'promoter_dashboard' => 'Dashboard',
         'promoter_manager_dashboard' => 'Dashboard',
         'sub_promoter_dashboard' => 'Dashboard',
-        'sub_promoters' => 'Sub-Promoters',
+        'sub_promoters' => 'Promoters',
         'sales' => 'Sales',
         'promoter_sold_tickets' => 'Sold Tickets',
         'sub_promoter_sold_tickets' => 'Sold Tickets',

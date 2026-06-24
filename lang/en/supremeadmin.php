@@ -3,7 +3,7 @@
 return [
     'page_title'         => 'Supreme Admin Overview',
     'main_heading'       => 'Supreme Admin Overview',
-    'sub_heading'        => 'Bird\'s-eye view of every promoter-manager, their sub-promoters, and how much each one has earned or owes the festival.',
+    'sub_heading'        => 'Bird\'s-eye view of every promoter-manager, their promoters, and how much each one has earned or owes the festival.',
     'search_placeholder' => 'Search by name or email…',
     'search_button'      => 'Search',
     'clear_button'       => 'Clear',
@@ -11,7 +11,7 @@ return [
 
     'kpi' => [
         'managers'    => 'Managers',
-        'subs'        => 'Sub-promoters',
+        'subs'        => 'Promoters',
         'tickets'     => 'Tickets sold',
         'gross_sales' => 'Gross sales',
         'commission'  => 'Commission earned',
@@ -54,8 +54,8 @@ return [
     ],
 
     'sub' => [
-        'empty'                => 'No sub-promoters for this manager.',
-        'header_name'          => 'Sub-promoter',
+        'empty'                => 'No promoters for this manager.',
+        'header_name'          => 'Promoter',
         'header_orders'        => 'Orders',
         'header_tickets'       => 'Tickets',
         'header_gross_sales'   => 'Gross sales',
@@ -81,14 +81,14 @@ return [
         'role_admin'           => 'Admin',
         'role_promoter'        => 'Promoter',
         'role_promoter_manager'=> 'Promoter Manager',
-        'role_sub_promoter'    => 'Sub-promoter',
+        'role_sub_promoter'    => 'Promoter',
 
         'table' => [
             'header_name'         => 'Name',
             'header_role'         => 'Role',
             'header_parent'       => 'Manager',
             'header_orders'       => 'Orders',
-            'header_subs'         => 'Sub-promoters',
+            'header_subs'         => 'Promoters',
             'header_joined_date'  => 'Joined',
             'header_actions'      => 'Actions',
         ],

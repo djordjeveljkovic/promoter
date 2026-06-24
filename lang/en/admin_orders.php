@@ -16,7 +16,7 @@ return [
         'role_admin' => 'Admin',
         'role_promoter' => 'Promoter',
         'role_promoter_manager' => 'Promoter Manager',
-        'role_sub_promoter' => 'Sub-Promoter',
+        'role_sub_promoter' => 'Promoter',
     ],
 
     'live' => [

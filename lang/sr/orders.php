@@ -88,7 +88,7 @@ return [
             'status_label'            => 'Status',
             'seller_label'            => 'Prodao',
             'my_commission_label'     => 'Moja provizija na ovoj porudžbini',
-            'commission_split_note'   => 'Ukupan fond provizije je :total RSD - ostatak je otišao sub-promoteru prodavca prema podešavanjima.',
+            'commission_split_note'   => 'Ukupan fond provizije je :total RSD - ostatak je otišao promoteru prodavca prema podešavanjima.',
         ],
         'items' => [
             'heading'           => 'Stavke',
@@ -110,7 +110,7 @@ return [
             'qr_not_available'     => 'QR kod još nije generisan',
             'download_all_button'  => 'Preuzmi sve QR kodove',
             'restricted_notice_title'   => 'QR kodovi su ograničeni',
-            'restricted_notice_body'    => 'QR kodovi za ovu porudžbinu nisu vidljivi za vašu ulogu (sub-promoter / promoter menadžer).',
+            'restricted_notice_body'    => 'QR kodovi za ovu porudžbinu nisu vidljivi za vašu ulogu (promoter / promoter menadžer).',
         ],
     ],
 ];

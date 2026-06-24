@@ -88,7 +88,7 @@ return [
             'status_label'            => 'Status',
             'seller_label'            => 'Sold by',
             'my_commission_label'     => 'My commission on this order',
-            'commission_split_note'   => 'Total commission pool was :total RSD - the rest went to the seller\'s sub-promoter per their override.',
+            'commission_split_note'   => 'Total commission pool was :total RSD - the rest went to the seller\'s promoter per their override.',
         ],
         'items' => [
             'heading'           => 'Items',
@@ -110,7 +110,7 @@ return [
             'qr_not_available'     => 'QR not generated yet',
             'download_all_button'  => 'Download all QR codes',
             'restricted_notice_title'   => 'QR codes are restricted',
-            'restricted_notice_body'    => 'QR codes for this order are not visible to your role (sub-promoter / promoter-manager).',
+            'restricted_notice_body'    => 'QR codes for this order are not visible to your role (promoter / promoter-manager).',
         ],
     ],
 ];
