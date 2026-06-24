@@ -70,39 +70,16 @@
         {{-- ===================== Section 1 · OVERVIEW ===================== --}}
         <section aria-label="{{ __('promoter_managers.dashboard.overview.heading_part1') }}">
 
-            {{-- Part 1 · 4 KPI kartice --------------------------------- --}}
+            {{-- KPI kartice --------------------------------- --}}
             <div class="mb-4 flex items-center justify-between">
                 <h2 class="text-xs font-semibold uppercase tracking-[0.2em] text-zinc-500 dark:text-zinc-400">
                     {{ __('promoter_managers.dashboard.overview.heading_part1') }}
                 </h2>
                 <span class="h-px flex-1 bg-zinc-200 dark:bg-zinc-800 ml-3"></span>
             </div>
-            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
 
-                {{-- 1) Novac kod mene --}}
-                <div class="group relative flex flex-col gap-3 overflow-hidden rounded-2xl bg-gradient-to-br from-emerald-500 via-emerald-600 to-teal-600 p-5 text-white shadow-lg sm:p-6">
-                    <div class="flex items-start justify-between gap-3">
-                        <p class="text-xs font-semibold uppercase tracking-wider text-white/80">
-                            {{ __('promoter_managers.dashboard.kpi.cash_in_hand.label') }}
-                        </p>
-                        <span class="inline-flex size-9 shrink-0 items-center justify-center rounded-lg bg-white/15 text-white">
-                            <x-ui.icon name="shopping-bag" class="size-4" />
-                        </span>
-                    </div>
-                    <div class="flex items-baseline gap-2">
-                        <span class="text-3xl font-bold tracking-tight tabular-nums sm:text-4xl">
-                            @if($cashInHand < 0)−@endif{{ $fmt(abs($cashInHand)) }}
-                        </span>
-                        <span class="text-sm font-medium text-white/80">RSD</span>
-                    </div>
-                    @if($cashInHand < 0)
-                        <p class="mt-auto text-xs font-medium text-white/95">
-                            {{ __('promoter_managers.dashboard.kpi.cash_in_hand.overpaid') }}
-                        </p>
-                    @endif
-                </div>
-
-                {{-- 2) Moja zarada --}}
+                {{-- Moja zarada --}}
                 <div class="group relative flex flex-col gap-3 overflow-hidden rounded-2xl bg-gradient-to-br from-indigo-500 via-indigo-600 to-violet-600 p-5 text-white shadow-lg sm:p-6">
                     <div class="flex items-start justify-between gap-3">
                         <p class="text-xs font-semibold uppercase tracking-wider text-white/80">
@@ -118,7 +95,7 @@
                     </div>
                 </div>
 
-                {{-- 3) Novac kod promotera --}}
+                {{-- Novac kod promotera --}}
                 <a href="{{ route('promoter_manager.sub_promoters.index') }}"
                    class="group relative flex flex-col gap-3 overflow-hidden rounded-2xl bg-gradient-to-br from-amber-500 via-orange-500 to-rose-500 p-5 text-white shadow-lg transition hover:shadow-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-zinc-950 sm:p-6">
                     <div class="flex items-start justify-between gap-3">
@@ -139,7 +116,7 @@
                     </span>
                 </a>
 
-                {{-- 4) Dug prema org --}}
+                {{-- Dug prema org --}}
                 <div @class([
                     'group relative flex flex-col gap-3 overflow-hidden rounded-2xl p-5 text-white shadow-lg sm:p-6',
                     'bg-gradient-to-br from-rose-500 via-rose-600 to-orange-600' => $oweAmount > 0,
@@ -432,38 +409,6 @@
                     {{ __('promoter_managers.dashboard.transactions.heading') }}
                 </h2>
             </div>
-
-            {{-- Analitika --}}
-            <x-ui.kpi-strip :cols="3" class="mb-4">
-                <div class="flex flex-col gap-1 bg-white p-4 dark:bg-zinc-900 sm:p-5">
-                    <p class="text-[10px] font-semibold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
-                        {{ __('promoter_managers.dashboard.transactions.analytics_cash') }}
-                    </p>
-                    <p class="mt-1 text-xl font-bold tabular-nums text-zinc-900 dark:text-white sm:text-2xl">
-                        @if($cashInHand < 0)−@endif{{ $fmt(abs($cashInHand)) }} <span class="text-xs font-medium text-zinc-500">RSD</span>
-                    </p>
-                </div>
-                <div class="flex flex-col gap-1 bg-white p-4 dark:bg-zinc-900 sm:p-5">
-                    <p class="text-[10px] font-semibold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">
-                        {{ __('promoter_managers.dashboard.transactions.analytics_earnings') }}
-                    </p>
-                    <p class="mt-1 text-xl font-bold tabular-nums text-zinc-900 dark:text-white sm:text-2xl">
-                        {{ $fmt($myEarnings) }} <span class="text-xs font-medium text-zinc-500">RSD</span>
-                    </p>
-                </div>
-                <div class="flex flex-col gap-1 bg-white p-4 dark:bg-zinc-900 sm:p-5">
-                    <p class="text-[10px] font-semibold uppercase tracking-wider text-rose-600 dark:text-rose-400">
-                        {{ __('promoter_managers.dashboard.transactions.analytics_debt') }}
-                    </p>
-                    <p @class([
-                        'mt-1 text-xl font-bold tabular-nums sm:text-2xl',
-                        'text-rose-600 dark:text-rose-400' => $oweAmount > 0,
-                        'text-zinc-900 dark:text-white' => $oweAmount <= 0,
-                    ])>
-                        {{ $fmt($oweAmount) }} <span class="text-xs font-medium text-zinc-500">RSD</span>
-                    </p>
-                </div>
-            </x-ui.kpi-strip>
 
             {{-- Lista transakcija --}}
             @if($ledgerEntries->isEmpty())

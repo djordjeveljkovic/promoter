@@ -43,9 +43,6 @@
                         <p class="text-xs font-medium uppercase tracking-wider text-violet-100">
                             {{ __('sub_promoter_dashboard.financials.amount_owed') }}
                         </p>
-                        <p class="mt-1 text-sm text-violet-100/90 max-w-2xl">
-                            {{ __('sub_promoter_dashboard.financials.debt_formula') }}
-                        </p>
                         <div class="mt-4 flex flex-wrap items-baseline gap-3">
                             @if($amountOwedToManager > 0)
                                 <span class="text-4xl font-bold tracking-tight sm:text-5xl">
@@ -84,179 +81,6 @@
             </div>
         </section>
 
-        {{-- ===================== Pyramid / How the money flows ===================== --}}
-        <x-ui.card>
-            <x-ui.card.header
-                :title="__('sub_promoter_dashboard.pyramid.heading')"
-                :subtitle="__('sub_promoter_dashboard.pyramid.help')"
-            />
-            <div class="p-5 sm:p-6">
-                <div class="grid grid-cols-1 gap-3 md:grid-cols-5">
-                    {{-- Gross --}}
-                    <div class="rounded-lg border border-sky-200 bg-sky-50 p-4 dark:border-sky-700/40 dark:bg-sky-900/20">
-                        <p class="text-xs font-medium uppercase tracking-wider text-sky-700 dark:text-sky-300">
-                            {{ __('sub_promoter_dashboard.pyramid.row_gross') }}
-                        </p>
-                        <p class="mt-1 text-xl font-bold text-sky-900 dark:text-sky-100">
-                            {{ number_format($subGrossSalesAllTime, 2) }} <span class="text-xs font-medium text-sky-700 dark:text-sky-300">RSD</span>
-                        </p>
-                    </div>
-                    <div class="hidden items-center justify-center text-zinc-300 dark:text-zinc-600 md:flex">
-                        <x-ui.icon name="minus" class="size-6" />
-                    </div>
-                    {{-- Sub commission --}}
-                    <div class="rounded-lg border border-emerald-200 bg-emerald-50 p-4 dark:border-emerald-700/40 dark:bg-emerald-900/20">
-                        <p class="text-xs font-medium uppercase tracking-wider text-emerald-700 dark:text-emerald-300">
-                            {{ __('sub_promoter_dashboard.pyramid.row_sub_commission') }}
-                        </p>
-                        <p class="mt-1 text-xl font-bold text-emerald-900 dark:text-emerald-100">
-                            {{ number_format($subCommissionAllTime, 2) }} <span class="text-xs font-medium text-emerald-700 dark:text-emerald-300">RSD</span>
-                        </p>
-                    </div>
-                    <div class="hidden items-center justify-center text-zinc-300 dark:text-zinc-600 md:flex">
-                        <x-ui.icon name="minus" class="size-6" />
-                    </div>
-                    {{-- Remaining --}}
-                    <div @class([
-                        'rounded-lg p-4 border-2',
-                        'border-rose-300 bg-rose-50 dark:border-rose-700/40 dark:bg-rose-900/20' => $amountOwedToManager > 0,
-                        'border-emerald-300 bg-emerald-50 dark:border-emerald-700/40 dark:bg-emerald-900/20' => $amountOwedToManager <= 0,
-                    ])>
-                        <p @class([
-                            'text-xs font-medium uppercase tracking-wider',
-                            'text-rose-700 dark:text-rose-300' => $amountOwedToManager > 0,
-                            'text-emerald-700 dark:text-emerald-300' => $amountOwedToManager <= 0,
-                        ])>
-                            {{ __('sub_promoter_dashboard.pyramid.row_amount_due') }}
-                        </p>
-                        <p @class([
-                            'mt-1 text-xl font-bold',
-                            'text-rose-900 dark:text-rose-100' => $amountOwedToManager > 0,
-                            'text-emerald-900 dark:text-emerald-100' => $amountOwedToManager <= 0,
-                        ])>
-                            {{ number_format(max($amountOwedToManager, 0), 2) }} <span @class([
-                                'text-xs font-medium',
-                                'text-rose-700 dark:text-rose-300' => $amountOwedToManager > 0,
-                                'text-emerald-700 dark:text-emerald-300' => $amountOwedToManager <= 0,
-                            ])>RSD</span>
-                        </p>
-                    </div>
-                </div>
-                <div class="mt-3 grid grid-cols-1 gap-3 md:grid-cols-3">
-                    <div class="rounded-lg border border-zinc-200 bg-zinc-50 p-3 dark:border-zinc-700 dark:bg-zinc-800/50">
-                        <p class="text-xs font-medium uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
-                            {{ __('sub_promoter_dashboard.pyramid.row_already_paid') }}
-                        </p>
-                        <p class="mt-1 text-base font-semibold text-zinc-900 dark:text-white">
-                            {{ number_format($amountAlreadyPaid, 2) }} RSD
-                        </p>
-                    </div>
-                    <div class="rounded-lg border border-zinc-200 bg-zinc-50 p-3 dark:border-zinc-700 dark:bg-zinc-800/50">
-                        <p class="text-xs font-medium uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
-                            {{ __('sub_promoter_dashboard.pyramid.row_remaining') }}
-                        </p>
-                        <p @class([
-                            'mt-1 text-base font-semibold',
-                            'text-rose-600 dark:text-rose-400' => $amountOwedToManager > 0,
-                            'text-emerald-600 dark:text-emerald-400' => $amountOwedToManager <= 0,
-                        ])>
-                            {{ number_format(max($amountOwedToManager, 0), 2) }} RSD
-                        </p>
-                    </div>
-                    <div class="rounded-lg border border-zinc-200 bg-zinc-50 p-3 dark:border-zinc-700 dark:bg-zinc-800/50">
-                        <p class="text-xs font-medium uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
-                            {{ __('sub_promoter_dashboard.financials.commission_earned') }}
-                        </p>
-                        <p class="mt-1 text-base font-semibold text-emerald-600 dark:text-emerald-400">
-                            {{ number_format($subCommissionAllTime, 2) }} RSD
-                        </p>
-                    </div>
-                </div>
-            </div>
-        </x-ui.card>
-
-        {{-- ===================== Notice: payments are recorded by manager ===================== --}}
-        <x-ui.card>
-            <x-ui.card.header
-                :title="__('sub_promoter_dashboard.record_payment_notice.heading')"
-                :subtitle="__('sub_promoter_dashboard.record_payment_notice.helper_text')"
-            />
-            <div class="flex items-start gap-3 p-5 text-sm text-zinc-700 dark:text-zinc-200 sm:p-6">
-                <x-ui.icon name="cog" class="mt-0.5 size-5 shrink-0 text-indigo-500" />
-                <p>
-                    {{ __('sub_promoter_dashboard.record_payment_notice.body') }}
-                    @if($manager)
-                        <span class="font-medium text-zinc-900 dark:text-white">{{ $manager->name }}</span>.
-                    @endif
-                </p>
-            </div>
-        </x-ui.card>
-
-        {{-- ===================== Financials KPI cards ===================== --}}
-        <section>
-            <h2 class="mb-4 text-lg font-semibold text-zinc-900 dark:text-white">
-                {{ __('sub_promoter_dashboard.financials.heading') }}
-            </h2>
-            <x-ui.kpi-strip :cols="4">
-                <x-ui.stat-card
-                    :label="__('sub_promoter_dashboard.financials.commission_earned')"
-                    icon="banknotes"
-                    tone="success"
-                    :value="number_format($subCommissionAllTime, 2)"
-                    :subtext="__('sub_promoter_dashboard.financials.all_time_label')"
-                ><span class="text-sm font-medium text-zinc-500 dark:text-zinc-400">RSD</span></x-ui.stat-card>
-                <x-ui.stat-card
-                    :label="__('sub_promoter_dashboard.financials.gross_sales')"
-                    icon="chart-bar"
-                    tone="info"
-                    :value="number_format($subGrossSalesAllTime, 2)"
-                    :subtext="__('sub_promoter_dashboard.financials.gross_sales_subtext')"
-                ><span class="text-sm font-medium text-zinc-500 dark:text-zinc-400">RSD</span></x-ui.stat-card>
-                <x-ui.stat-card
-                    :label="__('sub_promoter_dashboard.financials.amount_paid')"
-                    icon="currency-dollar"
-                    tone="success"
-                    :value="number_format($amountAlreadyPaid, 2)"
-                    :subtext="__('sub_promoter_dashboard.financials.amount_owed_subtext')"
-                ><span class="text-sm font-medium text-zinc-500 dark:text-zinc-400">RSD</span></x-ui.stat-card>
-                <x-ui.stat-card
-                    :label="__('sub_promoter_dashboard.financials.commission_last_30')"
-                    icon="arrow-trending-up"
-                    tone="indigo"
-                    :value="number_format($subCommissionLast30Days, 2)"
-                    :subtext="__('sub_promoter_dashboard.financials.commission_last_30_subtext')"
-                ><span class="text-sm font-medium text-zinc-500 dark:text-zinc-400">RSD</span></x-ui.stat-card>
-            </x-ui.kpi-strip>
-            <div class="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <x-ui.card>
-                    <div class="flex items-center justify-between gap-4 p-4">
-                        <div>
-                            <span class="text-xs font-medium uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
-                                {{ __('sub_promoter_dashboard.financials.gross_sales_last_30') }}
-                            </span>
-                            <p class="mt-1 text-lg font-semibold text-zinc-900 dark:text-white">
-                                {{ number_format($subGrossSalesLast30Days, 2) }} RSD
-                            </p>
-                        </div>
-                        <x-ui.icon name="calendar" class="size-5 text-zinc-400 dark:text-zinc-500" />
-                    </div>
-                </x-ui.card>
-                <x-ui.card>
-                    <div class="flex items-center justify-between gap-4 p-4">
-                        <div>
-                            <span class="text-xs font-medium uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
-                                {{ __('sub_promoter_dashboard.performance.orders_all_time') }}
-                            </span>
-                            <p class="mt-1 text-lg font-semibold text-zinc-900 dark:text-white">
-                                {{ number_format($subOrdersAllTime) }}
-                            </p>
-                        </div>
-                        <x-ui.icon name="ticket" class="size-5 text-zinc-400 dark:text-zinc-500" />
-                    </div>
-                </x-ui.card>
-            </div>
-        </section>
-
         {{-- ===================== Performance ===================== --}}
         <section>
             <h2 class="mb-4 text-lg font-semibold text-zinc-900 dark:text-white">
@@ -287,7 +111,6 @@
             <x-ui.card class="lg:col-span-2">
                 <x-ui.card.header
                     :title="__('sub_promoter_dashboard.top_tickets.heading')"
-                    :subtitle="__('sub_promoter_dashboard.top_tickets.help')"
                 />
                 @if($subTicketTypePerformance->isEmpty())
                     <x-ui.empty-state
@@ -321,7 +144,6 @@
             <x-ui.card>
                 <x-ui.card.header
                     :title="__('sub_promoter_dashboard.status_breakdown.heading')"
-                    :subtitle="__('sub_promoter_dashboard.status_breakdown.help')"
                 />
                 @if($subOrderStatusCounts->isEmpty())
                     <x-ui.empty-state
@@ -363,7 +185,7 @@
                     {{ __('sub_promoter_dashboard.commission_split.heading') }}
                 </h2>
                 <x-ui.card>
-                    <x-ui.card.header :subtitle="__('sub_promoter_dashboard.commission_split.help')" />
+                    <x-ui.card.header />
                     <ul class="divide-y divide-zinc-200 dark:divide-zinc-800">
                         @foreach($overrides as $typeId => $ov)
                             @php
@@ -394,7 +216,7 @@
                 {{ __('sub_promoter_dashboard.payment_history.heading') }}
             </h2>
             <x-ui.card>
-                <x-ui.card.header :subtitle="__('sub_promoter_dashboard.payment_history.sub_heading')" />
+                <x-ui.card.header />
                 @if($recentPayments->isEmpty())
                     <x-ui.empty-state
                         icon="banknotes"
